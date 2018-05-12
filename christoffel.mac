@@ -1,0 +1,35 @@
+/* To run this, do "make christoffel." */
+
+    load(ctensor);
+    ct_coords:[v,w,theta,phi];
+    x:(v-w)/2;
+    t:(v+w)/2;
+    rho:x^2-t^2;
+    omega:lambert_w(rho/%e);
+    a:4*omega/((1+omega)*rho);
+    lg:matrix([0,a/2,0,0],
+              [a/2,0,0,0],
+              [0,0,-(1+omega)^2,0],
+              [0,0,0,-(1+omega)^2*sin(theta)^2])$
+    
+cmetric();   
+
+christof(false);
+/*
+  http://maxima.sourceforge.net/docs/manual/maxima_26.html
+  mcs is 
+    symmetric on 1st 2 indices
+    contravariant on final index
+*/
+
+letrat:true;
+let(-%e^-1*v*w,rhoe);
+let(lambert_w(rhoe),om);
+for i:1 thru dim do (
+  for j:i thru dim do (
+    for k:1 thru dim do (
+      if mcs[i,j,k]#0 then
+        print(i,j,k,string(scanmap(letsimp,scanmap(letsimp,mcs[i,j,k]))))
+    )
+  )
+);
