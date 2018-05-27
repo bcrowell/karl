@@ -27,3 +27,4 @@ def rotate_unit_sphere(angles,direction):
   phi2 = atan2(direction*cos(theta),s*cos(phi))
   if phi2<0.0: phi2 += 2.0*pi # python's atan2 returns values in (-pi,pi), but I want (0,2pi)
   return [theta2,phi2]
+

@@ -44,6 +44,11 @@ def force_ks_era(ks,tx,region):
   w=root_rho*sign(w)
   return [t,v,w]
 
+# This can cause numerical overflows, should typically only be attempted for output.
+def ks_to_zero_era(t,v,w):
+  tr = ks_to_sch(v,w)
+  return sch_to_ks(tr[0]+t,tr[1],ks_to_sigma(v,w))
+
 def ks_tx(v,w):
   region = ks_to_region(v,w)
   is_exterior = ks_is_exterior(region)
@@ -53,6 +58,11 @@ def ks_tx(v,w):
   else:
     return (v-w)/(v+w)
 
+def sch_to_sigma(r):
+  if r>=1.0:
+    return 1
+  else:
+    return -1
 
 def ks_to_region(v,w):
   if v>=0 and w<=0: return 1 # exterior

@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# This file is basically just the test harness.
+
 # apt-get install python-scipy3 python-numpy3
 
 import sys
@@ -10,15 +12,19 @@ from numpy import arctanh
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi
 from scipy import sign
 
-import schwarzschild,util
+import schwarzschild,util,sph_point
 from util import lambert_w
+from sph_point import SphPoint
 
 def main():
   verbosity = 1
   do_test(verbosity,test_ks_sch_round_trip(verbosity))
   do_test(verbosity,test_ks_metric_against_sch_metric(verbosity))
   do_test(verbosity,test_ks_era(verbosity))
-  do_test(verbosity,test_rotate_unit_sphere(verbosity+1))
+  do_test(verbosity,test_rotate_unit_sphere(verbosity))
+  p = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,0.0,10.0,pi/2.0,0.0)
+  k = p.absolute_kruskal()
+  print(strcat(["k=",k]))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -29,10 +35,6 @@ def do_test(verbosity,results):
   if not ok :
     print("-------------> exiting due to error")
     exit(-1)
-
-def print_no_newline(s):
-  sys.stdout.write(s)
-  sys.stdout.flush()
 
 def test_rotate_unit_sphere(verbosity):
   results = [True,""]
@@ -154,7 +156,7 @@ def record_subtest(verbosity,results,subtest_results):
   ok = results[0]
   info = results[1]
   ok = (ok and subtest_results[0])
-  info += (subtest_results[1]+"\n")
+  if info!="": info += (subtest_results[1]+"\n") 
   if not ok:
     info += " ***FAILED***"
   #if verbosity>=2 or not ok: info += "\n"
@@ -165,6 +167,10 @@ def record_subtest(verbosity,results,subtest_results):
 # l is an array of objects which may not be strings
 def strcat(l):
   return ''.join(map(str, l))
+
+def print_no_newline(s):
+  sys.stdout.write(s)
+  sys.stdout.flush()
 
 ###################################################################
 
