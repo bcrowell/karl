@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
-# apt-get install python-scipy python-numpy
+# apt-get install python-scipy3 python-numpy3
 
 import sys
 import numpy as np

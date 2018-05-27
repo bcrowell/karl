@@ -1,6 +1,9 @@
 default:
 	pdflatex kruskal
 
+test:
+	./karl.py
+
 invariants:
 	maxima -b invariants.mac
 
