@@ -5,7 +5,7 @@
     x:(v-w)/2;
     t:(v+w)/2;
     rho:x^2-t^2;
-    omega:lambert_w(rho/%e);
+    omega:lambert_w(rho/%e); /* is what I'm now calling \ell */
     a:4*omega/((1+omega)*rho);
     lg:matrix([0,a/2,0,0],
               [a/2,0,0,0],

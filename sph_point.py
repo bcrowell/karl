@@ -1,4 +1,4 @@
-import schwarzschild
+import schwarzschild,util
 
 import numpy as np
 import scipy
@@ -69,11 +69,13 @@ class SphPoint:
         vw = schwarzschild.sch_to_ks(self.t,self.r,schwarzschild.sch_to_sigma(self.r))
         self.v = vw[0]
         self.w = vw[1]
+        self._era = 0.0
         self.chart = SphPoint.KRUSKAL_VW_CHART
+        self._era_in_range()
 
   def absolute_angles(self):
     angles = [self.theta,self.phi]
-    if self._rot90: angles = rotate_unit_sphere(angles,-1.0)
+    if self._rot90: angles = util.rotate_unit_sphere(angles,-1.0)
     return angles
 
   # Return an array containing Kruskal null coordinates [v,w,theta,phi], in absolute
@@ -83,7 +85,7 @@ class SphPoint:
   # this may cause a floating-point exception.
   def absolute_kruskal(self):
     angles = [self.theta,self.phi]
-    if self._rot90: angles = rotate_unit_sphere(angles,-1.0)
+    if self._rot90: angles = util.rotate_unit_sphere(angles,-1.0)
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
       vw = schwarzschild.ks_to_zero_era(self._era,self.v,self.w)
     else:
@@ -119,7 +121,7 @@ class SphPoint:
       else:
         direction = 1.0
       self._rot90 = not self._rot90
-      angles = rotate_unit_sphere([self.theta,self.phi],direction)
+      angles = util.rotate_unit_sphere([self.theta,self.phi],direction)
       self.theta = angles[0]
       self.phi = angles[1]
 

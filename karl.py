@@ -22,9 +22,7 @@ def main():
   do_test(verbosity,test_ks_metric_against_sch_metric(verbosity))
   do_test(verbosity,test_ks_era(verbosity))
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
-  p = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,0.0,10.0,pi/2.0,0.0)
-  k = p.absolute_kruskal()
-  print(strcat(["k=",k]))
+  do_test(verbosity+1,test_create_sph_point(verbosity+1))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -79,6 +77,35 @@ def test_ks_era(verbosity):
   results = record_subtest(verbosity,results,subtest_ks_era(verbosity,-0.1,0.17)) # region III
   results = record_subtest(verbosity,results,subtest_ks_era(verbosity,-0.1,-0.17)) # region IV
   return summarize_test(results,"test_ks_era",verbosity)
+
+def test_create_sph_point(verbosity):  
+  results = [True,""]
+  theta = 0.7
+  phi = 0.1
+  r = 10.0 # a value that will not force conversion to Kruskal chart
+  t = 0.0
+  results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
+  theta = 0.0 # test at coordinate singularity, so a rotation happens
+  results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
+  theta = pi
+  results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
+  theta = 0.7
+  r = 1.1 # a value that will force conversion to Kruskal chart
+  results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
+  r = 10.0
+  t = 10.0 # a value that will force the use of the time translation (ks_era_in_range)
+  results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
+  return summarize_test(results,"test_create_sph_point",verbosity)
+
+# All this does is exercise the code used in creating the object. Doesn't check if the results make sense.
+# This is basically just a smoke test to make sure the code runs.
+def subtest_create_sph_point(verbosity,t,r,theta,phi):
+  info = ""
+  p = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  k = p.absolute_kruskal()
+  if verbosity>=2: info += strcat(["k=",k])
+  ok = True
+  return [ok,info]
 
 def subtest_ks_era(verbosity,v,w):
   info = ""
@@ -159,10 +186,9 @@ def record_subtest(verbosity,results,subtest_results):
   ok = results[0]
   info = results[1]
   ok = (ok and subtest_results[0])
-  if info!="": info += (subtest_results[1]+"\n") 
+  if subtest_results[1]!="": info += (subtest_results[1]+"\n") 
   if not ok:
     info += " ***FAILED***"
-  #if verbosity>=2 or not ok: info += "\n"
   return [ok,info]  
 
 ###################################################################

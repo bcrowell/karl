@@ -9,5 +9,5 @@ invariants:
 
 christoffel:
 	maxima -b christoffel.mac
-	# Now cut and paste output into christoffel.rb and run it.
+	# Now cut and paste output into clean_up_christoffel.rb and run it.
 
