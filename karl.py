@@ -25,7 +25,7 @@ def main():
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
   do_test(verbosity,test_create_sph_point(verbosity))
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
-  do_test(verbosity+1,test_newtonian_circular_orbit(verbosity+1))
+  do_test(verbosity,test_newtonian_circular_orbit(verbosity))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -116,18 +116,21 @@ def test_newtonian_circular_orbit(verbosity):
   return summarize_test(results,"test_newtonian_circular_orbit",verbosity)
 
 # Dumb, low-tech, low-precision test of whether we seem to get a circular orbit when we should.
+# Only really tests two of the nonzero Christoffel symbols.
+# Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
 def subtest_newtonian_circular_orbit(verbosity):
   info = ""
+  ok = True
   t = 0.0
-  r = 1.0e8 # =2.0 AU divided by the sun's schwarzschild radius
+  r = 10.0
   theta = pi/2
   phi = 0.0
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
-  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to (approximately) proper time
+  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   period = 2.0*pi/v_phi
-  n = 1000 # number of iterations
+  n = 10 # number of iterations; doesn't need to be big because solution is exact
   eps = 1.0/n
   dlambda = eps*period
   if verbosity>=2: info += strcat(["n=",n,", period=",period," dlambda=",dlambda," v=",v,"\n"])
@@ -142,7 +145,10 @@ def subtest_newtonian_circular_orbit(verbosity):
       v.comp[i] += dlambda*a[i]
     x.add(dlambda,v)
   if verbosity>=2: info += strcat(["chart=",x.chart,", x=",str(x)])
-  ok = True
+  final = x.absolute_schwarzschild()
+  if abs(final[1]-r)>1.0e-12 or abs(final[2]-theta)>1.0e-12 or abs(sin(final[3])-sin(phi))>1.0e-12:
+    info += strcat(["not back at starting position, final x=",str(x)])
+    ok = False
   return [ok,info]
 
 def subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta):
