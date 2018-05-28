@@ -15,6 +15,7 @@ from scipy import sign
 import schwarzschild,util,sph_point
 from util import lambert_w
 from sph_point import SphPoint
+from sph_vector import SphVector
 
 def main():
   verbosity = 1
@@ -23,7 +24,8 @@ def main():
   do_test(verbosity,test_ks_era(verbosity))
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
   do_test(verbosity,test_create_sph_point(verbosity))
-  do_test(verbosity+1,test_ks_christoffel_vs_raw_maxima(verbosity+1))
+  do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
+  do_test(verbosity+1,test_newtonian_circular_orbit(verbosity+1))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -107,6 +109,50 @@ def test_ks_christoffel_vs_raw_maxima(verbosity):
   w = 0.456
   results = record_subtest(verbosity,results,subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta))
   return summarize_test(results,"test_ks_christoffel_vs_raw_maxima",verbosity)
+
+def test_newtonian_circular_orbit(verbosity):
+  results = [True,""]
+  results = record_subtest(verbosity,results,subtest_newtonian_circular_orbit(verbosity))
+  return summarize_test(results,"test_newtonian_circular_orbit",verbosity)
+
+# Dumb, low-tech, low-precision test of whether we seem to get a circular orbit when we should.
+def subtest_newtonian_circular_orbit(verbosity):
+  info = ""
+  t = 0.0
+  r = 1.0e6
+  theta = pi/2
+  phi = 0.0
+  vel = 1/sqrt(2.0*r) # circular orbit; factor of 2 is because m=1/2
+  x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  v = SphVector(x,[1.0,0.0,0.0,vel/r]) # derivative of coordinates with respect to (approximately) proper time
+  if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
+  ch = schwarzschild.sch_christoffel_sch(t,r,sin(theta),cos(theta))
+  period = 2.0*pi*r/vel
+  n = 1000 # number of iterations
+  eps = 1.0/n
+  dlambda = eps*period
+  if verbosity>=2: info += strcat(["period=",period," dlambda=",dlambda," v=",v,"\n"])
+  v2 = [0.0,0.0,0.0,0.0] # just so it won't complain later that there's no v2
+  for iter in range(0,n):
+    for i in range(0, 4):
+      a = 0.0 # second derivative of x^i with respect to proper time
+      for j in range(0, 4):
+        for k in range(0, 4):
+          a = a + ch[j][k][i]*v.comp[j]*v.comp[k]
+      v2[i] = v.comp[i]+a*dlambda
+    x_comp = x.absolute_schwarzschild() # slow, not the right way to do this
+    #info += strcat(["before change, x_comp=",str(x_comp),"\n"])
+    for i in range(0, 4):
+      x_comp[i] += v2[i]*dlambda
+    #info += strcat(["after change, x_comp=",str(x_comp),"\n"])
+    # The following is not the right way to do this, assumes no transitions and no rot90.
+    x.t = x_comp[0]
+    x.r = x_comp[1]
+    x.theta = x_comp[2]
+    x.phi   = x_comp[3]
+  if verbosity>=2: info += strcat(["chart=",x.chart,", x=",str(x)])
+  ok = True
+  return [ok,info]
 
 def subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta):
   info = ""
