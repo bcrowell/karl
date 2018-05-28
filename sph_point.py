@@ -57,10 +57,10 @@ class SphPoint:
   # Add c*v to the point, where v is a vector (must refer to this point), and c is a scalar.
   # After doing this enough times, call make_safe.
   def add(self,c,v):
-    if chart==SphPoint.KRUSKAL_VW_CHART:
+    if self.chart==SphPoint.KRUSKAL_VW_CHART:
       self.v += c*v.comp[0]
       self.w += c*v.comp[1]
-    if chart==SphPoint.SCHWARZSCHILD_CHART:
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
       self.t += c*v.comp[0]
       self.r += c*v.comp[1]
     self.theta += c*v.comp[2]

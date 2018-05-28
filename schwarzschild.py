@@ -132,7 +132,7 @@ def sch_christoffel_sch(t,r,sin_theta,cos_theta):
   ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
   r2 = r*r
   c = r-1.0 # = r-2GM in Carroll's notation
-  ch[0][0][1] = c/(r2*r)
+  ch[0][0][1] = 0.5*c/(r2*r)
   z = 0.5/(r*c)
   ch[1][1][1] = -z
   ch[0][1][0] = z

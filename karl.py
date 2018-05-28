@@ -119,37 +119,28 @@ def test_newtonian_circular_orbit(verbosity):
 def subtest_newtonian_circular_orbit(verbosity):
   info = ""
   t = 0.0
-  r = 1.0e6
+  r = 1.0e8 # =2.0 AU divided by the sun's schwarzschild radius
   theta = pi/2
   phi = 0.0
-  vel = 1/sqrt(2.0*r) # circular orbit; factor of 2 is because m=1/2
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
-  v = SphVector(x,[1.0,0.0,0.0,vel/r]) # derivative of coordinates with respect to (approximately) proper time
+  v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
+  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to (approximately) proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
-  ch = schwarzschild.sch_christoffel_sch(t,r,sin(theta),cos(theta))
-  period = 2.0*pi*r/vel
+  period = 2.0*pi/v_phi
   n = 1000 # number of iterations
   eps = 1.0/n
   dlambda = eps*period
-  if verbosity>=2: info += strcat(["period=",period," dlambda=",dlambda," v=",v,"\n"])
-  v2 = [0.0,0.0,0.0,0.0] # just so it won't complain later that there's no v2
+  if verbosity>=2: info += strcat(["n=",n,", period=",period," dlambda=",dlambda," v=",v,"\n"])
   for iter in range(0,n):
+    ch = schwarzschild.sch_christoffel_sch(x.t,x.r,sin(theta),cos(theta))
+    a = [0.0,0.0,0.0,0.0] # second derivative of x^i with respect to lambda
     for i in range(0, 4):
-      a = 0.0 # second derivative of x^i with respect to proper time
       for j in range(0, 4):
         for k in range(0, 4):
-          a = a + ch[j][k][i]*v.comp[j]*v.comp[k]
-      v2[i] = v.comp[i]+a*dlambda
-    x_comp = x.absolute_schwarzschild() # slow, not the right way to do this
-    #info += strcat(["before change, x_comp=",str(x_comp),"\n"])
+          a[i] = a[i] + ch[j][k][i]*v.comp[j]*v.comp[k]
     for i in range(0, 4):
-      x_comp[i] += v2[i]*dlambda
-    #info += strcat(["after change, x_comp=",str(x_comp),"\n"])
-    # The following is not the right way to do this, assumes no transitions and no rot90.
-    x.t = x_comp[0]
-    x.r = x_comp[1]
-    x.theta = x_comp[2]
-    x.phi   = x_comp[3]
+      v.comp[i] += dlambda*a[i]
+    x.add(dlambda,v)
   if verbosity>=2: info += strcat(["chart=",x.chart,", x=",str(x)])
   ok = True
   return [ok,info]
