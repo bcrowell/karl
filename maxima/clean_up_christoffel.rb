@@ -35,6 +35,7 @@ stuff.each_line do |line|
     i,j,k,c = $1.to_i,$2.to_i,$3.to_i,$4
     c.gsub!("om","___omega___")
     c.gsub!("%e^","exp")
+    c.gsub!("^","**")
     c.gsub!("___omega___","(r-1)")
     if i!=j then top=2 else top=1 end
     1.upto(top) { |m|

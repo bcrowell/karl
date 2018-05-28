@@ -22,7 +22,8 @@ def main():
   do_test(verbosity,test_ks_metric_against_sch_metric(verbosity))
   do_test(verbosity,test_ks_era(verbosity))
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
-  do_test(verbosity+1,test_create_sph_point(verbosity+1))
+  do_test(verbosity,test_create_sph_point(verbosity))
+  do_test(verbosity+1,test_ks_christoffel_vs_raw_maxima(verbosity+1))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -96,6 +97,33 @@ def test_create_sph_point(verbosity):
   t = 10.0 # a value that will force the use of the time translation (ks_era_in_range)
   results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
   return summarize_test(results,"test_create_sph_point",verbosity)
+
+# The Chistoffel symbols are analytic functions of the KS coordinates, so testing
+# at one randomly chosen point has unit probability of detecting errors.
+def test_ks_christoffel_vs_raw_maxima(verbosity):
+  results = [True,""]
+  theta = 0.789
+  v = 0.123
+  w = 0.456
+  results = record_subtest(verbosity,results,subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta))
+  return summarize_test(results,"test_ks_christoffel_vs_raw_maxima",verbosity)
+
+def subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta):
+  info = ""
+  aux = schwarzschild.sch_aux_ks(v,w)
+  r = aux[1]
+  b = aux[2]
+  ch = schwarzschild.sch_christoffel_ks(v,w,sin(theta),cos(theta),r,b)
+  ch_raw = schwarzschild.sch_christoffel_ks_raw_maxima(v,w,theta,r)
+  ok = True
+  for i in range(0, 4):
+    for j in range(0, 4):
+      for k in range(0, 4):
+        if abs(ch[i][j][k]-ch_raw[i][j][k])>1.0e-6:
+          ok = False
+          ratio = ch[i][j][k]/ch_raw[i][j][k]
+          info += strcat(["disagreement for i=",i,", j=",j,", k=",k," raw=",ch_raw[i][j][k],", cooked=",ch[i][j][k],", ratio=",ratio,"\n"])
+  return [ok,info]
 
 # All this does is exercise the code used in creating the object. Doesn't check if the results make sense.
 # This is basically just a smoke test to make sure the code runs.

@@ -143,12 +143,12 @@ def sch_christoffel_ks(v,w,sin_theta,cos_theta,r,b):
   ch[2][1][2] = z
   ch[1][3][3] = z          # _Wphi   ^phi
   ch[3][1][3] = z
-  half_r = 0.5*r
-  ch[2][2][0] = -v*half_r  # _thetatheta ^V
-  ch[2][2][1] = -w*half_r  # _thetatheta ^W
+  eighth_r = 0.125*r
+  ch[2][2][0] = -v*eighth_r  # _thetatheta ^V
+  ch[2][2][1] = -w*eighth_r  # _thetatheta ^W
   sin2_theta = sin_theta*sin_theta
-  ch[3][3][0] = -v*half_r*sin2_theta  # _phiphi ^V
-  ch[3][3][1] = -w*half_r*sin2_theta  # _phiphi ^W
+  ch[3][3][0] = -v*eighth_r*sin2_theta  # _phiphi ^V
+  ch[3][3][1] = -w*eighth_r*sin2_theta  # _phiphi ^W
   ch[3][3][2] = -sin_theta*cos_theta
   z = cos_theta/sin_theta # will give an exception at theta=0, pi
   ch[2][3][3] = z          # _thetaphi ^phi
@@ -160,39 +160,39 @@ def sch_christoffel_ks(v,w,sin_theta,cos_theta,r,b):
 # christoffel.mac and then running clean_up_christoffel.rb.
 def sch_christoffel_ks_raw_maxima(v,w,theta,r):
   ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
-  ch[0][0][0] = (-w/((r-1)*exp((r-1)+1)+2*(r-1)^2*exp((r-1)+1)+(r-1)^3*exp((r-1)+1)))-(r-1)^2/(v+2*(r-1)*v+(r-1)^2*v)-(2*(r-1))/(v+2*(r-1)*v+(r-1)^2*v)-1/(v+2*(r-1)*v+(r-1)^2*v) 
+  ch[0][0][0] = (-w/((r-1)*exp((r-1)+1)+2*(r-1)**2*exp((r-1)+1)+(r-1)**3*exp((r-1)+1)))-(r-1)**2/(v+2*(r-1)*v+(r-1)**2*v)-(2*(r-1))/(v+2*(r-1)*v+(r-1)**2*v)-1/(v+2*(r-1)*v+(r-1)**2*v) 
   #   ... ^v _v v
-  ch[0][2][2] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[0][2][2] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^theta _v theta
-  ch[2][0][2] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[2][0][2] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^theta _theta v
-  ch[0][3][3] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[0][3][3] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^phi _v phi
-  ch[3][0][3] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[3][0][3] = -w/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^phi _phi v
-  ch[1][1][1] = (-(r-1)^2/(w+2*(r-1)*w+(r-1)^2*w))-(2*(r-1))/(w+2*(r-1)*w+(r-1)^2*w)-1/(w+2*(r-1)*w+(r-1)^2*w)-v/((r-1)*exp((r-1)+1)+2*(r-1)^2*exp((r-1)+1)+(r-1)^3*exp((r-1)+1)) 
+  ch[1][1][1] = (-(r-1)**2/(w+2*(r-1)*w+(r-1)**2*w))-(2*(r-1))/(w+2*(r-1)*w+(r-1)**2*w)-1/(w+2*(r-1)*w+(r-1)**2*w)-v/((r-1)*exp((r-1)+1)+2*(r-1)**2*exp((r-1)+1)+(r-1)**3*exp((r-1)+1)) 
   #   ... ^w _w w
-  ch[1][2][2] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[1][2][2] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^theta _w theta
-  ch[2][1][2] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[2][1][2] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^theta _theta w
-  ch[1][3][3] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[1][3][3] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^phi _w phi
-  ch[3][1][3] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)^2*exp((r-1)+1)) 
+  ch[3][1][3] = -v/(exp((r-1)+1)+2*(r-1)*exp((r-1)+1)+(r-1)**2*exp((r-1)+1)) 
   #   ... ^phi _phi w
-  ch[2][2][0] = (exp((-(r-1))-1)*v^2*w)/(8*(r-1))+(exp((-(r-1))-1)*v^2*w)/8 
+  ch[2][2][0] = (exp((-(r-1))-1)*v**2*w)/(8*(r-1))+(exp((-(r-1))-1)*v**2*w)/8 
   #   ... ^v _theta theta
-  ch[2][2][1] = (exp((-(r-1))-1)*v*w^2)/(8*(r-1))+(exp((-(r-1))-1)*v*w^2)/8 
+  ch[2][2][1] = (exp((-(r-1))-1)*v*w**2)/(8*(r-1))+(exp((-(r-1))-1)*v*w**2)/8 
   #   ... ^w _theta theta
   ch[2][3][3] = cos(theta)/sin(theta) 
   #   ... ^phi _theta phi
   ch[3][2][3] = cos(theta)/sin(theta) 
   #   ... ^phi _phi theta
-  ch[3][3][0] = (exp((-(r-1))-1)*sin(theta)^2*v^2*w)/(8*(r-1))+(exp((-(r-1))-1)*sin(theta)^2*v^2*w)/8 
+  ch[3][3][0] = (exp((-(r-1))-1)*sin(theta)**2*v**2*w)/(8*(r-1))+(exp((-(r-1))-1)*sin(theta)**2*v**2*w)/8 
   #   ... ^v _phi phi
-  ch[3][3][1] = (exp((-(r-1))-1)*sin(theta)^2*v*w^2)/(8*(r-1))+(exp((-(r-1))-1)*sin(theta)^2*v*w^2)/8 
+  ch[3][3][1] = (exp((-(r-1))-1)*sin(theta)**2*v*w**2)/(8*(r-1))+(exp((-(r-1))-1)*sin(theta)**2*v*w**2)/8 
   #   ... ^w _phi phi
-  ch[3][3][2] = -cos(theta)*sin(theta) 
+  ch[3][3][2] = -cos(theta)*sin(theta)
   #   ... ^theta _phi phi
   return ch
 
