@@ -1,0 +1,311 @@
+\documentclass{article}
+\usepackage{amsmath,url,tensor,amssymb}
+\begin{document}
+\section{Sources of information}
+
+\subsection{Scope}
+
+Could be fun to do trajectories in as much generality as a charged
+particle in Kerr-Newman (spinning charged). Implementation in
+mathematica, which appears to be open source:
+\url{http://notizblock.yukterez.net/viewtopic.php?p=426} .
+This suggests not depending too much on facts that may only hold for
+the Schwarzschild spacetime, such as the ability to cover the whole
+spacetime with a single chart, or the existence of several killing vectors
+with corresponding conserved quantities. And note that in fact KS coordinates
+do *not* cover the whole spacetime with a single chart, because they have
+a coordinate singularity at theta=0 and pi.
+
+Could also do stuff like maneuvering of rocket after infall to postpone hitting singularity
+(which *can* help, contrary to popular belief -- see notes).
+
+\subsection{MTW}
+
+p. 826: ``Several well-behaved coordinate systems''
+
+Box on p. 828 presents detailed calculations and motivations.
+
+\subsection{Hawking and Ellis}
+
+p. 155
+
+\subsection{Wikipedia}
+
+Nice presentation, readable notation.
+
+\subsection{coordinate systems}
+
+WP: $T,X$
+
+MTW: $v,u$
+
+H\&E: $t',x'$
+
+$(T,X)=(v,u)=(t'/\sqrt2,x'/\sqrt2)$
+
+H\&E's null coordinates: $(v',w')=(t'+x',t'-x')$
+
+H\&E's Penrose diagram: $(v'',w'')=(\tan^{-1}(v'/\sqrt2),\tan^{-1}(v'/\sqrt2))$.
+
+\section{Transformation from Schwarzschild to KS}
+
+Throughout the following, let $m=1/2$, so the horizon is at $r=1$, i.e., $r$ is in units of Sch.~radius.
+
+Exterior is $r>1$, regions I and III. Interior is $r<1$, regions II and IV.
+
+\newcommand{\lambert}{\ell}
+
+The following is notation I made up to keep the writing simple.
+Define a variable $\lambert $ whose magnitude is $|\lambert |=|r-1|$
+and whose sign is defined later.
+\begin{align}
+  \operatorname{sc} &= \begin{cases}
+\sinh, \qquad \text{exterior}\\
+\cosh, \qquad \text{interior}
+\end{cases} \\
+  \operatorname{cs} &= \begin{cases}
+\cosh, \qquad \text{exterior}\\
+\sinh, \qquad \text{interior}
+\end{cases} \\
+  \operatorname{tc} &= \begin{cases}
+\tanh, \qquad \text{exterior}\\
+\coth, \qquad \text{interior}
+\end{cases}\\
+\sigma &= \begin{cases}
++1, \qquad \text{regions I and II, $V>0$}\\
+-1, \qquad \text{regions III and IV, $V<0$, (the universe we can't reach)} 
+\end{cases}
+\end{align}
+
+Then the transformation from Schwarzschild to KS is (MTW p.~827):
+
+\begin{align}
+  T &= \sigma \sqrt{|\lambert |} e^{r/2}\operatorname{sc}\frac{t}{2} \\
+  X &= \sigma \sqrt{|\lambert |} e^{r/2}\operatorname{cs}\frac{t}{2} 
+\end{align}
+
+This transformation is supposed to fix coordinate singularities at the horizons where the
+metric is degenerate, so it can't be one-to-one at the the horizons.
+
+The following is nonstandard notation that I invented for convenience.
+Let
+\begin{equation}
+  \rho = X^2-T^2 = -VW \qquad \text{see below for null coords $VW$},
+\end{equation}
+which is a measure of how far you are from the singularity, taking values on $(-1,\infty)$.
+It's positive on the exterior, negative on the interior. Horizon is at
+$\rho=0$, both singularities at $\rho=-1$. Also, let
+\begin{equation}
+  \lambert  = W(\rho/e),
+\end{equation}
+which is consistent with the earlier definition of $|\lambert |=|r-1|$ and determines its sign as well.
+$W$ is the principal real branch of the Lambert W function (more info below).
+Like $\rho$, $\lambert $ takes values on $(-1,\infty)$, and
+the interpretation of its sign is also the same. 
+
+The Lambert 
+W function is defined
+by $z=W(ze^z)$, i.e., it's the inverse of the function inside the parens. 
+Maxima implementation is \texttt{lambert\_w}. Scipy has \texttt{lambertw}.
+There is a GPL'd javascript implementation: \url{https://github.com/protobi/lambertw}.
+High-performance C++ implementation: \url{https://github.com/DarkoVeberic/LambertW}.
+Because W is defined as the inverse of a certain function, its derivative is easy
+to express in terms of itself, $dW/dz=W/(z(1+W))=1/(z+e^W)$. The latter expression
+looks more expensive to compute because of the exponential, but it's safer because
+it doesn't misbehave at $z=0$, where the first one is an indeterminate form.
+Maxima uses the equivalent (and also safe) form $e^{-W}/(1+W)$.
+
+For large $\rho$,
+$\lambert =\ln\rho-\ln(\ln\rho-1)+o(1)$.
+
+The metric is
+\begin{equation}
+  ds^2 = B(dT^2-dX^2)-(1+\lambert )^2d\Omega^2,
+\end{equation}
+where
+\begin{equation}
+  B = \frac{4\lambert }{(1+\lambert )\rho} = \frac{4}{r}e^{-r}.
+\end{equation}
+Here $(1+1/\lambert )\rho=re^r$ by the identity $e^{W(x)}=x/W(x)$, and $1+\lambert =r$. 
+This type of expression will inevitably involve radial coordinates such as $r$, $\rho$, and
+$\lambert $, even though KS doesn't even explicitly talk about radial coordinates; this makes
+sense because the local, intrinsic properties of the spacetime only depend on the radial
+coordinate (e.g., all curvature scalars are just functions of $1/r$).
+
+I had to correct the coefficient in $B$ from 16 to 4
+in order to get results from this metric to agree with results from Schwarzschild coords.
+I'm darned if I can find my math mistake, but the perfect numerical agreement with
+Schwarzschild on randomly chosen points is tantamount to a proof that the version with
+the 4 in it is correct. This also checks with equation 6 in \url{https://arxiv.org/pdf/1401.1337.pdf} .
+
+The inverse transformation is
+\begin{align}
+  r &= 1+\lambert  \\
+  t &= 2\operatorname{sc}^{-1}(T|\lambert |^{-1/2}e^{-r/2}) = 2\operatorname{tc}^{-1}(T/X).
+\end{align}
+
+At the horizons, applying the inverse transformation gives $r=1$, $t=\pm\infty$. I'm not
+sure if there's a nice interpretation of this, but the fact that it's not well-behaved
+and one-to-one is what we expect at a place where we were removing a degeneracy of the metric.
+
+\section{Null KS coordinates}
+
+Let
+\begin{align}
+  V &= T+X\\
+  W &= T-X,
+\end{align}
+which are the same as H\&E's $(v'/\sqrt2,w'/\sqrt2)$.
+Metric is (my calculation)
+\begin{equation}
+  ds^2 = B dVdW-\ldots d\Omega^2.
+\end{equation}
+See remarks below about checking this on v,w (Penrose) coordinates.
+
+\section{Not well suited to large r and t}
+
+At large values of $r$ and $|t|$, the asymptotic behavior of the $T,X$ and $V,W$ coordinates
+is $re^{r/2}$ and $e^{|t|/2}$. Since the Schwarzschild radius of the sun is 3.0 km, that means
+that the earth's orbit has $r\sim 10^8$, so K-S coordinates are ridiculously huge, much too
+large to store as floating point numbers. For a general-purpose implementation, I see two possible
+approaches:
+
+(1) ``Charts of convenience.'' Although covering the whole spacetime with one chart is kind of the point of KS,
+could use a different chart at large r. See notes in separate section on isotropic coordinates.
+(Possibly
+Eddington-Finkelstein are well suited to the region near the horizon?)
+
+(2) Try to do another change of coordinates to get ones that don't misbehave so horribly at
+large distances, while still covering everything with one chart. Don't want to use Penrose diagram
+coordinates for this, because compactification would give them poor precision at large r. For example,
+I think doing $\sinh^{-1}X$ results in a coordinate that varies linearly with r for large r. The problem
+is that then the components of the metric blow up like $\cosh X$, which is the exponential of an
+exponential.
+
+(3) ``Sliding chart.'' The KS coordinates obscure the Killing vector, and make it difficult
+to do computations at large $|t|$, where KS coordinates get exponentially large.
+Handle this by translating to t=0, and keeping track of the translation. This would be sort of like
+having different charts of convenience for different eras of time (or different places on interior,
+where t is spacelike). The transformation is actually pretty
+simple in V,W coordinates. We store a point 
+as (t,V,W), meaning the point (V,W) translated by an interval t in Schwarzschild coordinates.
+Every point has a canonical form in which $|V|=|W|$, giving $t=0$. (This is a point on the X
+or T axis.) To canonicalize, we take
+\begin{align*}
+  t &\rightarrow t+2\operatorname{tc}^{-1}[(V+W)/(V-W)] \\
+  V &\rightarrow \pm\sqrt{\mp VW} = \pm\sqrt{\pm\rho} \quad \text{preserving original sign} \\
+  W &\rightarrow \pm V \text{preserving the original sign}.
+\end{align*}
+At the step where we  canonicalize $t$, we have to manipulate $V$ and $W$, which in theory could
+be impossible to express in machine floating point. However, as long as we always keep our points
+\emph{close} to being canonical, this will never be a problem. When we compute things like Christoffel
+symbols, we can just use the V,W part of the representation, ignoring the value of t. Could actually
+delay canonicalization until $t$ exceeds some bound like $\pm5$. We want the canonicalization to be
+a do-nothing for representations that are already canonicalized. This works, and, e.g., we can
+always express things in terms of $(V+W)/(V-W)$ or its inverse in such a way that it doesn't equal
+infinity. E.g., in region II, where $V$ and $W$ are both positive,
+express this not as $\coth^{-1}[(V+W)/(V-W)]$ but as
+$\tanh^{-1}[(V-W)/(V+W)]$.
+
+Plan: Represent points in sch spacetime using three data structures for different regions of spacetime:
+
+(a) (far) For $r>6$,
+or $\rho\gtrsim 2000$, represent as Schwarzschild coordinates.
+
+(b) (exterior, near horizon, large time) This is $1<r<6$ and $|t|>6$. Sliding chart.
+
+(c) ( interior) For $r<1$, represent as $(V,W)$.
+
+\section{Coordinates for Penrose diagrams}
+
+Let
+\begin{align}
+  v &= f(V)\\
+  w &= f(W),
+\end{align}
+where $f$ is some chosen such as $\tan{-1}$ (H\&E), $(2/\pi)\tan^{-1}$ (my default),
+or $\tanh$ (used sometimes by Winitzki). The reason for the inverse tangent seems to be
+that in the Minkowski case, it links geometrically to the maximal extension of the Einstein static universe
+on a cylinder. Using my $(2/\pi)\tan^{-1}$, we have easy ways of describing stuff:
+singularities at $v+w=\pm1$, horizons at $vw=0$, future null infinity at $v=1$ or $w=1$,
+and past null infinity at $v$ or $w=-1$.
+
+Letting $g={f^{-1}}'$, the metric in terms of the Penrose coordinates is (my calculation)
+\begin{equation}
+  ds^2 = B g(v)g(w)dvdw-\ldots d\Omega^2.
+\end{equation}
+If $f=\tan^{-1}$ then $g=\sec^2$,
+and if $f=\tanh$ then $g(x)=1/(1-x^2)$. This makes sense because (1) the metric is never degenerate,
+(2) $g$ blows up at infinity, and (3) $ds^2=0$ for fixed angular coordinates iff $dv=0$ or $dw=0$.
+
+Some additional checks to do: 
+Check factors of 2. Check that it makes sense if $f$ is the identity.
+Compute Kretschmann invariant.
+
+\section{Christoffel symbols}
+
+The following are generated by running christoffel.mac and cutting and pasting the output into
+christoffel.rb, then cleaning up by hand. Although I am currently having some doubt about a
+factor of 4 in the definition of B,
+changing B by a constant factor doesn't actually change these expressions, because the
+coefficients that depend on that factor
+are expressed in terms of B.
+
+\begin{align}
+\Gamma\indices{^V_V_V} &= -W\rho^{-1}r^{-2}-V^{-1}  \\
+\Gamma\indices{^W_W_W} &= -V\rho^{-1}r^{-2}-W^{-1}  \\
+\Gamma\indices{^\theta_V_\theta} = \Gamma\indices{^\phi_V_\phi} &= -Wr^{-2}e^{-r}  \\
+\Gamma\indices{^\theta_W_\theta} = \Gamma\indices{^\phi_W_\phi} &= -Vr^{-2}e^{-r}  \\
+%
+\Gamma\indices{^V_\theta_\theta} &= -\frac{1}{2}B e^r V \\
+\Gamma\indices{^W_\theta_\theta} &= -\frac{1}{2}B e^r W \\
+\Gamma\indices{^V_\phi_\phi} &= -\frac{1}{2}B e^r V \sin^2\theta\\
+\Gamma\indices{^W_\phi_\phi} &= -\frac{1}{2}B e^r W \sin^2\theta\\
+%
+\Gamma\indices{^\theta_\phi_\phi} &= -\sin\theta \cos\theta   \\
+\Gamma\indices{^\phi_\theta_\phi} &= \cot\theta   \\
+\end{align}
+
+Need to check these by numerical sampling against the f90(...) output from maxima.
+
+Posted these at \url{https://physics.stackexchange.com/questions/404611/christoffel-symbols-in-kruskal-szekeres-coordinates}
+
+\section{Isotropic coordinates}
+
+There is a nice set of coordinates called isotropic coordinates,
+described in Chrusciel, The geometry of black holes,
+\url{https://homepage.univie.ac.at/piotr.chrusciel/teaching/Black%20Holes/BlackHolesViennaJanuary2015.pdf} ,
+p.~19. These are basically Minkowski-ish coordinates that asymptotically approach the Minkowski
+metric, with the metric being simple to express in them.  What Chrusciel describes are
+the cartesian-style coordinates, while MTW describes the spherical style.
+
+WP has an article ``isotropic coordinates,'' which doesn't superifically match that
+closely with this topic. 
+Similar: \url{http://ion.uwinnipeg.ca/~vincent/4500.6-001/Cosmology/IsotropicCoordinates.htm} .
+See \url{https://physics.stackexchange.com/q/145342} .
+
+MTW has p. 595, ex. 23.1, and p. 840, ex. 31.7, which deal with the spherical style.
+
+Define $\tilde{r}$ implicitly according to
+\begin{equation}
+  r = \tilde{r}\left(1+\frac{1}{4\tilde{r}}\right)^2.
+\end{equation}
+The horizon is at $\tilde{r}=1/4$. Define coordinates $(t,x_i)$, where $t$ is
+just the Schwarzschild $t$ coordinate, while $x_i$ are new coordinates that Chrusciel doesn't
+explicitly define through any coordinate transformation to the Schwarzschild coordinates,
+but that he does relate to Sch.~through the relation $\sum x_i^2=\tilde{r}$, and they
+become Minkowski at large $r$. From comparison with MTW p. 840, eq. 31.22, I'm pretty
+sure the idea is that $x_i$ are just the cartesian coordinates of a point on a sphere
+of radius $\tilde{r}$, at angles $\theta$ and $\phi$. The metric has
+\begin{align}
+  g_{ii} &= -(1+1/4\tilde{r})^4 \\
+  g_tt &= \left(\frac{1-1/4\tilde{r}}{1+1/4\tilde{r}}\right)^2.
+\end{align}
+
+\section{Reissner-Nordstrom black hole (charge, no spin)}
+
+MTW p. 840, ex. 31.8 gives the metric in Sch coords. For ``Kruskal-like coordinates,''
+they give a reference to Graves and Brill (1960) and their own fig 34.4, p. 921,
+which is a Penrose diagram.
+
+\end{document}
