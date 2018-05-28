@@ -7,6 +7,10 @@ from numpy import arctanh
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi
 from scipy import sign
 
+# Documentation for the math is in the file doc.tex, which can be
+# compiled to pdf format by doing a "make doc." (Comments in the code do
+# not document the math or the definitions of the variables.)
+
 class SphPoint:
   # This class represents a point in a spherically symmetric spacetime.
   #

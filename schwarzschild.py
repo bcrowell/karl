@@ -2,6 +2,11 @@
 
 # Low-level routines to compute things for the Schwarzschild spacetime.
 
+# Documentation for the math is in the file doc.tex, which can be 
+# compiled to pdf format by doing a "make doc." (Comments in the code do
+# not document the math or the definitions of the variables.)
+
+
 import numpy as np
 import scipy
 import math
