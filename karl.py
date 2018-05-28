@@ -2,8 +2,6 @@
 
 # This file is basically just the test harness.
 
-# apt-get install python-scipy3 python-numpy3
-
 import sys
 import numpy as np
 import scipy
@@ -12,8 +10,7 @@ from numpy import arctanh
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi
 from scipy import sign
 
-import schwarzschild,util,sph_point
-from util import lambert_w
+import schwarzschild,util,sph_point,runge_kutta
 from sph_point import SphPoint
 from sph_vector import SphVector
 
@@ -25,7 +22,8 @@ def main():
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
   do_test(verbosity,test_create_sph_point(verbosity))
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
-  do_test(verbosity,test_newtonian_circular_orbit(verbosity))
+  do_test(verbosity,test_circular_orbit(verbosity))
+  do_test(verbosity,test_sph_geodesic_rk(verbosity))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -110,15 +108,45 @@ def test_ks_christoffel_vs_raw_maxima(verbosity):
   results = record_subtest(verbosity,results,subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta))
   return summarize_test(results,"test_ks_christoffel_vs_raw_maxima",verbosity)
 
-def test_newtonian_circular_orbit(verbosity):
+def test_circular_orbit(verbosity):
   results = [True,""]
-  results = record_subtest(verbosity,results,subtest_newtonian_circular_orbit(verbosity))
-  return summarize_test(results,"test_newtonian_circular_orbit",verbosity)
+  results = record_subtest(verbosity,results,subtest_circular_orbit(verbosity))
+  return summarize_test(results,"test_circular_orbit",verbosity)
+
+def test_sph_geodesic_rk(verbosity):
+  results = [True,""]
+  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk(verbosity))
+  return summarize_test(results,"test_sph_geodesic_rk",verbosity)
+
+def subtest_sph_geodesic_rk(verbosity):
+  info = ""
+  ok = True
+  t = 0.0
+  r = 10.0
+  theta = pi/2
+  phi = 0.0
+  x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
+  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
+  if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
+  period = 2.0*pi/v_phi
+  n=10
+  dlambda = period/n
+  z = runge_kutta.sph_geodesic_rk(x,v,period,dlambda)
+  err = z[0]
+  if err:
+    print("error, "+z[1])
+    exit(-1)
+  final = z[2].absolute_schwarzschild()
+  if abs(final[1]-r)>1.0e-12 or abs(final[2]-theta)>1.0e-12 or abs(sin(final[3])-sin(phi))>1.0e-12:
+    info += strcat(["not back at starting position, final x=",str(x)])
+    ok = False
+  return [ok,info]
 
 # Dumb, low-tech, low-precision test of whether we seem to get a circular orbit when we should.
 # Only really tests two of the nonzero Christoffel symbols.
 # Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
-def subtest_newtonian_circular_orbit(verbosity):
+def subtest_circular_orbit(verbosity):
   info = ""
   ok = True
   t = 0.0
@@ -135,6 +163,7 @@ def subtest_newtonian_circular_orbit(verbosity):
   dlambda = eps*period
   if verbosity>=2: info += strcat(["n=",n,", period=",period," dlambda=",dlambda," v=",v,"\n"])
   for iter in range(0,n):
+    theta = x.theta
     ch = schwarzschild.sch_christoffel_sch(x.t,x.r,sin(theta),cos(theta))
     a = [0.0,0.0,0.0,0.0] # second derivative of x^i with respect to lambda
     for i in range(0, 4):

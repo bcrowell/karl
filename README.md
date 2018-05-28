@@ -1,5 +1,7 @@
 karl
-=====
+====
+
+## Purpose
 
 Karl, named after Karl Schwarzschild, is a library for numerical calculations regarding
 black holes.
@@ -24,4 +26,8 @@ Documentation for the math is in the file doc.tex, which can be
 compiled to pdf format by doing a "make doc." (Comments in the code do
 not document the math or the definitions of the variables.)
 
+## Installing
 
+It's written in python3. Any changes required to make it work in python2 would probably be minimal,
+but I haven't tried. It requires the scipy and numpy, which can be installed on a debian
+system by doing `apt-get install python-scipy3 python-numpy3`.
