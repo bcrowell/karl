@@ -114,35 +114,77 @@ def sch_to_ks(t,r,sigma):
   w = ks_t-ks_x
   return [v,w]
 
-# For the Schwarzschild spacetime, compute the metric, given Kruskal-Szekeres null coordinates.
-# Metric is in lower-index form, in +--- signature, with coordinates (V,W,theta,phi).
-# The V,W coordinates are equivalent to Hawking and Ellis's (v'/sqrt2,w'/sqrt2).
-def sch_metric_ks(v,w,theta,phi):
-  g = [[0 for i in range(4)] for j in range(4)]
+# For the Schwarzschild spacetime, compute the Christoffel symbols, in Kruskal-Szekeres null coordinates
+# (V,W,theta,phi).
+# The order of indices is as in ctensor:
+#    symmetric on 1st 2 indices
+#    contravariant on final index
+# See docs for readable mathematical versions of these.
+# This will give a division by zero exception if used at the coordinate singularities at theta=0 and pi.
+def sch_christoffel_ks(v,w,sin_theta,cos_theta,r,b):
+  ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
+  qb = 0.25*b   # = 1/(re^r)
+  qbr = qb/r    # = 1/(r^2e^r)
+  c = qb*(1.0+1.0/r)
+  ch[0][0][0] = c*w        # _VV ^V
+  ch[1][1][1] = c*v        # _WW ^W
+  z = -w*qbr
+  ch[0][2][2] = z          # _Vtheta ^theta
+  ch[2][0][2] = z
+  ch[0][3][3] = z          # _Vphi   ^phi
+  ch[3][0][3] = z
+  z = -v*qbr
+  ch[1][2][2] = z          # _Wtheta ^theta
+  ch[2][1][2] = z
+  ch[1][3][3] = z          # _Wphi   ^phi
+  ch[3][1][3] = z
+  half_r = 0.5*r
+  ch[2][2][0] = -v*half_r  # _thetatheta ^V
+  ch[2][2][1] = -w*half_r  # _thetatheta ^W
+  sin2_theta = sin_theta*sin_theta
+  ch[3][3][0] = -v*half_r*sin2_theta  # _phiphi ^V
+  ch[3][3][1] = -w*half_r*sin2_theta  # _phiphi ^W
+  ch[3][3][2] = -sin_theta*cos_theta
+  z = cos_theta/sin_theta # will give an exception at theta=0, pi
+  ch[2][3][3] = z          # _thetaphi ^phi
+  ch[3][2][3] = z
+  return ch
+
+# Compute the auxiliary quantities [rho,r,b] for a point given in Kruskal-Szekeres null coordinates.
+# See docs for definitions of these quanties.
+def sch_aux_ks(v,w):
   rho = -v*w
-  l = lambert_w(rho/math.e)
-  r = 1+l
-  b = 4.0*l/((1+l)*rho)
-  g[0][1] = 0.5*b  
-  g[1][0] = 0.5*b  
-  r2 = r**2
+  r = 1+lambert_w(rho/math.e)
+  b = 4.0*(r-1)/(r*rho)
+  return [rho,r,b]
+
+# For the Schwarzschild spacetime, compute the metric, in Kruskal-Szekeres null coordinates.
+# Metric is in lower-index form, in +--- signature, with coordinates (V,W,theta,phi).
+# See docs for the quantity B, which can be calculated using sch_aux_ks.
+# The V,W coordinates are equivalent to Hawking and Ellis's (v'/sqrt2,w'/sqrt2).
+def sch_metric_ks(v,w,sin_theta,r,b):
+  g = [[0 for i in range(4)] for j in range(4)]
+  half_b =  0.5*b  
+  g[0][1] = half_b
+  g[1][0] = half_b 
+  r2 = r*r
   g[2][2] = -r2
-  g[3][3] = -r2*sin(theta)**2
+  g[3][3] = -r2*sin_theta*sin_theta
   return g
 
-# For the Schwarzschild spacetime, compute the metric, given Schwarzschild coordinates.
+# For the Schwarzschild spacetime, compute the metric, in Schwarzschild coordinates.
 # Metric is in lower-index form, in +--- signature, with coordinates (t,r,theta,phi).
 # The mass is assumed to be 1/2, so that r is in units of the Schwarzschild radius.
 # Angles in radians.
 # Metric taken from https://en.wikipedia.org/wiki/Schwarzschild_metric .
-def sch_metric_sch(r,theta):
+def sch_metric_sch(r,sin_theta):
   g = [[0 for i in range(4)] for j in range(4)]
   a = 1.0-1.0/r
-  r2 = r**2
+  r2 = r*r
   g[0][0] = a
   g[1][1] = -1.0/a
   g[2][2] = -r2
-  g[3][3] = -r2*sin(theta)**2
+  g[3][3] = -r2*sin_theta*sin_theta
   return g
 
 

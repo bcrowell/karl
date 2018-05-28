@@ -56,8 +56,7 @@ Exterior is $r>1$, regions I and III. Interior is $r<1$, regions II and IV.
 \newcommand{\lambert}{\ell}
 
 The following is notation I made up to keep the writing simple.
-Define a variable $\lambert $ whose magnitude is $|\lambert |=|r-1|$
-and whose sign is defined later.
+Define a variable $\lambert=r-1 $.
 \begin{align}
   \operatorname{sc} &= \begin{cases}
 \sinh, \qquad \text{exterior}\\
@@ -94,11 +93,10 @@ Let
 \end{equation}
 which is a measure of how far you are from the singularity, taking values on $(-1,\infty)$.
 It's positive on the exterior, negative on the interior. Horizon is at
-$\rho=0$, both singularities at $\rho=-1$. Also, let
+$\rho=0$, both singularities at $\rho=-1$. We have
 \begin{equation}
-  \lambert  = W(\rho/e),
+  \lambert  = W(\rho/e).
 \end{equation}
-which is consistent with the earlier definition of $|\lambert |=|r-1|$ and determines its sign as well.
 $W$ is the principal real branch of the Lambert W function (more info below).
 Like $\rho$, $\lambert $ takes values on $(-1,\infty)$, and
 the interpretation of its sign is also the same. 
@@ -124,9 +122,9 @@ The metric is
 \end{equation}
 where
 \begin{equation}
-  B = \frac{4\lambert }{(1+\lambert )\rho} = \frac{4}{r}e^{-r}.
+  B = \frac{4\lambert }{(1+\lambert )\rho} = \frac{4(r-1)}{r\rho}  = \frac{4}{r}e^{-r}.
 \end{equation}
-Here $(1+1/\lambert )\rho=re^r$ by the identity $e^{W(x)}=x/W(x)$, and $1+\lambert =r$. 
+Here $(1+1/\lambert )\rho=re^r$ by the identity $e^{W(x)}=x/W(x)$. 
 This type of expression will inevitably involve radial coordinates such as $r$, $\rho$, and
 $\lambert $, even though KS doesn't even explicitly talk about radial coordinates; this makes
 sense because the local, intrinsic properties of the spacetime only depend on the radial
@@ -252,15 +250,15 @@ coefficients that depend on that factor
 are expressed in terms of B.
 
 \begin{align}
-\Gamma\indices{^V_V_V} &= -W\rho^{-1}r^{-2}-V^{-1}  \\
-\Gamma\indices{^W_W_W} &= -V\rho^{-1}r^{-2}-W^{-1}  \\
-\Gamma\indices{^\theta_V_\theta} = \Gamma\indices{^\phi_V_\phi} &= -Wr^{-2}e^{-r}  \\
-\Gamma\indices{^\theta_W_\theta} = \Gamma\indices{^\phi_W_\phi} &= -Vr^{-2}e^{-r}  \\
+\Gamma\indices{^V_V_V} &= (r^{-1}+r^{-2})We^{-r} \\
+\Gamma\indices{^W_W_W} &= (r^{-1}+r^{-2})Ve^{-r} \\
+\Gamma\indices{^\theta_V_\theta} = \Gamma\indices{^\phi_V_\phi} &= -WB/4r  \\
+\Gamma\indices{^\theta_W_\theta} = \Gamma\indices{^\phi_W_\phi} &= -VB/4r  \\
 %
-\Gamma\indices{^V_\theta_\theta} &= -\frac{1}{2}B e^r V \\
-\Gamma\indices{^W_\theta_\theta} &= -\frac{1}{2}B e^r W \\
-\Gamma\indices{^V_\phi_\phi} &= -\frac{1}{2}B e^r V \sin^2\theta\\
-\Gamma\indices{^W_\phi_\phi} &= -\frac{1}{2}B e^r W \sin^2\theta\\
+\Gamma\indices{^V_\theta_\theta} &= -Vr/2\\
+\Gamma\indices{^W_\theta_\theta} &= -Wr/2\\
+\Gamma\indices{^V_\phi_\phi} &= -(Vr/2) \sin^2\theta\\
+\Gamma\indices{^W_\phi_\phi} &= -(Wr/2) \sin^2\theta\\
 %
 \Gamma\indices{^\theta_\phi_\phi} &= -\sin\theta \cos\theta   \\
 \Gamma\indices{^\phi_\theta_\phi} &= \cot\theta   \\

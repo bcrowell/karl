@@ -9,6 +9,16 @@ from scipy import sign
 
 class SphPoint:
   # This class represents a point in a spherically symmetric spacetime.
+  #
+  # Instance variables and accessor methods:
+  #   spacetime = SCHWARZSCHILD or CHARGED (Reissner-Nordstrom)
+  #   chart = SCHWARZSCHILD_CHART or KRUSKAL_VW_CHART
+  #   v,w = Kruskal null coordinates (defined only if chart is Kruskal)
+  #   r,t = Schwarzschild coordinates (defined only if chart if Schwarzschild)
+  #   theta,phi = to be used only when we don't care about possible 90-degree rotation
+  #   absolute_angles() -- returns [theta,phi] with no arbitrary 90-degree rotation; may be 
+  #                        near coordinate singularities at theta=0 and pi; to be used only
+  #                        when we don't care about efficiency or coordinate singularities
 
   # Constants for referring to particular metrics:
   SCHWARZSCHILD = 1
@@ -16,15 +26,6 @@ class SphPoint:
   # Constants referring to different coordinate charts:
   SCHWARZSCHILD_CHART = 1
   KRUSKAL_VW_CHART = 2
-
-  # instance variables and accessor methods
-  #   spacetime = SCHWARZSCHILD or CHARGED (Reissner-Nordstrom)
-  #   chart = SCHWARZSCHILD_CHART or KRUSKAL_VW_CHART
-  #   v,w = Kruskal null coordinates (defined only if chart is Kruskal)
-  #   r,t = Schwarzschild coordinates (defined only if chart if Schwarzschild)
-  #   theta,phi = to be used only when we don't care about possible 90-degree rotation
-  #   absolute_angles() -- returns [theta,phi] with no arbitrary 90-degree rotation; may be 
-  #                        near coordinate singularities at theta=0 and pi
 
   def __init__(self,spacetime,chart,x0,x1,theta,phi):
     self.spacetime = spacetime
@@ -122,7 +123,3 @@ class SphPoint:
       self.theta = angles[0]
       self.phi = angles[1]
 
-
-  def die(self,message):
-    print(message)
-    exit(-1)

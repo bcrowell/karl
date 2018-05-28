@@ -107,9 +107,12 @@ def subtest_ks_metric_against_sch_metric(verbosity,v,w,theta,phi):
   r2 = sch2[1]
   dt = t2-t
   dr = r2-r
-  g = schwarzschild.sch_metric_ks(v,w,theta,phi)
+  aux = schwarzschild.sch_aux_ks(v,w)
+  rho=aux[0]; r=aux[1]; b=aux[2]
+  sin_theta = sin(theta)
+  g = schwarzschild.sch_metric_ks(v,w,sin_theta,r,b)
   interval_ks = (g[0][1]+g[1][0])*dv*dw
-  g = schwarzschild.sch_metric_sch(r,theta)
+  g = schwarzschild.sch_metric_sch(r,sin_theta)
   interval_sch = g[0][0]*dt**2+g[1][1]*dr**2
   if verbosity>=2: info += strcat(["V=",v,", W=",w," r=",r," t=",t,", int_ks=",interval_ks," int_sch=",interval_sch])
   ok = abs(interval_ks-interval_sch)<1.0e-13
