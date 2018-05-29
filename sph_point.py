@@ -66,6 +66,30 @@ class SphPoint:
     self.theta += c*v.comp[2]
     self.phi   += c*v.comp[3]
 
+  # This is for use when calculating things like christoffel symbols, where we don't
+  # care about rot90 or era because they don't affect the results.
+  def get_raw_coords(self):
+    coords = [0.0,0.0,0.0,0.0]
+    if self.chart==SphPoint.KRUSKAL_VW_CHART:
+      coords[0] = self.v
+      coords[1] = self.w
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      coords[0] = self.t
+      coords[1] = self.r
+    coords[2] = self.theta
+    coords[3] = self.phi
+    return coords
+
+  def set_raw_coords(self,coords):
+    if self.chart==SphPoint.KRUSKAL_VW_CHART:
+      self.v = coords[0]
+      self.w = coords[1]
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      self.t = coords[0]
+      self.r = coords[1]
+    self.theta = coords[2]
+    self.phi = coords[3]
+
   # Public routine that does manipulations on the internal representation in order to avoid
   # the following three issues:
   #   - coordinate singularities at theta=0 and pi
