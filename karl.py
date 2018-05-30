@@ -24,7 +24,7 @@ def main():
   do_test(verbosity,test_create_sph_point(verbosity))
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
   do_test(verbosity,test_circular_orbit(verbosity))
-  do_test(verbosity,test_sph_geodesic_rk(verbosity))
+  do_test(verbosity,test_geodesic_rk_simple(verbosity))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -114,19 +114,19 @@ def test_circular_orbit(verbosity):
   results = record_subtest(verbosity,results,subtest_circular_orbit(verbosity))
   return summarize_test(results,"test_circular_orbit",verbosity)
 
-def test_sph_geodesic_rk(verbosity):
+def test_geodesic_rk_simple(verbosity):
   results = [True,""]
-  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_circular(verbosity))
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_circular(verbosity))
   r = 1.0e8 # newtonian regime
-  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_period(verbosity,100,r,1.0))
-  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_period(verbosity,100,r,1.1))
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_period(verbosity,100,r,1.0))
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_period(verbosity,100,r,1.1))
   r = 10
-  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_conserved(verbosity,1000,r,1.1,0.3))
-  return summarize_test(results,"test_sph_geodesic_rk",verbosity)
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_conserved(verbosity,1000,r,1.1,0.3))
+  return summarize_test(results,"test_geodesic_rk_simple",verbosity)
 
 # Only really tests two of the nonzero Christoffel symbols.
 # Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
-def subtest_sph_geodesic_rk_circular(verbosity):
+def subtest_geodesic_rk_simple_circular(verbosity):
   info = ""
   ok = True
   t = 0.0
@@ -141,7 +141,7 @@ def subtest_sph_geodesic_rk_circular(verbosity):
   n=10 # doesn't actually matter what n is, because it's exact
   ndebug=0
   if verbosity>=2: ndebug = 10
-  z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
+  z = runge_kutta.geodesic_rk_simple(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
     print("error, "+z[1])
@@ -155,7 +155,7 @@ def subtest_sph_geodesic_rk_circular(verbosity):
 # Start at perihelion. Make the initial velocity greater than the circular-orbit value by the factor a.
 # Test against the Keplerian period. There is no point in testing with large n, because the errors
 # become dominated by the Keplerian approximation.
-def subtest_sph_geodesic_rk_period(verbosity,n,r,a):
+def subtest_geodesic_rk_simple_period(verbosity,n,r,a):
   info = ""
   ok = True
   t = 0.0
@@ -175,7 +175,7 @@ def subtest_sph_geodesic_rk_period(verbosity,n,r,a):
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   ndebug = 0
   if verbosity>=2: ndebug = 10  
-  z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
+  z = runge_kutta.geodesic_rk_simple(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
     print("error, "+z[1])
@@ -194,7 +194,7 @@ def subtest_sph_geodesic_rk_period(verbosity,n,r,a):
 # Test exactly conserved quantities. Go through a fraction f of the Keplerian estimate of the period,
 # and check conserved quantities. Testing with large n makes sense, because these quantities are
 # exactly relativistically conserved. However, for very large n we're dominated by rounding errors.
-def subtest_sph_geodesic_rk_conserved(verbosity,n,r,a,f):
+def subtest_geodesic_rk_simple_conserved(verbosity,n,r,a,f):
   info = ""
   ok = True
   t = 0.0
@@ -217,7 +217,7 @@ def subtest_sph_geodesic_rk_conserved(verbosity,n,r,a,f):
   if verbosity>=2: info += strcat(["initial values: L0=",("%8.5e" % l0),", E0=",("%8.5e" % e0),"\n"])
   ndebug = 0
   if verbosity>=2: ndebug = 10  
-  z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
+  z = runge_kutta.geodesic_rk_simple(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
     print("error, "+z[1])
@@ -237,7 +237,7 @@ def subtest_sph_geodesic_rk_conserved(verbosity,n,r,a,f):
     ok = False
   return [ok,info]
 
-# Helper function for subtest_sph_geodesic_rk_conserved.
+# Helper function for subtest_geodesic_rk_simple_conserved.
 # https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Conserved_momenta
 def conserved_sch_stuff(coords,v):
   r = coords[1]

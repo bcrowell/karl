@@ -10,24 +10,22 @@ from scipy import sign
 import schwarzschild,util
 
 import io_util
-from sph_point import SphPoint
-from sph_vector import SphVector
 
 # Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
-# x = starting point, a SphPoint object
-# v = starting tangent vector (need not be normalized, can be null or spacelike)
+# The motion is assumed to stay within a single chart. If you want to do motion that may move from one
+# chart to another, don't call this routine directly. Instead, call a fancier routine that acts as a
+# wrapper for this one. Similar considerations apply if the motion may hit a singularity.
+# x = starting point, a SphPoint object or a member of some other class that implements a similar interface
+# v = starting tangent vector (need not be normalized, can be null or spacelike); a SphVector object or
+#     member of some other class that implements a similar interface
 # lambda_max = maximum affine parameter, i.e., where to stop (but could stop earlier, e.g., if 
 #                  we hit a singularity)
 # dlambda = step size
 # ndebug = 0, or, if nonzero, gives approximate number of points at which to print debugging output
 # returns
 #   [if_error,error_message,final_x,final_v,final_lambda]
-def sph_geodesic_rk(x,v,lambda_max,dlambda,ndebug):
-  spacetime = x.spacetime # SphPoint.SCHWARZSCHILD or SphPoint.CHARGED
+def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
   ok = False
-  if spacetime==SphPoint.SCHWARZSCHILD: ok = True
-  if spacetime==SphPoint.CHARGED: return [True,"CHARGED not implemented"]
-  if not ok: return [True,"spacetime not implemented"]
   n = math.ceil(lambda_max/dlambda)
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
@@ -62,13 +60,7 @@ def sph_geodesic_rk(x,v,lambda_max,dlambda,ndebug):
       if step==3:
         for i in range(0,8):
           y[i] = y0[i]+est[2][i]
-      if spacetime==SphPoint.SCHWARZSCHILD:
-        theta = y[2]
-        if x.chart==SphPoint.SCHWARZSCHILD:
-          ch = schwarzschild.sch_christoffel_sch(y[0],y[1],sin(theta),cos(theta))
-        else:
-          return [True,"Kruskal chart not implemented"]
-      # no else here because we tested at top to make sure it was Sch. spacetime
+      ch = x.get_christoffel(y)
       for i in range(0,8): est[step][i]=0.0
       for i in range(0, 4):
         a = 0.0 # is essentially the acceleration

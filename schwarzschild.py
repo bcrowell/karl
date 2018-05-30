@@ -265,4 +265,3 @@ def sch_metric_sch(r,sin_theta):
   g[3][3] = -r2*sin_theta*sin_theta
   return g
 
-

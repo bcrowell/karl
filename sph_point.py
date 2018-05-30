@@ -25,6 +25,7 @@ class SphPoint:
   #                        near coordinate singularities at theta=0 and pi; to be used only
   #                        when we don't care about efficiency or coordinate singularities
   #   transition -- boolean, see comments at make_safe()
+  #   get_christoffel() -- returns the christoffel symbols in the current coordinate chart
 
   # Constants for referring to particular metrics:
   SCHWARZSCHILD = 1
@@ -32,6 +33,20 @@ class SphPoint:
   # Constants referring to different coordinate charts:
   SCHWARZSCHILD_CHART = 1
   KRUSKAL_VW_CHART = 2
+
+  # In principle the coords argument is superfluous, because we have the data internally
+  # as part of the SphPoint object. However, we are normally going to be calling this during
+  # Runge-Kutta integration, where we don't want the overhead of creating lots of modified
+  # copies of the original point.
+  def get_christoffel(self,coords):
+    theta = coords[2] # we don't care about rot90 in this context
+    if self.spacetime==SphPoint.SCHWARZSCHILD:
+      if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+        return schwarzschild.sch_christoffel_sch(coords[0],coords[1],sin(theta),cos(theta))
+      if self.chart==SphPoint.KRUSKAL_VW_CHART:
+        z = sch_aux_ks(coords[0],coords[1])
+        return schwarzschild.sch_christoffel_ks(coords[0],coords[1],sin(theta),cos(theta),z[1],z[2])
+    print("error in sph_point.get_christoffel, unimplemented spacetime ",self.spacetime," or chart ",self.chart)
 
   def __init__(self,spacetime,chart,x0,x1,theta,phi):
     self.spacetime = spacetime
