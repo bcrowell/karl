@@ -120,6 +120,8 @@ def test_sph_geodesic_rk(verbosity):
   r = 1.0e8 # newtonian regime
   results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_period(verbosity,100,r,1.0))
   results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_period(verbosity,100,r,1.1))
+  r = 10
+  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_conserved(verbosity,1000,r,1.1,0.3))
   return summarize_test(results,"test_sph_geodesic_rk",verbosity)
 
 # Only really tests two of the nonzero Christoffel symbols.
@@ -151,7 +153,8 @@ def subtest_sph_geodesic_rk_circular(verbosity):
   return [ok,info]
 
 # Start at perihelion. Make the initial velocity greater than the circular-orbit value by the factor a.
-# Test against the Keplerian period.
+# Test against the Keplerian period. There is no point in testing with large n, because the errors
+# become dominated by the Keplerian approximation.
 def subtest_sph_geodesic_rk_period(verbosity,n,r,a):
   info = ""
   ok = True
@@ -186,6 +189,61 @@ def subtest_sph_geodesic_rk_period(verbosity,n,r,a):
                          final[1]/r-1.0,final[2]-theta,sin(final[3])-sin(phi)])
     ok = False
   return [ok,info]
+
+# Start at perihelion. Make the initial velocity greater than the circular-orbit value by the factor a.
+# Test exactly conserved quantities. Go through a fraction f of the Keplerian estimate of the period,
+# and check conserved quantities. Testing with large n makes sense, because these quantities are
+# exactly relativistically conserved. However, for very large n we're dominated by rounding errors.
+def subtest_sph_geodesic_rk_conserved(verbosity,n,r,a,f):
+  info = ""
+  ok = True
+  t = 0.0
+  theta = pi/2 # formula for angular momentum only works in the equatorial plane
+  phi = 0.0 
+  x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  # Start by constructing parameters for a circular orbit, which we will later alter to be elliptical:
+  v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
+  circular_period = 2.0*pi/v_phi
+  # Increase velocity at perihelion to make orbit elliptical:
+  v_phi = v_phi*a
+  # Compute newtonian r_max:
+  q=a**2/2.0-1.0
+  r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
+  period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
+  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
+  z = conserved_sch_stuff(x.get_raw_coords(),v.comp)
+  l0 = z[0]; e0 = z[1]  
+  if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
+  if verbosity>=2: info += strcat(["initial values: L0=",("%8.5e" % l0),", E0=",("%8.5e" % e0),"\n"])
+  ndebug = 0
+  if verbosity>=2: ndebug = 10  
+  z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
+  err = z[0]
+  if err:
+    print("error, "+z[1])
+    exit(-1)
+  final = z[2].absolute_schwarzschild()
+  if verbosity>=2: info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
+  z = conserved_sch_stuff(x.get_raw_coords(),v.comp)
+  l = z[0]; e = z[1]  
+  l_err = (l-l0)/l0
+  e_err = (e-e0)/e0
+  if verbosity>=2:
+    info += strcat(["final values: L=",("%8.5e" % l),", E=",("%8.5e" % e),"\n"])
+    info += strcat(["L err=",("%8.5e" % l_err ),", E err=",("%8.5e" % e_err )])
+  eps = 1000.0/(n**4)
+  if abs(l_err)>eps or abs(e_err)>eps:
+    info += strcat(["conserved quantities not conserved, relative errors=",l_err," ",e_err])
+    ok = False
+  return [ok,info]
+
+# Helper function for subtest_sph_geodesic_rk_conserved.
+# https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Conserved_momenta
+def conserved_sch_stuff(coords,v):
+  r = coords[1]
+  l = r*r*v[3]
+  e = (1-1/r)*v[0]
+  return [l,e]
 
 # Dumb, low-tech, low-precision test of whether we seem to get a circular orbit when we should.
 # Doesn't use Runge-Kutta.

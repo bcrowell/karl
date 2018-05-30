@@ -45,18 +45,8 @@ def sph_geodesic_rk(x,v,lambda_max,dlambda,ndebug):
     if ndebug!=0 and (debug_count>=steps_between_debugging or iter==n-1):
       debug_count = 0
       do_debug = True
-    if do_debug and True:
+    if do_debug:
       print("iter=",iter,", lambda=",("%5.3e" % lam),", coords=",io_util.vector_to_str(coords))
-    # The following only works for Schwarzschild, equatorial plane:
-    if do_debug and False:
-      # https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Conserved_momenta
-      r = coords[1]
-      l = r*r*v.comp[3]
-      e = (1-1/r)*v.comp[0]
-      if iter==0:
-        l0=l
-        e0=e
-      print("iter=",iter,", L err=",("%8.5e" % ((l-l0)/l0) ),", E err=",("%8.5e" % ((e-e0)/e0) ) )
     debug_count += 1
     y0 = [0 for i in range(8)]
     for i in range(0,4): y0[i]=copy.deepcopy(coords[i])
