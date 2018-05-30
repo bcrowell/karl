@@ -25,6 +25,7 @@ def main():
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
   do_test(verbosity,test_circular_orbit(verbosity))
   do_test(verbosity,test_geodesic_rk_simple(verbosity))
+  do_test(verbosity+1,test_geodesic_rk_free_fall_from_rest(verbosity+1))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -123,6 +124,38 @@ def test_geodesic_rk_simple(verbosity):
   r = 10
   results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_conserved(verbosity,1000,r,1.1,0.3))
   return summarize_test(results,"test_geodesic_rk_simple",verbosity)
+
+def test_geodesic_rk_free_fall_from_rest(verbosity):
+  results = [True,""]
+  r = 1.0e8 # newtonian regime
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(verbosity,100,r,0.999*r))
+  return summarize_test(results,"test_geodesic_rk_free_fall_from_rest",verbosity)
+
+# Compute proper time for radial free fall from rest in Schwarzschild metric at
+# Schwarzschild radius a to radius b and compare with exact equation (MTW p. 824, eq. 31.10).
+def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b):
+  info = ""
+  ok = True
+  t = 0.0
+  theta = pi/2
+  phi = 0.0
+  x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,a,theta,phi)
+  v = SphVector(x,[1.0,0.0,0.0,0.0]) # derivative of coordinates with respect to proper time
+  if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
+  eta = acos(2.0*b/a-1.0) # auxiliary parameter defined by MTW; eta=0 at start, and this is the value at b
+  tau = 0.5*a**1.5*(eta+sin(eta))
+  ndebug=0
+  if verbosity>=2: ndebug = 10
+  z = runge_kutta.geodesic_rk_simple(x,v,tau,tau/n,ndebug)
+  err = z[0]
+  if err:
+    print("error, "+z[1])
+    exit(-1)
+  final = z[2].absolute_schwarzschild()
+  if verbosity>=2:
+    info += strcat(["final tau=",tau,", r=",final[1],", expected r=",b])
+  return [ok,info]
+
 
 # Only really tests two of the nonzero Christoffel symbols.
 # Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
