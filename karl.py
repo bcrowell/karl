@@ -117,7 +117,9 @@ def test_circular_orbit(verbosity):
 def test_sph_geodesic_rk(verbosity):
   results = [True,""]
   results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_circular(verbosity))
-  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_conserved(verbosity))
+  r = 1.0e8 # newtonian regime
+  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_period(verbosity,100,r,1.0))
+  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_period(verbosity,100,r,1.1))
   return summarize_test(results,"test_sph_geodesic_rk",verbosity)
 
 # Only really tests two of the nonzero Christoffel symbols.
@@ -135,7 +137,8 @@ def subtest_sph_geodesic_rk_circular(verbosity):
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   period = 2.0*pi/v_phi
   n=10 # doesn't actually matter what n is, because it's exact
-  ndebug = 10
+  ndebug=0
+  if verbosity>=2: ndebug = 10
   z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
@@ -147,11 +150,12 @@ def subtest_sph_geodesic_rk_circular(verbosity):
     ok = False
   return [ok,info]
 
-def subtest_sph_geodesic_rk_conserved(verbosity):
+# Start at perihelion. Make the initial velocity greater than the circular-orbit value by the factor a.
+# Test against the Keplerian period.
+def subtest_sph_geodesic_rk_period(verbosity,n,r,a):
   info = ""
   ok = True
   t = 0.0
-  r = 1.0e8 # newtonian regime
   theta = pi/2
   phi = 0.0
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
@@ -159,7 +163,6 @@ def subtest_sph_geodesic_rk_conserved(verbosity):
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
   circular_period = 2.0*pi/v_phi
   # Increase velocity at perihelion to make orbit elliptical:
-  a = 1.1
   v_phi = v_phi*a
   # Compute newtonian r_max:
   q=a**2/2.0-1.0
@@ -167,15 +170,17 @@ def subtest_sph_geodesic_rk_conserved(verbosity):
   period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
   v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
-  n=1000
-  ndebug = 10
+  ndebug = 0
+  if verbosity>=2: ndebug = 10  
   z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
     print("error, "+z[1])
     exit(-1)
   final = z[2].absolute_schwarzschild()
-  eps = 0.02 # should be better than this!?
+  eps = 100.0/r + 1000.0/(n**4) # first term is for error in Keplerian period, second for Runge-Kutta
+  if verbosity>=2: info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
+  if verbosity>=2: info += strcat(["n=",n,", error in sin phi=",abs(sin(final[3])-sin(phi)),"\n"])
   if abs(final[1]/r-1.0)>eps or abs(final[2]-theta)>eps or abs(sin(final[3])-sin(phi))>eps:
     info += strcat(["not back at starting position, final x=",str(x)," errors in r,theta,phi=",
                          final[1]/r-1.0,final[2]-theta,sin(final[3])-sin(phi)])

@@ -1,4 +1,4 @@
-import schwarzschild,util
+import copy
 
 import numpy as np
 import scipy
@@ -6,6 +6,8 @@ import math
 from numpy import arctanh
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi
 from scipy import sign
+
+import schwarzschild,util
 
 import io_util
 from sph_point import SphPoint
@@ -39,15 +41,28 @@ def sph_geodesic_rk(x,v,lambda_max,dlambda,ndebug):
             # reduce 2nd-order ODE to 8 coupled 1st-order ODEs
             # =k in the notation of most authors
     coords = x.get_raw_coords()
-    if debug_count>=steps_between_debugging or iter==n-1:
+    do_debug = False
+    if ndebug!=0 and (debug_count>=steps_between_debugging or iter==n-1):
       debug_count = 0
+      do_debug = True
+    if do_debug and True:
       print("iter=",iter,", lambda=",("%5.3e" % lam),", coords=",io_util.vector_to_str(coords))
+    # The following only works for Schwarzschild, equatorial plane:
+    if do_debug and False:
+      # https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Conserved_momenta
+      r = coords[1]
+      l = r*r*v.comp[3]
+      e = (1-1/r)*v.comp[0]
+      if iter==0:
+        l0=l
+        e0=e
+      print("iter=",iter,", L err=",("%8.5e" % ((l-l0)/l0) ),", E err=",("%8.5e" % ((e-e0)/e0) ) )
     debug_count += 1
     y0 = [0 for i in range(8)]
-    for i in range(0,4): y0[i]=coords[i]
-    for i in range(0,4): y0[i+4]=v.comp[i]
+    for i in range(0,4): y0[i]=copy.deepcopy(coords[i])
+    for i in range(0,4): y0[i+4]=copy.deepcopy(v.comp[i])
     for step in range(0,4):
-      if step==0: y=y0
+      if step==0: y=copy.deepcopy(y0)
       if step==1:
         for i in range(0,8):
           y[i] = y0[i]+0.5*est[0][i]
