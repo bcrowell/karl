@@ -127,12 +127,13 @@ def test_geodesic_rk_simple(verbosity):
 
 def test_geodesic_rk_free_fall_from_rest(verbosity):
   results = [True,""]
-  r = 1.0e8 # newtonian regime
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(verbosity,100,r,0.999*r))
+  r = 10.0
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(verbosity,100,r,0.9*r))
   return summarize_test(results,"test_geodesic_rk_free_fall_from_rest",verbosity)
 
 # Compute proper time for radial free fall from rest in Schwarzschild metric at
 # Schwarzschild radius a to radius b and compare with exact equation (MTW p. 824, eq. 31.10).
+# When we're in the weak-field region, Runge-Kutta is exact with n=1, because motion is quadratic in time.
 def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b):
   info = ""
   ok = True
@@ -140,7 +141,8 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b):
   theta = pi/2
   phi = 0.0
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,a,theta,phi)
-  v = SphVector(x,[1.0,0.0,0.0,0.0]) # derivative of coordinates with respect to proper time
+  tdot = 1.0/sqrt(1.0-1.0/a) # value of dt/dlambda such that the affine parameter lambda will be proper time
+  v = SphVector(x,[tdot,0.0,0.0,0.0]) # derivative of coordinates with respect to proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   eta = acos(2.0*b/a-1.0) # auxiliary parameter defined by MTW; eta=0 at start, and this is the value at b
   tau = 0.5*a**1.5*(eta+sin(eta))
@@ -152,8 +154,14 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b):
     print("error, "+z[1])
     exit(-1)
   final = z[2].absolute_schwarzschild()
+  r = final[1]
+  rel_err = (r-b)/b
   if verbosity>=2:
-    info += strcat(["final tau=",tau,", r=",final[1],", expected r=",b])
+    info += strcat(["final tau=",tau,", r=",r,", expected r=",b," n=",n,", rel err=",rel_err,"\n"])
+  eps = 1000.0/(n**4)
+  if abs(rel_err)>eps:
+    info += strcat(["relative discrepancy of ",rel_err," in final radius is greater than ",eps])
+    ok = False
   return [ok,info]
 
 
