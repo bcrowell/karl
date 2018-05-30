@@ -10,9 +10,10 @@ from numpy import arctanh
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi
 from scipy import sign
 
-import schwarzschild,util,sph_point,runge_kutta
+import schwarzschild,util,io_util,sph_point,runge_kutta
 from sph_point import SphPoint
 from sph_vector import SphVector
+from io_util import strcat,print_no_newline
 
 def main():
   verbosity = 1
@@ -122,17 +123,21 @@ def subtest_sph_geodesic_rk(verbosity):
   info = ""
   ok = True
   t = 0.0
-  r = 10.0
+  r = 1.0e8 # newtonian regime
   theta = pi/2
   phi = 0.0
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
+  v_phi = v_phi*1.1 ############### qwe
   v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   period = 2.0*pi/v_phi
-  n=10
-  dlambda = period/n
-  z = runge_kutta.sph_geodesic_rk(x,v,period,dlambda)
+  n=10000
+  ndebug = 10
+  period = period*1.5691 ############ qwe -- or 1.424 for what I think should be 1 period; too big by almost
+                             #            exactly a factor of 1.10, which is how much I boosted v_phi by??
+                             # And lambda differs from t by a factor of 4. Why?
+  z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
     print("error, "+z[1])
@@ -169,7 +174,7 @@ def subtest_circular_orbit(verbosity):
     for i in range(0, 4):
       for j in range(0, 4):
         for k in range(0, 4):
-          a[i] = a[i] + ch[j][k][i]*v.comp[j]*v.comp[k]
+          a[i] = a[i] - ch[j][k][i]*v.comp[j]*v.comp[k]
     for i in range(0, 4):
       v.comp[i] += dlambda*a[i]
     x.add(dlambda,v)
@@ -290,16 +295,6 @@ def record_subtest(verbosity,results,subtest_results):
   if not ok:
     info += " ***FAILED***"
   return [ok,info]  
-
-###################################################################
-
-# l is an array of objects which may not be strings
-def strcat(l):
-  return ''.join(map(str, l))
-
-def print_no_newline(s):
-  sys.stdout.write(s)
-  sys.stdout.flush()
 
 ###################################################################
 
