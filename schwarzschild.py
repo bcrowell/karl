@@ -304,3 +304,17 @@ def sch_ks_jacobian(region,r,t):
     jacobian[1][1] =  (-(s1r*er*s)/2)+(er*s)/(2*s1r)+(s1r*er*c)/2-(er*c)/(2*s1r) 
   return jacobian
 
+# Similar to sch_ks_jacobian. Slightly inefficient because we invert the 2x2 matrix,
+# but not likely to affect performance because not called often.
+def ks_sch_jacobian(region,r,t):
+  j = sch_ks_jacobian(region,r,t)
+  a = j[0][0]
+  d = j[1][1]
+  b = j[1][0]
+  c = j[0][1]
+  det = a*d-b*c
+  j[1][1] = a/det
+  j[0][0] = d/det
+  j[1][0] = -b/det
+  j[0][1] = -c/det
+  return j

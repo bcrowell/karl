@@ -26,6 +26,9 @@ class SphPoint:
   #                        when we don't care about efficiency or coordinate singularities
   #   transition -- boolean, see comments at make_safe()
   #   get_christoffel() -- returns the christoffel symbols in the current coordinate chart
+  #   sch_copy --- when using Schwarzschild coordinates, this keeps track of the region
+  #                of the maximal extension of the Schwarzschild spacetime; if this boolean flag
+  #                is True, then we're in region 3 or 4
 
   # Constants for referring to particular metrics:
   SCHWARZSCHILD = 1
@@ -57,11 +60,26 @@ class SphPoint:
     if chart==SphPoint.SCHWARZSCHILD_CHART:
       self.t = x0
       self.r = x1
-    # self.make_safe() # see comment above on why this was a bad idea
+      self.sch_copy = False
 
   def __str__(self):
     s = self.absolute_schwarzschild()
     return "(t="+str(s[0])+", r="+str(s[1])+", theta="+str(s[2])+", phi="+str(s[3])+")"
+
+  def region(self):
+    if self.chart==SphPoint.KRUSKAL_VW_CHART: return ks_to_region(self.v,self.w)
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      if r<1.0:
+        if self.sch_copy:
+          return 4
+        else:
+          return 2
+      else:
+        if self.sch_copy:
+          return 3
+        else:
+          return 1
+    raise RuntimeError('unknown chart in sph_point.py, region()')
 
   # Add c*v to the point, where v is a vector (must refer to this point), and c is a scalar.
   # After doing this enough times, call make_safe.
@@ -138,6 +156,7 @@ class SphPoint:
     self.t = tr[0]
     self.r = tr[1]
     self.chart = SphPoint.SCHWARZSCHILD_CHART
+    self.sch_copy = (self.v<0.0)
     self.transition = True
 
   def to_kruskal(self):

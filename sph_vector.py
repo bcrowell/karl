@@ -1,3 +1,5 @@
+import copy
+
 import schwarzschild,util
 
 import numpy as np
@@ -22,8 +24,9 @@ class SphVector:
     self.point = point
     # During a transition, the following two flags can become different from the ones
     # in the point object:
-    self.chart = point.chart 
-    self.rot90 = point.rot90
+    self.chart = copy.deepcopy(point.chart)
+    self.rot90 = copy.deepcopy(point.rot90)
+    if point.chart==SphPoint.KRUSKAL_VW_CHART: self._era=copy.deepcopy(point._era)
     self.comp = comp # array containing four components of the vector, in the current chart
 
   def __str__(self):
@@ -33,15 +36,22 @@ class SphVector:
 
   # When updating the point, first set its transition flag to False, then update it, then
   # check whether its transition flag has become true. If so, then call this routine on
-  # all vectors that refer to it. There is no reason that this should be called when the
-  # chart has not actually changed, so if you do that, it will cause a run-time error
+  # all vectors that refer to it. There is no reason that this should be called when nothing
+  # has actually changed, so if you do that, it is not guaranteed to work and
+  # may cause a run-time error. (In any case, it will be inefficient to do so.)
+  # Logically there is the possibility that two things could change at once, e.g., you
+  # could change from Schwarzschild to Kruskal, and rot90 or era could also change.
+  # In fact the only combination that is allowed to occur is if both rot90 and era change.
+  # This code is a little awkward because we end up reconstructing the coordinates in the
+  # old chart. Although those fields may actually still be present, we don't assume them to
+  # be valid, except for sch_copy, which we need when transitioning from Kruskal to Sch.
   def handle_transition(self):
     if not self.point.transition: return # This should not normally happen.
     chart1 = self.chart
     chart2 = self.point.chart
     if chart1==SphPoint.SCHWARZSCHILD_CHART and chart2==SphPoint.KRUSKAL_VW_CHART:
-      kruskal = self.point.get_raw_coords()
-      v=kruskal[0]; w=kruskal[1]
+      v = self.point.v
+      w = self.point.w
       z = self.point.absolute_schwarzschild() # slow, but we don't care because this happens infrequently
       t = z[0]; r=z[1]
       region = schwarzschild.ks_to_region(v,w)
@@ -50,11 +60,26 @@ class SphVector:
       dv = j[0][0]*dt+j[0][1]*dr
       dw = j[1][0]*dt+j[1][1]*dr
       self.comp[0]=dv; self.comp[1]=dw
-      return
-    if chart1==chart2:
-      print("Error, transition from chart ",chart1," to ",chart2," in sph_vector.py, charts are the same")
-      raise RuntimeError('')
-    print("Error, transition from chart ",chart1," to ",chart2," not yet implemented in sph_vector.py")
-    raise RuntimeError('')
-    exit(-1)
+      return # don't fall through, because nothing else is allowed to change if the chart changed
+    if chart1==SphPoint.KRUSKAL_VW_CHART and chart2==SphPoint.SCHWARZSCHILD_CHART:
+      t=self.point.t ; r=self.point.r
+      if point.sch_copy:
+        sigma = -1.0
+      else:
+        sigma = 1.0
+      z = sch_to_ks(t,r,sigma)
+      v=z[0]; w=z[1]
+      region = ks_to_region(v,w)
+      j = schwarzschild.ks_sch_jacobian(region,r,t)
+      dv = self.comp[0] ; dw = self.comp[1]
+      dt = j[0][0]*dv+j[0][1]*dw
+      dr = j[1][0]*dv+j[1][1]*dw
+      self.comp[0]=dt; self.comp[1]=dr
+      return # don't fall through, because nothing else is allowed to change if the chart changed
+    # Past this point, we're guaranteed that chart1 and chart2 are the same.
+    if chart2==SphPoint.KRUSKAL_VW_CHART and self._era!=self.point._era:
+      raise RuntimeError('not implemented')
+    if chart2==SphPoint.KRUSKAL_VW_CHART and self.rot90!=self.point.rot90:
+      raise RuntimeError('not implemented')
+
 
