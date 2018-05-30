@@ -127,22 +127,31 @@ def test_geodesic_rk_simple(verbosity):
 
 def test_geodesic_rk_free_fall_from_rest(verbosity):
   results = [True,""]
-  r = 10.0
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(verbosity,100,r,0.9*r))
+  r = 1.2
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
+                   verbosity,100,r,0.9*r,SphPoint.SCHWARZSCHILD_CHART))
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
+                   verbosity,100,r,0.9*r,SphPoint.KRUSKAL_VW_CHART))
   return summarize_test(results,"test_geodesic_rk_free_fall_from_rest",verbosity)
 
 # Compute proper time for radial free fall from rest in Schwarzschild metric at
 # Schwarzschild radius a to radius b and compare with exact equation (MTW p. 824, eq. 31.10).
 # When we're in the weak-field region, Runge-Kutta is exact with n=1, because motion is quadratic in time.
-def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b):
+# If setting the chart to Kruskal, keep in mind that large r will cause overflow errors.
+def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b,chart):
   info = ""
   ok = True
   t = 0.0
   theta = pi/2
   phi = 0.0
+  # Start by constructing position and velocity in Schwarzschild chart, then switch both to Kruskal if needed.
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,a,theta,phi)
   tdot = 1.0/sqrt(1.0-1.0/a) # value of dt/dlambda such that the affine parameter lambda will be proper time
   v = SphVector(x,[tdot,0.0,0.0,0.0]) # derivative of coordinates with respect to proper time
+  if chart==SphPoint.KRUSKAL_VW_CHART:
+    x.force_chart(chart) 
+    v.handle_transition()
+    x.transition = False
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   eta = acos(2.0*b/a-1.0) # auxiliary parameter defined by MTW; eta=0 at start, and this is the value at b
   tau = 0.5*a**1.5*(eta+sin(eta))

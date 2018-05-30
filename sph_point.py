@@ -34,20 +34,14 @@ class SphPoint:
   SCHWARZSCHILD_CHART = 1
   KRUSKAL_VW_CHART = 2
 
-  # In principle the coords argument is superfluous, because we have the data internally
-  # as part of the SphPoint object. However, we are normally going to be calling this during
-  # Runge-Kutta integration, where we don't want the overhead of creating lots of modified
-  # copies of the original point.
-  def get_christoffel(self,coords):
-    theta = coords[2] # we don't care about rot90 in this context
-    if self.spacetime==SphPoint.SCHWARZSCHILD:
-      if self.chart==SphPoint.SCHWARZSCHILD_CHART:
-        return schwarzschild.sch_christoffel_sch(coords[0],coords[1],sin(theta),cos(theta))
-      if self.chart==SphPoint.KRUSKAL_VW_CHART:
-        z = sch_aux_ks(coords[0],coords[1])
-        return schwarzschild.sch_christoffel_ks(coords[0],coords[1],sin(theta),cos(theta),z[1],z[2])
-    print("error in sph_point.get_christoffel, unimplemented spacetime ",self.spacetime," or chart ",self.chart)
-
+  # After creating a new point with this code, you may immediately want to call its make_safe()
+  # method to get into a more appropriate coordinate chart. However, often you will create
+  # vectors in the tangent space associate with the point as well. E.g., if simulating a geodesic,
+  # you will first create an initial position x, and then create an initial tangent vector v.
+  # You want to create the tangent vector in the expected chart, so you would typically do that,
+  # and *then* if necessary transition both x and v to the new chart. This use case is the reason why
+  # make_safe() is not automatically called when a new point is created. Because make_safe() is
+  # not called automatically, the .transition flag is guaranteed never to be set after creating a new point.
   def __init__(self,spacetime,chart,x0,x1,theta,phi):
     self.spacetime = spacetime
     # chart = SCHWARZSCHILD_CHART or KRUSKAL_VW_CHART, the chart in which x0 and x1 are defined
@@ -63,7 +57,7 @@ class SphPoint:
     if chart==SphPoint.SCHWARZSCHILD_CHART:
       self.t = x0
       self.r = x1
-    self.make_safe()
+    # self.make_safe() # see comment above on why this was a bad idea
 
   def __str__(self):
     s = self.absolute_schwarzschild()
@@ -126,6 +120,17 @@ class SphPoint:
       if rho>2000.0: self.to_schwarzschild()
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
       if self.r<3.0: self.to_kruskal()
+
+  # This will have the side-effect of setting the .transition flag.
+  def force_chart(self,desired_chart):
+    if self.chart==desired_chart: return
+    if desired_chart==SphPoint.SCHWARZSCHILD_CHART:
+      self.to_schwarzschild()
+      return
+    if desired_chart==SphPoint.KRUSKAL_VW_CHART:
+      self.to_kruskal()
+      return
+    raise RuntimeError("chart "+str(desired_chart)+" not implemented in sph_point.force_chart")
 
   def to_schwarzschild(self):
     if self.chart==SphPoint.SCHWARZSCHILD_CHART: return
@@ -210,4 +215,20 @@ class SphPoint:
       angles = util.rotate_unit_sphere([self.theta,self.phi],direction)
       self.theta = angles[0]
       self.phi = angles[1]
+
+  # Get the Christoffel symbols in the current coordinate chart.
+  # In principle the coords argument is superfluous, because we have the data internally
+  # as part of the SphPoint object. However, we are normally going to be calling this during
+  # Runge-Kutta integration, where we don't want the overhead of creating lots of modified
+  # copies of the original point.
+  def get_christoffel(self,coords):
+    theta = coords[2] # we don't care about rot90 in this context
+    if self.spacetime==SphPoint.SCHWARZSCHILD:
+      if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+        return schwarzschild.sch_christoffel_sch(coords[0],coords[1],sin(theta),cos(theta))
+      if self.chart==SphPoint.KRUSKAL_VW_CHART:
+        z = schwarzschild.sch_aux_ks(coords[0],coords[1])
+        return schwarzschild.sch_christoffel_ks(coords[0],coords[1],sin(theta),cos(theta),z[1],z[2])
+    print("error in sph_point.get_christoffel, unimplemented spacetime ",self.spacetime," or chart ",self.chart)
+    exit(-1)
 
