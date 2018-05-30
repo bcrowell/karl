@@ -116,27 +116,26 @@ def test_circular_orbit(verbosity):
 
 def test_sph_geodesic_rk(verbosity):
   results = [True,""]
-  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk(verbosity))
+  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_circular(verbosity))
+  results = record_subtest(verbosity,results,subtest_sph_geodesic_rk_conserved(verbosity))
   return summarize_test(results,"test_sph_geodesic_rk",verbosity)
 
-def subtest_sph_geodesic_rk(verbosity):
+# Only really tests two of the nonzero Christoffel symbols.
+# Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
+def subtest_sph_geodesic_rk_circular(verbosity):
   info = ""
   ok = True
   t = 0.0
-  r = 1.0e8 # newtonian regime
+  r = 10.0
   theta = pi/2
   phi = 0.0
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
-  v_phi = v_phi*1.1 ############### qwe
   v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   period = 2.0*pi/v_phi
-  n=10000
+  n=10 # doesn't actually matter what n is, because it's exact
   ndebug = 10
-  period = period*1.5691 ############ qwe -- or 1.424 for what I think should be 1 period; too big by almost
-                             #            exactly a factor of 1.10, which is how much I boosted v_phi by??
-                             # And lambda differs from t by a factor of 4. Why?
   z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
   err = z[0]
   if err:
@@ -148,7 +147,43 @@ def subtest_sph_geodesic_rk(verbosity):
     ok = False
   return [ok,info]
 
+def subtest_sph_geodesic_rk_conserved(verbosity):
+  info = ""
+  ok = True
+  t = 0.0
+  r = 1.0e8 # newtonian regime
+  theta = pi/2
+  phi = 0.0
+  x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  # Start by constructing parameters for a circular orbit, which we will later alter to be elliptical:
+  v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
+  circular_period = 2.0*pi/v_phi
+  # Increase velocity at perihelion to make orbit elliptical:
+  a = 1.1
+  v_phi = v_phi*a
+  # Compute newtonian r_max:
+  q=a**2/2.0-1.0
+  r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
+  period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
+  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
+  if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
+  n=1000
+  ndebug = 10
+  z = runge_kutta.sph_geodesic_rk(x,v,period,period/n,ndebug)
+  err = z[0]
+  if err:
+    print("error, "+z[1])
+    exit(-1)
+  final = z[2].absolute_schwarzschild()
+  eps = 0.02 # should be better than this!?
+  if abs(final[1]/r-1.0)>eps or abs(final[2]-theta)>eps or abs(sin(final[3])-sin(phi))>eps:
+    info += strcat(["not back at starting position, final x=",str(x)," errors in r,theta,phi=",
+                         final[1]/r-1.0,final[2]-theta,sin(final[3])-sin(phi)])
+    ok = False
+  return [ok,info]
+
 # Dumb, low-tech, low-precision test of whether we seem to get a circular orbit when we should.
+# Doesn't use Runge-Kutta.
 # Only really tests two of the nonzero Christoffel symbols.
 # Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
 def subtest_circular_orbit(verbosity):
