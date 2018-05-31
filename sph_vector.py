@@ -19,6 +19,11 @@ from sph_point import SphPoint
 class SphVector:
   # This class represents a vector in the tangent space at a particular point.
   # The point is a member of the class SphPoint.
+  # Although mathematically we think of a vector as being tied to the tangent space of one exact
+  # point on the manifold, here we actually take the liberty of letting the point change
+  # without doing anything to the vector, provided that we didn't change to a different chart.
+  # This is OK because the vector is expressed internally as a set of coordinate components in
+  # a particular chart, and that representation remains valid as the point moves.
 
   def __init__(self,point,comp):
     self.point = point

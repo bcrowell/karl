@@ -12,16 +12,64 @@ import schwarzschild,util
 import io_util
 
 # Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
-# The motion is assumed to stay within a single chart. If you want to do motion that may move from one
-# chart to another, don't call this routine directly. Instead, call a fancier routine that acts as a
-# wrapper for this one. Similar considerations apply if the motion may hit a singularity.
+# Transitions between charts are made automatically as necessary.
 # x = starting point, a SphPoint object or a member of some other class that implements a similar interface
 # v = starting tangent vector (need not be normalized, can be null or spacelike); a SphVector object or
 #     member of some other class that implements a similar interface
 # lambda_max = maximum affine parameter, i.e., where to stop (but could stop earlier, e.g., if 
 #                  we hit a singularity)
 # dlambda = step size
-# ndebug = 0, or, if nonzero, gives approximate number of points at which to print debugging output
+# ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100,
+#           then we print debugging output after every ntrans*100 steps
+# ndebug_inner -- similar to ndebug, but at a finer level of granularity; if it's 10, then
+#            we print debugging info at every 10 steps
+# ntrans -- after this many steps, we check whether to transition to a different chart; as long as
+#           ntrans is at least 10, the time-consuming code for checking for a transition will only
+#           run 1/10 of the time, and is therefore probably not a significant use of CPU time
+# debug_transitions -- boolean, do we want a message printed whenever we make a transition?
+# returns
+#   [if_error,error_message,final_x,final_v,final_lambda]
+def geodesic_rk(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug_transitions):
+  ok = False
+  n = math.ceil(lambda_max/(dlambda*ntrans))
+  if ndebug==0:
+    steps_between_debugging=n*2 # debugging will never happen
+  else:
+    steps_between_debugging=n/ndebug
+  debug_count = steps_between_debugging+1 # trigger it on the first iteration
+  lam = 0.0
+  for iter in range(0,n):
+    coords = x.get_raw_coords()
+    do_debug = False
+    if ndebug!=0 and (debug_count>=steps_between_debugging or iter==n-1):
+      debug_count = 0
+      do_debug = True
+    if do_debug:
+      print("iter=",iter,", lambda=",("%5.3e" % lam),", chart=",x.chart," coords=",io_util.vector_to_str(coords))
+    result = geodesic_rk_simple(x,v,lambda_max/n,dlambda,ndebug_inner)
+    err = result[0]
+    if err: return result
+    #---- update the data
+    x = result[2]
+    v = result[3]
+    lam = lam+result[4]
+    result[4] = lam
+    #---- Check for a transition to a new chart
+    x.transition = False
+    x.make_safe()
+    if x.transition:
+      if debug_transitions:
+        print("in geodesic_rk, iter=",iter," transitioning from chart ",x.chart_before_transition," to ",x.chart)
+      v.handle_transition()
+      x.transition = False
+    debug_count += 1
+  return result
+
+# Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
+# The motion is assumed to stay within a single chart. If you want to do motion that may move from one
+# chart to another, don't call this routine directly. Instead, call the fancier routine 
+# geodesic_rk that acts as a wrapper for this one. Similar considerations apply if the
+# motion may hit a singularity. Inputs are the same as the inputs to geodesic_rk of the same names.
 # returns
 #   [if_error,error_message,final_x,final_v,final_lambda]
 def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):

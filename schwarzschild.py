@@ -29,9 +29,9 @@ def ks_era_in_range(ks):
   w = ks[2]
   tx = ks_tx(v,w)
   if abs(tx)<5.0:
-    return ks # no change needed, already in canonical chart
+    return [False,ks] # no change needed, already in canonical chart
   else:
-    return force_ks_era(ks,tx,ks_to_region(v,w))
+    return [True,force_ks_era(ks,tx,ks_to_region(v,w))]
 
 # Force (t,V,W) into a canonical form where (V,W) corresponds to a Schwarzschild t=0,
 # i.e., the t information is all in the t parameter.

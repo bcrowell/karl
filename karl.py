@@ -25,7 +25,10 @@ def main():
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
   do_test(verbosity,test_circular_orbit(verbosity))
   do_test(verbosity,test_geodesic_rk_simple(verbosity))
-  do_test(verbosity+1,test_geodesic_rk_free_fall_from_rest(verbosity+1))
+  simple=True
+  do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
+  simple=False
+  do_test(verbosity+1,test_geodesic_rk_free_fall_from_rest(verbosity+1,simple))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -125,20 +128,23 @@ def test_geodesic_rk_simple(verbosity):
   results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_conserved(verbosity,1000,r,1.1,0.3))
   return summarize_test(results,"test_geodesic_rk_simple",verbosity)
 
-def test_geodesic_rk_free_fall_from_rest(verbosity):
+def test_geodesic_rk_free_fall_from_rest(verbosity,simple):
   results = [True,""]
-  r = 1.2
+  # Choose initial and final r values such that if we're using the fancy version of the Runge-Kutta
+  # routine, a transition will be triggered from Sch. to Kruskal.
+  r1 = 4.0
+  r2 = 2.0
   results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
-                   verbosity,100,r,0.9*r,SphPoint.SCHWARZSCHILD_CHART))
+                   verbosity,simple,100,r1,r2,SphPoint.SCHWARZSCHILD_CHART))
   results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
-                   verbosity,100,r,0.9*r,SphPoint.KRUSKAL_VW_CHART))
+                   verbosity,simple,100,r1,r2,SphPoint.KRUSKAL_VW_CHART))
   return summarize_test(results,"test_geodesic_rk_free_fall_from_rest",verbosity)
 
 # Compute proper time for radial free fall from rest in Schwarzschild metric at
 # Schwarzschild radius a to radius b and compare with exact equation (MTW p. 824, eq. 31.10).
 # When we're in the weak-field region, Runge-Kutta is exact with n=1, because motion is quadratic in time.
 # If setting the chart to Kruskal, keep in mind that large r will cause overflow errors.
-def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b,chart):
+def subtest_geodesic_rk_free_fall_from_rest(verbosity,simple,n,a,b,chart):
   info = ""
   ok = True
   t = 0.0
@@ -157,7 +163,10 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,n,a,b,chart):
   tau = 0.5*a**1.5*(eta+sin(eta))
   ndebug=0
   if verbosity>=2: ndebug = 10
-  z = runge_kutta.geodesic_rk_simple(x,v,tau,tau/n,ndebug)
+  if simple:
+    z = runge_kutta.geodesic_rk_simple(x,v,tau,tau/n,ndebug)
+  else:
+    z = runge_kutta.geodesic_rk       (x,v,tau,tau/n,ndebug,0,10,True)
   err = z[0]
   if err:
     print("error, "+z[1])

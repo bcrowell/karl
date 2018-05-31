@@ -25,10 +25,19 @@ class SphPoint:
   #                        near coordinate singularities at theta=0 and pi; to be used only
   #                        when we don't care about efficiency or coordinate singularities
   #   transition -- boolean, see comments at make_safe()
+  #   chart_before_transition -- what the chart was before the most recent transition
   #   get_christoffel() -- returns the christoffel symbols in the current coordinate chart
   #   sch_copy --- when using Schwarzschild coordinates, this keeps track of the region
   #                of the maximal extension of the Schwarzschild spacetime; if this boolean flag
   #                is True, then we're in region 3 or 4
+  # Typical code to handle transitions looks like this:
+  #    ...modify the point x...
+  #    x.transition = False
+  #    x.make_safe()
+  #    if x.transition:
+  #      v.handle_transition() ... v is a vector that depends on x
+  #      x.transition = False
+
 
   # Constants for referring to particular metrics:
   SCHWARZSCHILD = 1
@@ -137,6 +146,8 @@ class SphPoint:
       rho = -self.v*self.w
       if rho>2000.0: self.to_schwarzschild()
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      # If changing the parameter 3.0, then change the test in test_geodesic_rk_free_fall_from_rest so we
+      # still have coverage.
       if self.r<3.0: self.to_kruskal()
 
   # This will have the side-effect of setting the .transition flag.
@@ -152,6 +163,7 @@ class SphPoint:
 
   def to_schwarzschild(self):
     if self.chart==SphPoint.SCHWARZSCHILD_CHART: return
+    self.chart_before_transition = self.chart
     tr = schwarzschild.ks_to_sch(self.v,self.w)
     self.t = tr[0]
     self.r = tr[1]
@@ -161,6 +173,7 @@ class SphPoint:
 
   def to_kruskal(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART: return
+    self.chart_before_transition = self.chart
     vw = schwarzschild.sch_to_ks(self.t,self.r,schwarzschild.sch_to_sigma(self.r))
     self.v = vw[0]
     self.w = vw[1]
@@ -203,7 +216,10 @@ class SphPoint:
 
   # Do not call this routine unless the chart is already known to be Kruskal.
   def _era_in_range(self):
-    ks = schwarzschild.ks_era_in_range([self._era,self.v,self.w])
+    z = schwarzschild.ks_era_in_range([self._era,self.v,self.w])
+    if not z[0]: return # no change was needed
+    ks = z[1]
+    self.chart_before_transition = self.chart
     self._era = ks[0]
     self.v = ks[1]
     self.w = ks[2]
