@@ -42,9 +42,16 @@ system by doing `apt-get install python-scipy3 python-numpy3`.
 
 Test the code for transitioning a vector from Kruskal to Schwarzschild.
 
-## Bugs
+Test Runge-Kutta in a case where we make a transition from KS to Sch chart.
+
+Test outside the equatorial plane.
+
+## Bugs/to do
 
 Currently the handle_transition method only knows about transitions
 between Kruskal and Schwarzschild coordinates, need to take care of
 the rot90 and era cases as well. 
 
+Change hard-coded 3.0 and 2000.0 to symbols in sph_point.
+
+Gracefully handle the case where a geodesic is terminating.
