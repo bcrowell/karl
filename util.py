@@ -28,3 +28,30 @@ def rotate_unit_sphere(angles,direction):
   if phi2<0.0: phi2 += 2.0*pi # python's atan2 returns values in (-pi,pi), but I want (0,2pi)
   return [theta2,phi2]
 
+# The jacobian matrix of the transformation described by rotate_unit_sphere().
+# This is nearly raw output from the following Maxima code:
+#   direction:1;
+#   s:sin(theta);
+#   theta2:acos(-direction*s*sin(phi));
+#   phi2:atan2(direction*cos(theta),s*cos(phi));
+#   j:jacobian([theta2,phi2],[theta,phi])$
+#   print("1 1 ",string(j[1,1]));
+#   ...etc
+# This could be optimized a lot more, but it's called infrequently so that's not really worthwhile.
+# The order of the subscripts is such that, e.g., j[1][0] is dphi2/dtheta.
+def jacobian_rot90(angles,direction):
+  theta = angles[0]
+  phi = angles[1]
+  j = [[0 for i in range(2)] for j in range(2)]
+  if direction>0.0:
+    j[0][0] = (sin(phi)*cos(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
+    j[0][1] = (cos(phi)*sin(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
+    j[1][0] = (-(cos(phi)*sin(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2))-(cos(phi)*cos(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
+    j[1][1] = (sin(phi)*cos(theta)*sin(theta))/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
+  else:
+    j[0][0] = -(sin(phi)*cos(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
+    j[0][1] = -(cos(phi)*sin(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
+    j[1][0] = (cos(phi)*sin(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2)+(cos(phi)*cos(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
+    j[1][1] = -(sin(phi)*cos(theta)*sin(theta))/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
+  return j
+

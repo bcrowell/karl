@@ -84,7 +84,20 @@ class SphVector:
     # Past this point, we're guaranteed that chart1 and chart2 are the same.
     if chart2==SphPoint.KRUSKAL_VW_CHART and self._era!=self.point._era:
       raise RuntimeError('not implemented')
-    if chart2==SphPoint.KRUSKAL_VW_CHART and self.rot90!=self.point.rot90:
-      raise RuntimeError('not implemented')
+    if self.rot90!=self.point.rot90:
+      if (not self.rot90) and self.point.rot90:
+        direction = 1.0
+      else:
+        direction = -1.0
+      old_angles = util.rotate_unit_sphere([self.comp[2],self.comp[3]],-direction) # find what angles were before transition
+      theta = old_angles[0]; phi = old_angles[1]
+      j = util.jacobian_rot90([theta,phi],direction)
+      dtheta = self.comp[2] ; dphi = self.comp[1]
+      dtheta2 = j[0][0]*dtheta+j[0][1]*dphi
+      dphi2   = j[1][0]*dtheta+j[1][1]*dphi
+      self.comp[2]=dtheta2; self.comp[3]=dphi2
+      return
+
+
 
 

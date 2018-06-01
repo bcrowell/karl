@@ -35,16 +35,14 @@ def ks_era_in_range(ks):
 
 # Force (t,V,W) into a canonical form where (V,W) corresponds to a Schwarzschild t=0,
 # i.e., the t information is all in the t parameter.
+# See ks_tx() for definition of tx. See ks_era_jacobian() for the corresponding
+# Jacobian matrix.
 def force_ks_era(ks,tx,region):
   t = ks[0]
   v = ks[1]
   w = ks[2]
   t = t + 2.0*arctanh(tx)
-  is_exterior = ks_is_exterior(region)
-  if is_exterior:
-    root_rho = sqrt(-v*w)
-  else:
-    root_rho = sqrt(v*w)
+  root_rho = sqrt(abs(v*w)) # sqrt of absolute value of rho
   v=root_rho*sign(v)
   w=root_rho*sign(w)
   return [t,v,w]
@@ -54,10 +52,10 @@ def ks_to_zero_era(t,v,w):
   tr = ks_to_sch(v,w)
   return sch_to_ks(tr[0]+t,tr[1],ks_to_sigma(v,w))
 
+# calculate T/X if exterior or X/T if interior:
 def ks_tx(v,w):
   region = ks_to_region(v,w)
   is_exterior = ks_is_exterior(region)
-  # calculate T/X if exterior or X/T if interior:
   if is_exterior:
     return (v+w)/(v-w)
   else:
@@ -304,17 +302,46 @@ def sch_ks_jacobian(region,r,t):
     jacobian[1][1] =  (-(s1r*er*s)/2)+(er*s)/(2*s1r)+(s1r*er*c)/2-(er*c)/(2*s1r) 
   return jacobian
 
-# Similar to sch_ks_jacobian. Slightly inefficient because we invert the 2x2 matrix,
+# Similar to sch_ks_jacobian.
+# Find the Jacobian matrix for the Schwarzschild t,r coordinates as functions of Kruskal V,W.
+# Slightly inefficient because we invert the 2x2 matrix,
 # but not likely to affect performance because not called often.
+# This can throw an error if called for a point on the horizon (r=1), where
+# the Schwarzschild coordinates misbehave, and in general it's probably
+# not going to be numerically accurate to use this near the horizon.
 def ks_sch_jacobian(region,r,t):
+  if r==1.0: raise RuntimeError('r=1 in ks_sch_jacobian')
   j = sch_ks_jacobian(region,r,t)
   a = j[0][0]
   d = j[1][1]
   b = j[1][0]
   c = j[0][1]
-  det = a*d-b*c
+  det = a*d-b*c # should be nonzero because we checked above for r==1
   j[1][1] = a/det
   j[0][0] = d/det
   j[1][0] = -b/det
   j[0][1] = -c/det
   return j
+
+# Calculate the jacobian matrix for the transformation of (t,V,W) to (0,V',W')
+# implemented by force_ks_era(). The jacobian is 2x2, i.e., it doesn't describe
+# what happens to t, and therefore it is always degenerate. The inputs v and
+# w are the pre-transformation coordinates (V,W). The Jacobian has the form
+#     W W
+#     V V,
+# multiplied by a scalar. The order of the indices is such that, e.g.,
+#   dV' = j_01 dW.
+def ks_era_jacobian(v,w):
+  jacobian = [[0 for i in range(2)] for j in range(2)]
+  rho = -v*w # is the same pre- and post-transformation
+  # s=sign(rho)
+  if rho>0.0:
+    s = 1
+  else:
+    s = -1.0
+  a = -s*0.5*(1/sqrt(abs(rho)))
+  jacobian[0][0] = a*w
+  jacobian[1][1] = a*v
+  jacobian[1][0] = a*w
+  jacobian[0][1] = a*v
+

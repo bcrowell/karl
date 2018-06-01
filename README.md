@@ -46,6 +46,8 @@ Test Runge-Kutta in a case where we make a transition from KS to Sch chart.
 
 Test outside the equatorial plane.
 
+Test rot90 transitions, coded but not yet tested.
+
 ## Bugs/to do
 
 Currently the handle_transition method only knows about transitions
