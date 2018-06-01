@@ -47,6 +47,7 @@ class SphVector:
   # Logically there is the possibility that two things could change at once, e.g., you
   # could change from Schwarzschild to Kruskal, and rot90 or era could also change.
   # In fact the only combination that is allowed to occur is if both rot90 and era change.
+  # FIXME -- this is not OK, change to Kruskal can also trigger era.
   # We need the info about the old chart and coordinates, which are preserved in fields
   # such as t_before_transition.
   def handle_transition(self):
@@ -78,7 +79,13 @@ class SphVector:
       return # don't fall through, because nothing else is allowed to change if the chart changed
     # Past this point, we're guaranteed that chart1 and chart2 are the same.
     if chart2==SphPoint.KRUSKAL_VW_CHART and self._era!=self.point._era:
-      raise RuntimeError('not implemented')
+      v = self.point.v_before_transition
+      w = self.point.w_before_transition
+      j = ks_era_jacobian(v,w)
+      old_dv = self.comp[0] ; old_dw = self.comp[1]
+      dv = j[0][0]*old_dv+j[0][1]*old_dw
+      dw = j[0][0]*old_dv+j[0][1]*old_dw
+      self.comp[0] = dv ; self.comp[1] = dw
     if self.rot90!=self.point.rot90:
       if (not self.rot90) and self.point.rot90:
         direction = 1.0
@@ -91,7 +98,7 @@ class SphVector:
       dtheta2 = j[0][0]*dtheta+j[0][1]*dphi
       dphi2   = j[1][0]*dtheta+j[1][1]*dphi
       self.comp[2]=dtheta2; self.comp[3]=dphi2
-      return
+
 
 
 

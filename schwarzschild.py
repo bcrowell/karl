@@ -330,7 +330,7 @@ def ks_sch_jacobian(region,r,t):
 #     W W
 #     V V,
 # multiplied by a scalar. The order of the indices is such that, e.g.,
-#   dV' = j_01 dW.
+#   dV'/dW = j_01.
 def ks_era_jacobian(v,w):
   jacobian = [[0 for i in range(2)] for j in range(2)]
   rho = -v*w # is the same pre- and post-transformation

@@ -144,7 +144,7 @@ class SphPoint:
   def make_safe(self):
     self._rotate_to_safety()
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      self._era_in_range()
+      self._era_in_range() # FIXME -- we can get two transitions in a row
       rho = -self.v*self.w
       if rho>2000.0: self.to_schwarzschild()
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
@@ -222,6 +222,8 @@ class SphPoint:
 
   # Do not call this routine unless the chart is already known to be Kruskal.
   def _era_in_range(self):
+    self.v_before_transition = copy.deepcopy(self.v)
+    self.w_before_transition = copy.deepcopy(self.w)
     z = schwarzschild.ks_era_in_range([self._era,self.v,self.w])
     if not z[0]: return # no change was needed
     ks = z[1]

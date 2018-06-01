@@ -46,13 +46,13 @@ Test Runge-Kutta in a case where we make a transition from KS to Sch chart.
 
 Test outside the equatorial plane.
 
-Test rot90 transitions, coded but not yet tested.
+Test era and rot90 transitions, coded but not yet tested.
 
 ## Bugs/to do
 
-Currently the handle_transition method only knows about transitions
-between Kruskal and Schwarzschild coordinates, need to take care of
-the rot90 and era cases as well. 
+When transitioning from Schwarzschild chart to Kruskal, we can automatically
+trigger a change of era, but the transition code in sph_vector can't handle
+this combination of changes at the same time. See comments labeled FIXME.
 
 Change hard-coded 3.0 and 2000.0 to symbols in sph_point.
 
