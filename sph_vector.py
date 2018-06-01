@@ -47,9 +47,8 @@ class SphVector:
   # Logically there is the possibility that two things could change at once, e.g., you
   # could change from Schwarzschild to Kruskal, and rot90 or era could also change.
   # In fact the only combination that is allowed to occur is if both rot90 and era change.
-  # This code is a little awkward because we end up reconstructing the coordinates in the
-  # old chart. Although those fields may actually still be present, we don't assume them to
-  # be valid, except for sch_copy, which we need when transitioning from Kruskal to Sch.
+  # We need the info about the old chart and coordinates, which are preserved in fields
+  # such as t_before_transition.
   def handle_transition(self):
     if not self.point.transition: return # This should not normally happen.
     chart1 = self.chart
@@ -57,8 +56,8 @@ class SphVector:
     if chart1==SphPoint.SCHWARZSCHILD_CHART and chart2==SphPoint.KRUSKAL_VW_CHART:
       v = self.point.v
       w = self.point.w
-      z = self.point.absolute_schwarzschild() # slow, but we don't care because this happens infrequently
-      t = z[0]; r=z[1]
+      t = self.point.t_before_transition
+      r = self.point.r_before_transition
       region = schwarzschild.ks_to_region(v,w)
       j = schwarzschild.sch_ks_jacobian(region,r,t)
       dt = self.comp[0] ; dr = self.comp[1]
@@ -68,12 +67,8 @@ class SphVector:
       return # don't fall through, because nothing else is allowed to change if the chart changed
     if chart1==SphPoint.KRUSKAL_VW_CHART and chart2==SphPoint.SCHWARZSCHILD_CHART:
       t=self.point.t ; r=self.point.r
-      if point.sch_copy:
-        sigma = -1.0
-      else:
-        sigma = 1.0
-      z = sch_to_ks(t,r,sigma)
-      v=z[0]; w=z[1]
+      v = self.point.v_before_transition
+      w = self.point.w_before_transition
       region = ks_to_region(v,w)
       j = schwarzschild.ks_sch_jacobian(region,r,t)
       dv = self.comp[0] ; dw = self.comp[1]

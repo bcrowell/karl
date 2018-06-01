@@ -1,3 +1,5 @@
+import copy
+
 import schwarzschild,util
 
 import numpy as np
@@ -164,6 +166,8 @@ class SphPoint:
   def to_schwarzschild(self):
     if self.chart==SphPoint.SCHWARZSCHILD_CHART: return
     self.chart_before_transition = self.chart
+    self.v_before_transition = copy.deepcopy(self.v)
+    self.w_before_transition = copy.deepcopy(self.w)
     tr = schwarzschild.ks_to_sch(self.v,self.w)
     self.t = tr[0]
     self.r = tr[1]
@@ -174,6 +178,8 @@ class SphPoint:
   def to_kruskal(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART: return
     self.chart_before_transition = self.chart
+    self.t_before_transition = copy.deepcopy(self.t)
+    self.r_before_transition = copy.deepcopy(self.r)
     vw = schwarzschild.sch_to_ks(self.t,self.r,schwarzschild.sch_to_sigma(self.r))
     self.v = vw[0]
     self.w = vw[1]
