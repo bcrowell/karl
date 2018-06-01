@@ -43,14 +43,18 @@ def jacobian_rot90(angles,direction):
   theta = angles[0]
   phi = angles[1]
   j = [[0 for i in range(2)] for j in range(2)]
+  a = sqrt(1-sin(phi)**2*sin(theta)**2)
+  if a==0.0:
+    raise RuntimeError("error in util.jacobian_rot90, a=0, phi="+str(phi)+", theta="+str(theta))
+    # This shouldn't happen, because we transition before we enter the polar "cap."
   if direction>0.0:
-    j[0][0] = (sin(phi)*cos(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
-    j[0][1] = (cos(phi)*sin(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
+    j[0][0] = (sin(phi)*cos(theta))/a
+    j[0][1] = (cos(phi)*sin(theta))/a 
     j[1][0] = (-(cos(phi)*sin(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2))-(cos(phi)*cos(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
     j[1][1] = (sin(phi)*cos(theta)*sin(theta))/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
   else:
-    j[0][0] = -(sin(phi)*cos(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
-    j[0][1] = -(cos(phi)*sin(theta))/sqrt(1-sin(phi)**2*sin(theta)**2) 
+    j[0][0] = -(sin(phi)*cos(theta))/a 
+    j[0][1] = -(cos(phi)*sin(theta))/a 
     j[1][0] = (cos(phi)*sin(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2)+(cos(phi)*cos(theta)**2)/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
     j[1][1] = -(sin(phi)*cos(theta)*sin(theta))/(cos(theta)**2+cos(phi)**2*sin(theta)**2) 
   return j

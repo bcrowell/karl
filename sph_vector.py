@@ -89,10 +89,8 @@ class SphVector:
         direction = 1.0
       else:
         direction = -1.0
-      old_angles = util.rotate_unit_sphere([self.comp[2],self.comp[3]],-direction) # find what angles were before transition
-      theta = old_angles[0]; phi = old_angles[1]
-      j = util.jacobian_rot90([theta,phi],direction)
-      dtheta = self.comp[2] ; dphi = self.comp[1]
+      j = util.jacobian_rot90([self.point.theta_before_transition,self.point.phi_before_transition],direction)
+      dtheta = self.comp[2] ; dphi = self.comp[3]
       dtheta2 = j[0][0]*dtheta+j[0][1]*dphi
       dphi2   = j[1][0]*dtheta+j[1][1]*dphi
       self.comp[2]=dtheta2; self.comp[3]=dphi2

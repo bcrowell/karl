@@ -24,12 +24,13 @@ def main():
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
   do_test(verbosity,test_create_sph_point(verbosity))
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
-  do_test(verbosity,test_circular_orbit(verbosity))
+  do_test(verbosity,test_circular_orbit_dumb(verbosity))
   do_test(verbosity,test_geodesic_rk_simple(verbosity))
   simple=True
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
   simple=False
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
+  do_test(verbosity,test_geodesic_rk_elliptical_period_fancy(verbosity))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -114,21 +115,6 @@ def test_ks_christoffel_vs_raw_maxima(verbosity):
   results = record_subtest(verbosity,results,subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta))
   return summarize_test(results,"test_ks_christoffel_vs_raw_maxima",verbosity)
 
-def test_circular_orbit(verbosity):
-  results = [True,""]
-  results = record_subtest(verbosity,results,subtest_circular_orbit(verbosity))
-  return summarize_test(results,"test_circular_orbit",verbosity)
-
-def test_geodesic_rk_simple(verbosity):
-  results = [True,""]
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_circular(verbosity))
-  r = 1.0e8 # newtonian regime
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_period(verbosity,100,r,1.0))
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_period(verbosity,100,r,1.1))
-  r = 10
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_conserved(verbosity,1000,r,1.1,0.3))
-  return summarize_test(results,"test_geodesic_rk_simple",verbosity)
-
 def test_geodesic_rk_free_fall_from_rest(verbosity,simple):
   results = [True,""]
   # Choose initial and final r values such that if we're using the fancy version of the Runge-Kutta
@@ -169,7 +155,7 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,simple,n,a,b,chart):
   if simple:
     z = runge_kutta.geodesic_rk_simple(x,v,tau,tau/n,ndebug)
   else:
-    z = runge_kutta.geodesic_rk       (x,v,tau,tau/n,ndebug,0,10,True)
+    z = runge_kutta.geodesic_rk       (x,v,tau,tau/n,ndebug,0,10,verbosity>=2) # ... ndebug_inner,ntrans,debug_transitions
   err = z[0]
   if err:
     print("error, "+z[1])
@@ -186,8 +172,34 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,simple,n,a,b,chart):
   return [ok,info]
 
 
+def test_geodesic_rk_simple(verbosity):
+  results = [True,""]
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_circular(verbosity))
+  r = 1.0e8 # newtonian regime
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,100,r,1.0,True,0.0))
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,100,r,1.1,True,0.0))
+  r = 10
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_conserved(verbosity,1000,r,1.1,0.3))
+  return summarize_test(results,"test_geodesic_rk_simple",verbosity)
+
+def test_geodesic_rk_elliptical_period_fancy(verbosity):
+  results = [True,""]
+  n = 1000 # with n=100, we get rather large errors in the polar orbit
+  r = 1.0e8 # newtonian regime
+  a = 1.0 # circular orbit
+  d = 0.0 # in equatorial plane
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+  a = 1.1 # elliptical orbit
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+  d = 0.4 # inclined orbit, exercises other Christoffel symbols without rot90 transition
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+  d = pi/2.0 # polar orbit, exercises rot90 transition
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+  return summarize_test(results,"test_geodesic_rk_elliptical_period_fancy",verbosity)
+
+
 # Only really tests two of the nonzero Christoffel symbols.
-# Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
+# The results are exact because C. symbols exactly cancel.
 def subtest_geodesic_rk_simple_circular(verbosity):
   info = ""
   ok = True
@@ -214,16 +226,19 @@ def subtest_geodesic_rk_simple_circular(verbosity):
     ok = False
   return [ok,info]
 
+# Elliptical orbit.
 # Start at perihelion. Make the initial velocity greater than the circular-orbit value by the factor a.
 # Test against the Keplerian period. There is no point in testing with large n, because the errors
 # become dominated by the Keplerian approximation.
-def subtest_geodesic_rk_simple_period(verbosity,n,r,a):
+# direction = angle about the x axis for the initial motion, defines plane of orbit
+def subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,simple,direction):
   info = ""
   ok = True
   t = 0.0
   theta = pi/2
   phi = 0.0
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  if verbosity>=2: x.debug_transitions = True
   # Start by constructing parameters for a circular orbit, which we will later alter to be elliptical:
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
   circular_period = 2.0*pi/v_phi
@@ -233,23 +248,34 @@ def subtest_geodesic_rk_simple_period(verbosity,n,r,a):
   q=a**2/2.0-1.0
   r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
   period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
-  v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
+  v = SphVector(x,[1.0,0.0,v_phi*sin(direction),v_phi*cos(direction)]) 
+       # ... derivative of coordinates with respect to proper time
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   ndebug = 0
-  if verbosity>=2: ndebug = 10  
-  z = runge_kutta.geodesic_rk_simple(x,v,period,period/n,ndebug)
+  if verbosity>=2: ndebug = 10
+  if simple:
+    z = runge_kutta.geodesic_rk_simple(x,v,period,period/n,ndebug)
+  else:
+    z = runge_kutta.geodesic_rk       (x,v,period,period/n,ndebug,0,10,verbosity>=2) # ... ndebug_inner,ntrans,debug_transitions
   err = z[0]
   if err:
     print("error, "+z[1])
     exit(-1)
   final = z[2].absolute_schwarzschild()
   eps = 100.0/r + 1000.0/(n**4) # first term is for error in Keplerian period, second for Runge-Kutta
-  if verbosity>=2: info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
-  if verbosity>=2: info += strcat(["n=",n,", error in sin phi=",abs(sin(final[3])-sin(phi)),"\n"])
-  if abs(final[1]/r-1.0)>eps or abs(final[2]-theta)>eps or abs(sin(final[3])-sin(phi))>eps:
-    info += strcat(["not back at starting position, final x=",str(x)," errors in r,theta,phi=",
-                         final[1]/r-1.0,final[2]-theta,sin(final[3])-sin(phi)])
+  not_back = ( abs(final[1]/r-1.0)>eps or abs(final[2]-theta)>eps or abs(sin(final[3])-sin(phi))>eps )
+  if not_back:
+    info += strcat(["not back at starting position,\n  final (t,r,theta,phi)=",str(final),
+                         "\n  errors in r,theta,phi=",
+                         final[1]/r-1.0," ",final[2]-theta," ",sin(final[3])-sin(phi),"\n"])
     ok = False
+  if verbosity>=2:
+    info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
+    info += strcat(["n=",n,", difference in sin phi=",abs(sin(final[3])-sin(phi)),"\n"])
+    if ok:
+      info += "passed"
+    else:
+      info += "failed"
   return [ok,info]
 
 # Start at perihelion. Make the initial velocity greater than the circular-orbit value by the factor a.
@@ -307,11 +333,16 @@ def conserved_sch_stuff(coords,v):
   e = (1-1/r)*v[0]
   return [l,e]
 
-# Dumb, low-tech, low-precision test of whether we seem to get a circular orbit when we should.
+def test_circular_orbit_dumb(verbosity):
+  results = [True,""]
+  results = record_subtest(verbosity,results,subtest_circular_orbit_dumb(verbosity))
+  return summarize_test(results,"test_circular_orbit_dumb",verbosity)
+
+# Dumb, low-tech test of whether we seem to get a circular orbit when we should.
 # Doesn't use Runge-Kutta.
 # Only really tests two of the nonzero Christoffel symbols.
 # Despite the naive method for solving the ODEs, the results are exact because C. symbols exactly cancel.
-def subtest_circular_orbit(verbosity):
+def subtest_circular_orbit_dumb(verbosity):
   info = ""
   ok = True
   t = 0.0

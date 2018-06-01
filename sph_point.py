@@ -72,10 +72,11 @@ class SphPoint:
     self.debug_transitions = False
 
   def __str__(self):
+    describe_angles = "theta="+("%5.3e" % self.theta)+", phi="+("%5.3e" % self.phi)
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      return "(V="+str(self.v)+", W="+str(self.w)+", theta="+str(self.theta)+", phi="+str(self.phi)+")"
+      return "(V="+("%5.3e" % self.v)+", W="+("%5.3e" % self.w)+", "+describe_angles+")"
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
-      return "(t="+str(self.t)+", r="+str(self.r)+", theta="+str(self.theta)+", phi="+str(self.phi)+")"
+      return "(t="+("%5.3e" % self.t)+", r="+("%5.3e" % self.r)+", "+describe_angles+")"
     return "error stringifying a SphPoint"
 
   def debug_print(self,header):
@@ -285,6 +286,9 @@ class SphPoint:
   def _rotate_to_safety(self):
     self._canonicalizetheta()
     if self.theta>0.3 and self.theta<2.841: return # [0.3,pi-0.3]
+    self.theta_before_transition = copy.copy(self.theta)
+    self.phi_before_transition = copy.copy(self.phi)
+    if self.debug_transitions: self.debug_print("about to do a 90-degree rotation")
     if self.rot90:
       direction = -1.0
     else:
@@ -293,6 +297,7 @@ class SphPoint:
     angles = util.rotate_unit_sphere([self.theta,self.phi],direction)
     self.theta = angles[0]
     self.phi = angles[1]
+    if self.debug_transitions: self.debug_print("rotated point")
     self.transition = True
     self.transition_vectors_if_necessary()
     if self.debug_transitions: self.debug_print("did a 90-degree rotation")
