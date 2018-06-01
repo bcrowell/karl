@@ -15,11 +15,7 @@ Current features:
 * test suite
 * implementation in python
 * computation of geodesics using Runge-Kutta integration
-
-Partially complete:
-
 * automatic switching between coordinate charts to avoid coordinate singularities in spherical coordinates and floating-point overflow in Kruskal-Szekeres coordinates
-* graceful termination when a particle reaches a singularity
 
 Features I plan to add:
 
@@ -40,8 +36,6 @@ system by doing `apt-get install python-scipy3 python-numpy3`.
 
 ## Lack of test coverage
 
-Test the code for transitioning a vector from Kruskal to Schwarzschild.
-
 Test Runge-Kutta in a case where we make a transition from KS to Sch chart.
 
 Test outside the equatorial plane.
@@ -49,11 +43,5 @@ Test outside the equatorial plane.
 Test era and rot90 transitions, coded but not yet tested.
 
 ## Bugs/to do
-
-When transitioning from Schwarzschild chart to Kruskal, we can automatically
-trigger a change of era, but the transition code in sph_vector can't handle
-this combination of changes at the same time. See comments labeled FIXME.
-
-Change hard-coded 3.0 and 2000.0 to symbols in sph_point.
 
 Gracefully handle the case where a geodesic is terminating.

@@ -1,6 +1,7 @@
 import copy
 
-import numpy as np
+import numpy
+numpy.seterr(all='raise')
 import scipy
 import math
 from numpy import arctanh
@@ -38,6 +39,7 @@ def geodesic_rk(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug_transiti
     steps_between_debugging=n/ndebug
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = 0.0
+  x.make_safe()
   for iter in range(0,n):
     coords = x.get_raw_coords()
     do_debug = False
@@ -55,13 +57,7 @@ def geodesic_rk(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug_transiti
     lam = lam+result[4]
     result[4] = lam
     #---- Check for a transition to a new chart
-    x.transition = False
     x.make_safe()
-    if x.transition:
-      if debug_transitions:
-        print("in geodesic_rk, iter=",iter," transitioning from chart ",x.chart_before_transition," to ",x.chart)
-      v.handle_transition()
-      x.transition = False
     debug_count += 1
   return result
 

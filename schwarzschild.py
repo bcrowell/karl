@@ -7,7 +7,8 @@
 # not document the math or the definitions of the variables.)
 
 
-import numpy as np
+import numpy
+numpy.seterr(all='raise')
 import scipy
 import math
 from numpy import arctanh

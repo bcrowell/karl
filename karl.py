@@ -3,7 +3,8 @@
 # This file is basically just the test harness.
 
 import sys
-import numpy as np
+import numpy
+numpy.seterr(all='raise')
 import scipy
 import math
 from numpy import arctanh
@@ -28,7 +29,7 @@ def main():
   simple=True
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
   simple=False
-  do_test(verbosity+1,test_geodesic_rk_free_fall_from_rest(verbosity+1,simple))
+  do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -134,9 +135,12 @@ def test_geodesic_rk_free_fall_from_rest(verbosity,simple):
   # routine, a transition will be triggered from Sch. to Kruskal.
   r1 = 4.0
   r2 = 2.0
+  if not (r1>SphPoint.TRANSITION_MIN_R and r2<SphPoint.TRANSITION_MIN_R):
+    return [True,"values of r1 and r2 are not above and below SphPoint.TRANSITION_MIN_R for testing"]
   results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
                    verbosity,simple,100,r1,r2,SphPoint.SCHWARZSCHILD_CHART))
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
+  if simple:
+    results = record_subtest(verbosity,results,subtest_geodesic_rk_free_fall_from_rest(
                    verbosity,simple,100,r1,r2,SphPoint.KRUSKAL_VW_CHART))
   return summarize_test(results,"test_geodesic_rk_free_fall_from_rest",verbosity)
 
@@ -152,12 +156,11 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,simple,n,a,b,chart):
   phi = 0.0
   # Start by constructing position and velocity in Schwarzschild chart, then switch both to Kruskal if needed.
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,a,theta,phi)
+  #x.debug_transitions = True
   tdot = 1.0/sqrt(1.0-1.0/a) # value of dt/dlambda such that the affine parameter lambda will be proper time
   v = SphVector(x,[tdot,0.0,0.0,0.0]) # derivative of coordinates with respect to proper time
-  if chart==SphPoint.KRUSKAL_VW_CHART:
+  if chart==SphPoint.KRUSKAL_VW_CHART and simple:
     x.force_chart(chart) 
-    v.handle_transition()
-    x.transition = False
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   eta = acos(2.0*b/a-1.0) # auxiliary parameter defined by MTW; eta=0 at start, and this is the value at b
   tau = 0.5*a**1.5*(eta+sin(eta))

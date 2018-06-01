@@ -2,7 +2,8 @@ import copy
 
 import schwarzschild,util
 
-import numpy as np
+import numpy
+numpy.seterr(all='raise')
 import scipy
 import math
 from numpy import arctanh
@@ -32,14 +33,6 @@ class SphPoint:
   #   sch_copy --- when using Schwarzschild coordinates, this keeps track of the region
   #                of the maximal extension of the Schwarzschild spacetime; if this boolean flag
   #                is True, then we're in region 3 or 4
-  # Typical code to handle transitions looks like this:
-  #    ...modify the point x...
-  #    x.transition = False
-  #    x.make_safe()
-  #    if x.transition:
-  #      v.handle_transition() ... v is a vector that depends on x
-  #      x.transition = False
-
 
   # Constants for referring to particular metrics:
   SCHWARZSCHILD = 1
@@ -47,6 +40,9 @@ class SphPoint:
   # Constants referring to different coordinate charts:
   SCHWARZSCHILD_CHART = 1
   KRUSKAL_VW_CHART = 2
+  # Constants that control when we transition from one chart to another:
+  TRANSITION_MAX_RHO = 2000.0 # max value of rho before we transition from Kruskal to Sch.
+  TRANSITION_MIN_R = 3.0      # min value of r before we transition from Sch. to Kruskal
 
   # After creating a new point with this code, you may immediately want to call its make_safe()
   # method to get into a more appropriate coordinate chart. However, often you will create
@@ -72,10 +68,35 @@ class SphPoint:
       self.t = x0
       self.r = x1
       self.sch_copy = False
+    self.client_vectors = []
+    self.debug_transitions = False
 
   def __str__(self):
-    s = self.absolute_schwarzschild()
-    return "(t="+str(s[0])+", r="+str(s[1])+", theta="+str(s[2])+", phi="+str(s[3])+")"
+    if self.chart==SphPoint.KRUSKAL_VW_CHART:
+      return "(V="+str(self.v)+", W="+str(self.w)+", theta="+str(self.theta)+", phi="+str(self.phi)+")"
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      return "(t="+str(self.t)+", r="+str(self.r)+", theta="+str(self.theta)+", phi="+str(self.phi)+")"
+    return "error stringifying a SphPoint"
+
+  def debug_print(self,header):
+    print("==== ",header," ===")
+    print("sph_point.debug_print: ")
+    print("  chart = ",self.chart)
+    print("  coordinates: ",str(self))
+    print("  Schwarzschild coordinates: ",self.absolute_schwarzschild())
+    print("  number of registered vectors = ",len(self.client_vectors))
+    self.debug_print_vectors()
+
+  def debug_print_vectors(self):
+    print("debug_print_vectors:")
+    for v in self.client_vectors:
+      v.debug_print()
+
+  def register_vector(self,v):
+    self.client_vectors.append(v)
+
+  def deregister_vector(self,victim):
+    self.client_vectors = [v for v in self.client_vectors if v != victim]
 
   def region(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART: return ks_to_region(self.v,self.w)
@@ -142,15 +163,22 @@ class SphPoint:
   # reexpress them in a different chart after calling this routine. To detect this, set
   # the point's .transition flag to False before calling, and then check it afterward.
   def make_safe(self):
+    self.transition = False
     self._rotate_to_safety()
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      self._era_in_range() # FIXME -- we can get two transitions in a row
+      self._era_in_range()
       rho = -self.v*self.w
-      if rho>2000.0: self.to_schwarzschild()
+      if rho>SphPoint.TRANSITION_MAX_RHO: self.to_schwarzschild()
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
       # If changing the parameter 3.0, then change the test in test_geodesic_rk_free_fall_from_rest so we
       # still have coverage.
-      if self.r<3.0: self.to_kruskal()
+      if self.r<SphPoint.TRANSITION_MIN_R: self.to_kruskal()
+
+  def transition_vectors_if_necessary(self):
+    if not self.transition: return
+    for v in self.client_vectors:
+      v.handle_transition()
+    self.transition = False
 
   # This will have the side-effect of setting the .transition flag.
   def force_chart(self,desired_chart):
@@ -174,9 +202,12 @@ class SphPoint:
     self.chart = SphPoint.SCHWARZSCHILD_CHART
     self.sch_copy = (self.v<0.0)
     self.transition = True
+    self.transition_vectors_if_necessary()
+    if self.debug_transitions: self.debug_print("did a change of chart from Kruskal to Sch.")
 
   def to_kruskal(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART: return
+    if self.debug_transitions: self.debug_print("doing a change of chart from Sch. to Kruskal")
     self.chart_before_transition = self.chart
     self.t_before_transition = copy.deepcopy(self.t)
     self.r_before_transition = copy.deepcopy(self.r)
@@ -187,6 +218,8 @@ class SphPoint:
     self.chart = SphPoint.KRUSKAL_VW_CHART
     self._era_in_range()
     self.transition = True
+    self.transition_vectors_if_necessary()
+    if self.debug_transitions: self.debug_print("did a change of chart from Sch. to Kruskal")
 
   def absolute_angles(self):
     angles = [self.theta,self.phi]
@@ -232,6 +265,8 @@ class SphPoint:
     self.v = ks[1]
     self.w = ks[2]
     self.transition = True
+    self.transition_vectors_if_necessary()
+    if self.debug_transitions: self.debug_print("did a change of era")
 
   # The colatitude theta is supposed to be in [0,pi]. If it's slightly out
   # of that range, bump it in. This routine assumes that if we're out of
@@ -249,15 +284,18 @@ class SphPoint:
   # singularities at theta=0 and pi.
   def _rotate_to_safety(self):
     self._canonicalizetheta()
-    if self.theta<0.3 or self.theta>2.841: # pi-0.3
-      if self.rot90:
-        direction = -1.0
-      else:
-        direction = 1.0
-      self.rot90 = not self.rot90
-      angles = util.rotate_unit_sphere([self.theta,self.phi],direction)
-      self.theta = angles[0]
-      self.phi = angles[1]
+    if self.theta>0.3 and self.theta<2.841: return # [0.3,pi-0.3]
+    if self.rot90:
+      direction = -1.0
+    else:
+      direction = 1.0
+    self.rot90 = not self.rot90
+    angles = util.rotate_unit_sphere([self.theta,self.phi],direction)
+    self.theta = angles[0]
+    self.phi = angles[1]
+    self.transition = True
+    self.transition_vectors_if_necessary()
+    if self.debug_transitions: self.debug_print("did a 90-degree rotation")
 
   # Get the Christoffel symbols in the current coordinate chart.
   # In principle the coords argument is superfluous, because we have the data internally

@@ -2,7 +2,8 @@ import copy
 
 import schwarzschild,util
 
-import numpy as np
+import numpy
+numpy.seterr(all='raise')
 import scipy
 import math
 from numpy import arctanh
@@ -33,23 +34,19 @@ class SphVector:
     self.rot90 = copy.deepcopy(point.rot90)
     if point.chart==SphPoint.KRUSKAL_VW_CHART: self._era=copy.deepcopy(point._era)
     self.comp = comp # array containing four components of the vector, in the current chart
+    point.register_vector(self)
 
   def __str__(self):
     s = self.comp
     return "("+str(s[0])+", "+str(s[1])+", "+str(s[2])+", "+str(s[3])+")"
 
+  def debug_print(self):
+    print("  sph_vector.debug_print: ",str(self))
 
-  # When updating the point, first set its transition flag to False, then update it, then
-  # check whether its transition flag has become true. If so, then call this routine on
-  # all vectors that refer to it. There is no reason that this should be called when nothing
-  # has actually changed, so if you do that, it is not guaranteed to work and
-  # may cause a run-time error. (In any case, it will be inefficient to do so.)
+  # This is called automatically from routines in SphPoint for vectors registered as clients of the point.
   # Logically there is the possibility that two things could change at once, e.g., you
   # could change from Schwarzschild to Kruskal, and rot90 or era could also change.
-  # In fact the only combination that is allowed to occur is if both rot90 and era change.
-  # FIXME -- this is not OK, change to Kruskal can also trigger era.
-  # We need the info about the old chart and coordinates, which are preserved in fields
-  # such as t_before_transition.
+  # The code below can't handle that, and needs to be called multiple times.
   def handle_transition(self):
     if not self.point.transition: return # This should not normally happen.
     chart1 = self.chart
@@ -65,7 +62,7 @@ class SphVector:
       dv = j[0][0]*dt+j[0][1]*dr
       dw = j[1][0]*dt+j[1][1]*dr
       self.comp[0]=dv; self.comp[1]=dw
-      return # don't fall through, because nothing else is allowed to change if the chart changed
+      return
     if chart1==SphPoint.KRUSKAL_VW_CHART and chart2==SphPoint.SCHWARZSCHILD_CHART:
       t=self.point.t ; r=self.point.r
       v = self.point.v_before_transition
@@ -76,7 +73,7 @@ class SphVector:
       dt = j[0][0]*dv+j[0][1]*dw
       dr = j[1][0]*dv+j[1][1]*dw
       self.comp[0]=dt; self.comp[1]=dr
-      return # don't fall through, because nothing else is allowed to change if the chart changed
+      return
     # Past this point, we're guaranteed that chart1 and chart2 are the same.
     if chart2==SphPoint.KRUSKAL_VW_CHART and self._era!=self.point._era:
       v = self.point.v_before_transition
@@ -86,6 +83,7 @@ class SphVector:
       dv = j[0][0]*old_dv+j[0][1]*old_dw
       dw = j[0][0]*old_dv+j[0][1]*old_dw
       self.comp[0] = dv ; self.comp[1] = dw
+      return
     if self.rot90!=self.point.rot90:
       if (not self.rot90) and self.point.rot90:
         direction = 1.0
@@ -98,6 +96,7 @@ class SphVector:
       dtheta2 = j[0][0]*dtheta+j[0][1]*dphi
       dphi2   = j[1][0]*dtheta+j[1][1]*dphi
       self.comp[2]=dtheta2; self.comp[3]=dphi2
+    return
 
 
 
