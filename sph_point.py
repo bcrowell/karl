@@ -1,6 +1,6 @@
 import copy
 
-import schwarzschild,util
+import schwarzschild,util,io_util
 
 import numpy
 numpy.seterr(all='raise')
@@ -43,6 +43,7 @@ class SphPoint:
   # Constants that control when we transition from one chart to another:
   TRANSITION_MAX_RHO = 2000.0 # max value of rho before we transition from Kruskal to Sch.
   TRANSITION_MIN_R = 3.0      # min value of r before we transition from Sch. to Kruskal
+  TRANSITION_THETA = 0.3      # how close to poles before doing a rot90
 
   # After creating a new point with this code, you may immediately want to call its make_safe()
   # method to get into a more appropriate coordinate chart. However, often you will create
@@ -84,7 +85,7 @@ class SphPoint:
     print("sph_point.debug_print: ")
     print("  chart = ",self.chart)
     print("  coordinates: ",str(self))
-    print("  Schwarzschild coordinates: ",self.absolute_schwarzschild())
+    print("  Schwarzschild coordinates: ",io_util.vector_to_str(self.absolute_schwarzschild()))
     print("  number of registered vectors = ",len(self.client_vectors))
     self.debug_print_vectors()
 
@@ -98,6 +99,13 @@ class SphPoint:
 
   def deregister_vector(self,victim):
     self.client_vectors = [v for v in self.client_vectors if v != victim]
+
+  def metric(self):
+    if self.chart==SphPoint.KRUSKAL_VW_CHART:
+      return schwarzschild.sch_ks_metric(self.v,self.w,self.theta)
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      return schwarzschild.sch_ks_metric(self.r,self.theta)
+    raise RuntimeError('unrecognized chart')
 
   def region(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART: return ks_to_region(self.v,self.w)
@@ -285,7 +293,7 @@ class SphPoint:
   # singularities at theta=0 and pi.
   def _rotate_to_safety(self):
     self._canonicalizetheta()
-    if self.theta>0.3 and self.theta<2.841: return # [0.3,pi-0.3]
+    if self.theta>SphPoint.TRANSITION_THETA and self.theta<pi-SphPoint.TRANSITION_THETA: return # [0.3,pi-0.3]
     self.theta_before_transition = copy.copy(self.theta)
     self.phi_before_transition = copy.copy(self.phi)
     if self.debug_transitions: self.debug_print("about to do a 90-degree rotation")

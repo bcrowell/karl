@@ -31,6 +31,7 @@ def main():
   simple=False
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
   do_test(verbosity,test_geodesic_rk_elliptical_period_fancy(verbosity))
+  do_test(verbosity+1,test_ks_sch_transition_elliptical(verbosity+1))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -171,6 +172,18 @@ def subtest_geodesic_rk_free_fall_from_rest(verbosity,simple,n,a,b,chart):
     ok = False
   return [ok,info]
 
+# Test an elliptical orbit that causes transitions back and forth between Kruskal and Schwarzschild coordinates.
+def test_ks_sch_transition_elliptical(verbosity):
+  results = [True,""]
+  r = 2.9
+  if not (r<SphPoint.TRANSITION_MIN_R): return [False,"inappropriate perihelion radius"]
+  a = 1.9 # elliptical
+  f = 0.1 # fraction of the keplerian circular-orbit period
+  method = 2 # makes it expressed as a fraction of the circular-orbit period
+  simple = False
+  n=1000
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_conserved(verbosity,n,r,a,f,method,simple))
+  return summarize_test(results,"test_ks_sch_transition_elliptical",verbosity)
 
 def test_geodesic_rk_simple(verbosity):
   results = [True,""]
@@ -179,22 +192,28 @@ def test_geodesic_rk_simple(verbosity):
   results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,100,r,1.0,True,0.0))
   results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,100,r,1.1,True,0.0))
   r = 10
-  results = record_subtest(verbosity,results,subtest_geodesic_rk_simple_conserved(verbosity,1000,r,1.1,0.3))
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_conserved(verbosity,1000,r,1.1,0.3,1,True))
   return summarize_test(results,"test_geodesic_rk_simple",verbosity)
 
 def test_geodesic_rk_elliptical_period_fancy(verbosity):
   results = [True,""]
-  n = 1000 # with n=100, we get rather large errors in the polar orbit
+  n = 100
   r = 1.0e8 # newtonian regime
-  a = 1.0 # circular orbit
   d = 0.0 # in equatorial plane
+
+  a = 1.0 # circular orbit
   results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+
   a = 1.1 # elliptical orbit
   results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+
   d = 0.4 # inclined orbit, exercises other Christoffel symbols without rot90 transition
   results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+
+  n = 1000 # with n=100, we get rather large errors in the polar orbit
   d = pi/2.0 # polar orbit, exercises rot90 transition
   results = record_subtest(verbosity,results,subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,False,d))
+
   return summarize_test(results,"test_geodesic_rk_elliptical_period_fancy",verbosity)
 
 
@@ -282,30 +301,44 @@ def subtest_geodesic_rk_elliptical_period(verbosity,n,r,a,simple,direction):
 # Test exactly conserved quantities. Go through a fraction f of the Keplerian estimate of the period,
 # and check conserved quantities. Testing with large n makes sense, because these quantities are
 # exactly relativistically conserved. However, for very large n we're dominated by rounding errors.
-def subtest_geodesic_rk_simple_conserved(verbosity,n,r,a,f):
+def subtest_geodesic_rk_conserved(verbosity,n,r,a,f,method,simple):
   info = ""
   ok = True
   t = 0.0
   theta = pi/2 # formula for angular momentum only works in the equatorial plane
   phi = 0.0 
+  if method==1 and a>sqrt(2.0): raise RuntimeError('inappropriate value of a, not a bound orbit; use method=2 if you want this')
   x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r,theta,phi)
+  x.debug_transitions = (verbosity>=2)
   # Start by constructing parameters for a circular orbit, which we will later alter to be elliptical:
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
   circular_period = 2.0*pi/v_phi
   # Increase velocity at perihelion to make orbit elliptical:
   v_phi = v_phi*a
-  # Compute newtonian r_max:
-  q=a**2/2.0-1.0
-  r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
-  period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
+  if method==1:
+    # Compute newtonian r_max:
+    q=a**2/2.0-1.0
+    r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
+    period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
+  else:
+    # Method 2 is for use with unbound orbits or orbits that would be unbound in newtonian gravity.
+    # Here we just use the keplerian period as a reasonable scale factor.
+    period = circular_period
+  max_lambda = f*period
   v = SphVector(x,[1.0,0.0,0.0,v_phi]) # derivative of coordinates with respect to proper time
+  if not v.timelike():
+    raise RuntimeError('velocity vector is not timelike')
   z = conserved_sch_stuff(x.get_raw_coords(),v.comp)
   l0 = z[0]; e0 = z[1]  
   if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
   if verbosity>=2: info += strcat(["initial values: L0=",("%8.5e" % l0),", E0=",("%8.5e" % e0),"\n"])
   ndebug = 0
   if verbosity>=2: ndebug = 10  
-  z = runge_kutta.geodesic_rk_simple(x,v,period,period/n,ndebug)
+  if simple:
+    z = runge_kutta.geodesic_rk_simple(x,v,max_lambda,max_lambda/n,ndebug)
+  else:
+    z = runge_kutta.geodesic_rk       (x,v,max_lambda,max_lambda/n,ndebug,0,10,verbosity>=2)
+                                                     # ... ndebug_inner,ntrans,debug_transitions
   err = z[0]
   if err:
     print("error, "+z[1])

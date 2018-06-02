@@ -17,6 +17,31 @@ from scipy import sign
 
 from util import lambert_w
 
+# metric in Kruskal-Szekeres null coordinates, schwarzschild spacetime, +--- signature
+def sch_ks_metric(v,w,theta):
+  g = [[0 for i in range(4)] for j in range(4)]
+  g[0][1] = 0.5*b
+  g[1][0] = 0.5*b
+  z = sch_aux_ks(v,w)
+  r = z[1]
+  r2 = r*r
+  g[2][2] = -r2
+  s = sin(theta)
+  g[3][3] = -r2*s*s
+  return g
+
+# metric in Schwarzschild coordinates, schwarzschild spacetime, +--- signature
+def sch_ks_metric(r,theta):
+  g = [[0 for i in range(4)] for j in range(4)]
+  a = 1.0-1.0/r
+  g[0][0] = a
+  g[1][1] = -1/a
+  r2 = r*r
+  g[2][2] = -r2
+  s = sin(theta)
+  g[3][3] = -r2*s*s
+  return g
+
 # Define coordinate charts for different "eras," i.e., ranges of Schwarzschild t.
 # Representation is (t,V,W), where t represents a time translation to be applied
 # to the point (V,W), and we try to keep (V,W) such that it is fairly close to t=0.

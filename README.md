@@ -38,9 +38,7 @@ system by doing `apt-get install python-scipy3 python-numpy3`.
 
 Test Runge-Kutta in a case where we make a transition from KS to Sch chart.
 
-Test outside the equatorial plane.
-
-Test era and rot90 transitions, coded but not yet tested.
+Test era transitions, coded but not yet tested.
 
 ## Bugs/to do
 

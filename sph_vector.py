@@ -96,7 +96,15 @@ class SphVector:
       self.comp[2]=dtheta2; self.comp[3]=dphi2
     return
 
+  def norm(self):
+    g = self.point.metric()
+    n = 0.0
+    for i in range(4):
+      ci = self.comp[i]
+      for j in range(4):
+        n = n+ci*self.comp[j]*g[i][j]
+    return n
 
-
-
+  def timelike(self):
+    return self.norm()>0.0
 

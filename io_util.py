@@ -9,7 +9,11 @@ def print_no_newline(s):
   sys.stdout.flush()
 
 def vector_to_str(v):
+  return vector_to_str_n_decimals(v,3)
+
+def vector_to_str_n_decimals(v,n):
   f = []
   for x in v:
-    f.append("%5.3e" % x)
+    fmt = "%"+str(n+2)+"."+str(n)+"e"
+    f.append(fmt % x)
   return ','.join(f)

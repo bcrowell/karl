@@ -47,7 +47,9 @@ def geodesic_rk(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug_transiti
       debug_count = 0
       do_debug = True
     if do_debug:
-      print("iter=",iter,", lambda=",("%5.3e" % lam),", chart=",x.chart," coords=",io_util.vector_to_str(coords))
+      z = x.absolute_schwarzschild()
+      print("iter=",iter,", lambda=",("%5.3e" % lam),", chart=",x.chart,
+            " coords=",io_util.vector_to_str(coords)," t=",("%3.1e" % z[0])," r=",("%3.1e" % z[1]))
     result = geodesic_rk_simple(x,v,lambda_max/n,dlambda,ndebug_inner)
     err = result[0]
     if err: return result
@@ -88,7 +90,9 @@ def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
       debug_count = 0
       do_debug = True
     if do_debug:
-      print("iter=",iter,", lambda=",("%5.3e" % lam),", chart=",x.chart," coords=",io_util.vector_to_str(coords))
+      z = x.absolute_schwarzschild()
+      print("iter=",iter,", lambda=",("%5.3e" % lam),", chart=",x.chart,
+            " coords=",io_util.vector_to_str(coords)," r=",("%5.3e" % z[1]))
     debug_count += 1
     y0 = [0 for i in range(8)]
     for i in range(0,4): y0[i]=copy.deepcopy(coords[i])
