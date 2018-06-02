@@ -70,6 +70,7 @@ class SphPoint:
       self.r = x1
       self.sch_copy = False
     self.client_vectors = []
+    self.allow_automatic_transitions = True
     self.debug_transitions = False
 
   def __str__(self):
@@ -102,9 +103,10 @@ class SphPoint:
 
   def metric(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      return schwarzschild.sch_ks_metric(self.v,self.w,self.theta)
+      z = sch_aux_ks(self.v,self.w)
+      return schwarzschild.sch_metric_ks(self.v,self.w,sin(self.theta),z[1],z[2]) # v,w,sin theta,r,b
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
-      return schwarzschild.sch_ks_metric(self.r,self.theta)
+      return schwarzschild.sch_metric_sch(self.r,sin(self.theta))
     raise RuntimeError('unrecognized chart')
 
   def region(self):
@@ -173,6 +175,7 @@ class SphPoint:
   # the point's .transition flag to False before calling, and then check it afterward.
   def make_safe(self):
     self.transition = False
+    if not self.allow_automatic_transitions: return
     self._rotate_to_safety()
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
       self._era_in_range()
