@@ -32,7 +32,6 @@ class SphVector:
     # in the point object:
     self.chart = copy.copy(point.chart)
     self.rot90 = copy.copy(point.rot90)
-    if point.chart==SphPoint.KRUSKAL_VW_CHART: self._era=copy.copy(point._era)
     self.comp = comp # array containing four components of the vector, in the current chart
     point.register_vector(self)
 
@@ -62,7 +61,6 @@ class SphVector:
       dv = j[0][0]*dt+j[0][1]*dr
       dw = j[1][0]*dt+j[1][1]*dr
       self.comp[0]=dv; self.comp[1]=dw
-      self._era = copy.copy(self.point._era)
       self.chart = copy.copy(self.point.chart)
       return
     if chart1==SphPoint.KRUSKAL_VW_CHART and chart2==SphPoint.SCHWARZSCHILD_CHART:
@@ -78,15 +76,6 @@ class SphVector:
       self.chart = copy.copy(self.point.chart)
       return
     # Past this point, we're guaranteed that chart1 and chart2 are the same.
-    if chart2==SphPoint.KRUSKAL_VW_CHART and self._era!=self.point._era:
-      v = self.point.v_before_transition
-      w = self.point.w_before_transition
-      j = schwarzschild.ks_era_jacobian(v,w)
-      old_dv = self.comp[0] ; old_dw = self.comp[1]
-      dv = j[0][0]*old_dv+j[0][1]*old_dw
-      dw = j[0][0]*old_dv+j[0][1]*old_dw
-      self.comp[0] = dv ; self.comp[1] = dw
-      return
     if self.rot90!=self.point.rot90:
       if (not self.rot90) and self.point.rot90:
         direction = 1.0

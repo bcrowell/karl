@@ -20,7 +20,6 @@ def main():
   verbosity = 1
   do_test(verbosity,test_ks_sch_round_trip(verbosity))
   do_test(verbosity,test_ks_metric(verbosity))
-  do_test(verbosity,test_ks_era(verbosity))
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
   do_test(verbosity,test_create_sph_point(verbosity))
   do_test(verbosity,test_ks_christoffel_vs_raw_maxima(verbosity))
@@ -64,14 +63,6 @@ def test_ks_sch_round_trip(verbosity):
   results = record_subtest(verbosity,results,subtest_ks_sch_round_trip(verbosity,-0.1,-0.1,theta,phi)) # region IV
   return summarize_test(results,"test_ks_sch_round_trip",verbosity)
 
-def test_ks_era(verbosity):
-  results = [True,""]
-  results = record_subtest(verbosity,results,subtest_ks_era(verbosity,0.1,-0.17)) # region I
-  results = record_subtest(verbosity,results,subtest_ks_era(verbosity,0.1,0.17)) # region II
-  results = record_subtest(verbosity,results,subtest_ks_era(verbosity,-0.1,0.17)) # region III
-  results = record_subtest(verbosity,results,subtest_ks_era(verbosity,-0.1,-0.17)) # region IV
-  return summarize_test(results,"test_ks_era",verbosity)
-
 def test_create_sph_point(verbosity):  
   results = [True,""]
   theta = 0.7
@@ -85,9 +76,6 @@ def test_create_sph_point(verbosity):
   results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
   theta = 0.7
   r = 1.1 # a value that will force conversion to Kruskal chart
-  results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
-  r = 10.0
-  t = 10.0 # a value that will force the use of the time translation (ks_era_in_range)
   results = record_subtest(verbosity,results,subtest_create_sph_point(verbosity,t,r,theta,phi))
   return summarize_test(results,"test_create_sph_point",verbosity)
 
@@ -422,19 +410,6 @@ def subtest_create_sph_point(verbosity,t,r,theta,phi):
   k = p.absolute_kruskal()
   if verbosity>=2: info += strcat(["k=",k])
   ok = True
-  return [ok,info]
-
-def subtest_ks_era(verbosity,v,w):
-  info = ""
-  t=3.7 # offset
-  tx = schwarzschild.ks_tx(v,w)
-  old_sch = schwarzschild.ks_to_sch(v,w)
-  old_t = t+old_sch[0]
-  ks = schwarzschild.force_ks_era([t,v,w],tx,schwarzschild.ks_to_region(v,w))
-  new_sch = schwarzschild.ks_to_sch(ks[1],ks[2])
-  new_t = ks[0]+new_sch[0] # new_sch[0] should be 0, and we check that below
-  if verbosity>=2: info += strcat(["old (t,V,W)=",t,",",v,",",w,"), new (t,V,W)=",ks[0],",",ks[1],",",ks[2],"), old_t=",old_t,",  new_t=",new_t])
-  ok = (new_sch[0]==0.0) and (abs(new_t-old_t)<1.0e-8)
   return [ok,info]
 
 def test_ks_metric(verbosity):

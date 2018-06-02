@@ -63,42 +63,6 @@ def sch_metric_sch(r,sin_theta):
   g[3][3] = -r2*sin_theta*sin_theta
   return g
 
-# Define coordinate charts for different "eras," i.e., ranges of Schwarzschild t.
-# Representation is (t,V,W), where t represents a time translation to be applied
-# to the point (V,W), and we try to keep (V,W) such that it is fairly close to t=0.
-# This prevents (V,W) from getting too big to represent in floating point. (They grow 
-# exponentially with |t|.)
-# This routine checks whether we've drifted out of the canonical chart, and if we have,
-# fixes it.
-def ks_era_in_range(ks):
-  t = ks[0]
-  v = ks[1]
-  w = ks[2]
-  tx = ks_tx(v,w)
-  if abs(tx)<5.0:
-    return [False,ks] # no change needed, already in canonical chart
-  else:
-    return [True,force_ks_era(ks,tx,ks_to_region(v,w))]
-
-# Force (t,V,W) into a canonical form where (V,W) corresponds to a Schwarzschild t=0,
-# i.e., the t information is all in the t parameter.
-# See ks_tx() for definition of tx. See ks_era_jacobian() for the corresponding
-# Jacobian matrix.
-def force_ks_era(ks,tx,region):
-  t = copy.copy(ks[0])
-  v = copy.copy(ks[1])
-  w = copy.copy(ks[2])
-  t = t + 2.0*arctanh(tx)
-  root_rho = sqrt(abs(v*w)) # sqrt of absolute value of rho
-  v=root_rho*sign(v)
-  w=root_rho*sign(w)
-  return [t,v,w]
-
-# This can cause numerical overflows, should typically only be attempted for output.
-def ks_to_zero_era(t,v,w):
-  tr = ks_to_sch(v,w)
-  return sch_to_ks(tr[0]+t,tr[1],ks_to_sigma(v,w))
-
 # calculate T/X if exterior or X/T if interior:
 def ks_tx(v,w):
   region = ks_to_region(v,w)
@@ -346,27 +310,5 @@ def ks_sch_jacobian(region,r,t):
   j[0][1] = -c/det
   return j
 
-# Calculate the jacobian matrix for the transformation of (t,V,W) to (0,V',W')
-# implemented by force_ks_era(). The jacobian is 2x2, i.e., it doesn't describe
-# what happens to t, and therefore it is always degenerate. The inputs v and
-# w are the pre-transformation coordinates (V,W). The Jacobian has the form
-#     W W
-#     V V,
-# multiplied by a scalar. The order of the indices is such that, e.g.,
-#   dV'/dW = j_01.
-def ks_era_jacobian(v,w):
-  jacobian = [[0 for i in range(2)] for j in range(2)]
-  rho = -v*w # is the same pre- and post-transformation
-  # s=sign(rho)
-  if rho>0.0:
-    s = 1
-  else:
-    s = -1.0
-  a = -s*0.5*(1/sqrt(abs(rho)))
-  jacobian[0][0] = a*w
-  jacobian[1][1] = a*v
-  jacobian[1][0] = a*w
-  jacobian[0][1] = a*v
-  return jacobian
 
 

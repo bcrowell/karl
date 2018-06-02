@@ -64,7 +64,6 @@ class SphPoint:
     if chart==SphPoint.KRUSKAL_VW_CHART:
       self.v = x0
       self.w = x1
-      self._era = 0.0
     if chart==SphPoint.SCHWARZSCHILD_CHART:
       self.t = x0
       self.r = x1
@@ -178,7 +177,6 @@ class SphPoint:
     if not self.allow_automatic_transitions: return
     self._rotate_to_safety()
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      self._era_in_range()
       rho = -self.v*self.w
       if rho>SphPoint.TRANSITION_MAX_RHO: self.to_schwarzschild()
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
@@ -226,9 +224,7 @@ class SphPoint:
     vw = schwarzschild.sch_to_ks(self.t,self.r,schwarzschild.sch_to_sigma(self.r))
     self.v = vw[0]
     self.w = vw[1]
-    self._era = 0.0
     self.chart = SphPoint.KRUSKAL_VW_CHART
-    self._era_in_range()
     self.transition = True
     self.transition_vectors_if_necessary()
     if self.debug_transitions: self.debug_print("did a change of chart from Sch. to Kruskal")
@@ -247,10 +243,10 @@ class SphPoint:
     angles = [self.theta,self.phi]
     if self.rot90: angles = util.rotate_unit_sphere(angles,-1.0)
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      vw = schwarzschild.ks_to_zero_era(self._era,self.v,self.w)
+      return [self.v,self.w,angles[0],angles[1]]
     else:
       vw = schwarzschild.sch_to_ks(self.t,self.r,schwarzschild.sch_to_sigma(self.r))
-    return [vw[0],vw[1],angles[0],angles[1]]
+      return [vw[0],vw[1],angles[0],angles[1]]
 
   # Similar to absolute_kruskal. Slow, intended to be used for output.
   def absolute_schwarzschild(self):
@@ -258,27 +254,12 @@ class SphPoint:
     if self.rot90: angles = util.rotate_unit_sphere(angles,-1.0)
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
       tr = schwarzschild.ks_to_sch(self.v,self.w)
-      t = tr[0]+self._era
+      t = tr[0]
       r = tr[1]
     else:
       t = self.t
       r = self.r
     return [t,r,angles[0],angles[1]]
-
-  # Do not call this routine unless the chart is already known to be Kruskal.
-  def _era_in_range(self):
-    self.v_before_transition = copy.deepcopy(self.v)
-    self.w_before_transition = copy.deepcopy(self.w)
-    z = schwarzschild.ks_era_in_range([self._era,self.v,self.w])
-    if not z[0]: return # no change was needed
-    ks = z[1]
-    self.chart_before_transition = self.chart
-    self._era = ks[0]
-    self.v = ks[1]
-    self.w = ks[2]
-    self.transition = True
-    self.transition_vectors_if_necessary()
-    if self.debug_transitions: self.debug_print("did a change of era")
 
   # The colatitude theta is supposed to be in [0,pi]. If it's slightly out
   # of that range, bump it in. This routine assumes that if we're out of

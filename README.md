@@ -34,10 +34,6 @@ It's written in python3. Any changes required to make it work in python2 would p
 but I haven't tried. It requires the scipy and numpy libraries, which can be installed on a debian
 system by doing `apt-get install python-scipy3 python-numpy3`.
 
-## Lack of test coverage
-
-Test era transitions, coded but not yet tested.
-
 ## Bugs/to do
 
 Gracefully handle the case where a geodesic is terminating.
