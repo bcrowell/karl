@@ -6,7 +6,7 @@
 # compiled to pdf format by doing a "make doc." (Comments in the code do
 # not document the math or the definitions of the variables.)
 
-import copy
+import sys,copy
 
 import numpy
 numpy.seterr(all='raise')
@@ -138,10 +138,15 @@ def ks_to_sch(v,w):
   r = 1+l
   ks_x = (v-w)/2.0
   ks_t = (v+w)/2.0
-  if rho>0.0:
-    t = 2.0*arctanh(ks_t/ks_x) # exterior
-  else:
-    t = 2.0*arctanh(ks_x/ks_t) # interior
+  try:
+    if rho>0.0:
+      t = 2.0*arctanh(ks_t/ks_x) # exterior
+    else:
+      t = 2.0*arctanh(ks_x/ks_t) # interior
+  except:
+    # This normally happens when you hit the horizon. Don't convert to Schwarzschild coords when on horizon!
+    print("error in ks_to_sch: V=",v,", W=",w,", ks_x=",ks_x,", ks_t=",ks_t)
+    raise # die with a traceback, which is printed below the above message
   return [t,r]
 
 # This is guaranteed to misbehave at the horizon.
