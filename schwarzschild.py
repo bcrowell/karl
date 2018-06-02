@@ -362,4 +362,6 @@ def ks_era_jacobian(v,w):
   jacobian[1][1] = a*v
   jacobian[1][0] = a*w
   jacobian[0][1] = a*v
+  return jacobian
+
 
