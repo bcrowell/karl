@@ -54,21 +54,6 @@ def test_rotate_unit_sphere(verbosity):
   results = record_subtest(verbosity,results,subtest_rotate_unit_sphere_round_trip(verbosity,theta,phi+1.5*pi))
   return summarize_test(results,"test_rotate_unit_sphere",verbosity)
   
-
-def test_ks_metric_against_sch_metric(verbosity):
-  results = [True,""]
-  theta = 0.784
-  phi = 0.183
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,0.1,-0.1,theta,phi))
-                 # ... region I
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,0.1,0.1,theta,phi))
-                 # ... region II
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,-0.1,0.1,theta,phi))
-                 # ... region III
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,-0.1,-0.1,theta,phi))
-                 # ... region IV
-  return summarize_test(results,"test_ks_metric_against_sch_metric",verbosity)
-
 def test_ks_sch_round_trip(verbosity):
   results = [True,""]
   theta = 0.784
@@ -345,6 +330,8 @@ def subtest_geodesic_rk_conserved(verbosity,n,r,a,f,method,simple):
     exit(-1)
   final = z[2].absolute_schwarzschild()
   if verbosity>=2: info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
+  # Compute energy and angular momentum:
+  x.force_chart(SphPoint.SCHWARZSCHILD_CHART)
   z = conserved_sch_stuff(x.get_raw_coords(),v.comp)
   l = z[0]; e = z[1]  
   l_err = (l-l0)/l0
@@ -448,6 +435,20 @@ def subtest_ks_era(verbosity,v,w):
   if verbosity>=2: info += strcat(["old (t,V,W)=",t,",",v,",",w,"), new (t,V,W)=",ks[0],",",ks[1],",",ks[2],"), old_t=",old_t,",  new_t=",new_t])
   ok = (new_sch[0]==0.0) and (abs(new_t-old_t)<1.0e-8)
   return [ok,info]
+
+def test_ks_metric_against_sch_metric(verbosity):
+  results = [True,""]
+  theta = 0.784
+  phi = 0.183
+  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,0.1,-0.1,theta,phi))
+                 # ... region I
+  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,0.1,0.1,theta,phi))
+                 # ... region II
+  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,-0.1,0.1,theta,phi))
+                 # ... region III
+  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,-0.1,-0.1,theta,phi))
+                 # ... region IV
+  return summarize_test(results,"test_ks_metric_against_sch_metric",verbosity)
 
 def subtest_ks_metric_against_sch_metric(verbosity,v,w,theta,phi):
   info = ""
