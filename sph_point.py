@@ -205,7 +205,7 @@ class SphPoint:
 
   def to_schwarzschild(self):
     if self.chart==SphPoint.SCHWARZSCHILD_CHART: return
-    self.chart_before_transition = self.chart
+    self.chart_before_transition = copy.copy(self.chart)
     self.v_before_transition = copy.deepcopy(self.v)
     self.w_before_transition = copy.deepcopy(self.w)
     tr = schwarzschild.ks_to_sch(self.v,self.w)

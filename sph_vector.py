@@ -30,8 +30,8 @@ class SphVector:
     self.point = point
     # During a transition, the following two flags can become different from the ones
     # in the point object:
-    self.chart = copy.deepcopy(point.chart)
-    self.rot90 = copy.deepcopy(point.rot90)
+    self.chart = copy.copy(point.chart)
+    self.rot90 = copy.copy(point.rot90)
     if point.chart==SphPoint.KRUSKAL_VW_CHART: self._era=copy.deepcopy(point._era)
     self.comp = comp # array containing four components of the vector, in the current chart
     point.register_vector(self)
@@ -62,6 +62,7 @@ class SphVector:
       dv = j[0][0]*dt+j[0][1]*dr
       dw = j[1][0]*dt+j[1][1]*dr
       self.comp[0]=dv; self.comp[1]=dw
+      self.chart = copy.copy(self.point.chart)
       return
     if chart1==SphPoint.KRUSKAL_VW_CHART and chart2==SphPoint.SCHWARZSCHILD_CHART:
       t=self.point.t ; r=self.point.r
@@ -73,6 +74,7 @@ class SphVector:
       dt = j[0][0]*dv+j[0][1]*dw
       dr = j[1][0]*dv+j[1][1]*dw
       self.comp[0]=dt; self.comp[1]=dr
+      self.chart = copy.copy(self.point.chart)
       return
     # Past this point, we're guaranteed that chart1 and chart2 are the same.
     if chart2==SphPoint.KRUSKAL_VW_CHART and self._era!=self.point._era:

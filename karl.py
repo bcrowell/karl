@@ -3,6 +3,7 @@
 # This file is basically just the test harness.
 
 import sys
+import pickle # qwe
 import numpy
 numpy.seterr(all='raise')
 import scipy
@@ -332,8 +333,16 @@ def subtest_geodesic_rk_conserved(verbosity,n,r,a,f,method,simple):
   final = z[2].absolute_schwarzschild()
   if verbosity>=2: info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
   # Compute energy and angular momentum:
+  if True: # qwe
+    print("before transition:")
+    print("x=",io_util.vector_to_str_n_decimals(x.get_raw_coords(),5),
+          ", v=",io_util.vector_to_str_n_decimals(v.comp,5))
+    print("x.client_vectors=",x.client_vectors)
   x.force_chart(SphPoint.SCHWARZSCHILD_CHART)
   z = conserved_sch_stuff(x.get_raw_coords(),v.comp)
+  if True: # qwe
+    print("x=",io_util.vector_to_str_n_decimals(x.get_raw_coords(),5),
+          ", v=",io_util.vector_to_str_n_decimals(v.comp,5))
   l = z[0]; e = z[1]  
   l_err = (l-l0)/l0
   e_err = (e-e0)/e0
@@ -451,7 +460,7 @@ def test_ks_metric(verbosity):
                  # ... region IV
   return summarize_test(results,"test_ks_metric",verbosity)
 
-# Test the Kruskal-Szekeres metric against (1) the Schwarzschild metric, and (2) against the
+# Test the Kruskal-Szekeres metric (1) against the Schwarzschild metric, and (2) against the
 # expressions used in maxima to calculate the Christoffel symbols. Test 1 is done by numerically
 # perturbing a point and converting between coordinate systems. Test 2 is done by comparing
 # the 4x4 matrices.

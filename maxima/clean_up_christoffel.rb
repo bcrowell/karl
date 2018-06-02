@@ -16,11 +16,11 @@ stuff = <<STUFF;
 2 2 2 (-om^2/(w+2*om*w+om^2*w))-(2*om)/(w+2*om*w+om^2*w)-1/(w+2*om*w+om^2*w)-v/(om*%e^(om+1)+2*om^2*%e^(om+1)+om^3*%e^(om+1)) 
 2 3 3 -v/(%e^(om+1)+2*om*%e^(om+1)+om^2*%e^(om+1)) 
 2 4 4 -v/(%e^(om+1)+2*om*%e^(om+1)+om^2*%e^(om+1)) 
-3 3 1 (%e^((-om)-1)*v^2*w)/(8*om)+(%e^((-om)-1)*v^2*w)/8 
-3 3 2 (%e^((-om)-1)*v*w^2)/(8*om)+(%e^((-om)-1)*v*w^2)/8 
+3 3 1 (%e^((-om)-1)*v^2*w)/(2*om)+(%e^((-om)-1)*v^2*w)/2 
+3 3 2 (%e^((-om)-1)*v*w^2)/(2*om)+(%e^((-om)-1)*v*w^2)/2 
 3 4 4 cos(theta)/sin(theta) 
-4 4 1 (%e^((-om)-1)*sin(theta)^2*v^2*w)/(8*om)+(%e^((-om)-1)*sin(theta)^2*v^2*w)/8 
-4 4 2 (%e^((-om)-1)*sin(theta)^2*v*w^2)/(8*om)+(%e^((-om)-1)*sin(theta)^2*v*w^2)/8 
+4 4 1 (%e^((-om)-1)*sin(theta)^2*v^2*w)/(2*om)+(%e^((-om)-1)*sin(theta)^2*v^2*w)/2 
+4 4 2 (%e^((-om)-1)*sin(theta)^2*v*w^2)/(2*om)+(%e^((-om)-1)*sin(theta)^2*v*w^2)/2 
 4 4 3 -cos(theta)*sin(theta) 
 STUFF
 
