@@ -3,7 +3,6 @@
 # This file is basically just the test harness.
 
 import sys
-import pickle # qwe
 import numpy
 numpy.seterr(all='raise')
 import scipy
@@ -32,7 +31,7 @@ def main():
   simple=False
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
   do_test(verbosity,test_geodesic_rk_elliptical_period_fancy(verbosity))
-  do_test(verbosity+1,test_ks_sch_transition_elliptical(verbosity+1))
+  do_test(verbosity,test_ks_sch_transition_elliptical(verbosity))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -333,16 +332,8 @@ def subtest_geodesic_rk_conserved(verbosity,n,r,a,f,method,simple):
   final = z[2].absolute_schwarzschild()
   if verbosity>=2: info += strcat(["final point: chart=",x.chart,", x=",str(x),"\n"])
   # Compute energy and angular momentum:
-  if True: # qwe
-    print("before transition:")
-    print("x=",io_util.vector_to_str_n_decimals(x.get_raw_coords(),5),
-          ", v=",io_util.vector_to_str_n_decimals(v.comp,5))
-    print("x.client_vectors=",x.client_vectors)
   x.force_chart(SphPoint.SCHWARZSCHILD_CHART)
   z = conserved_sch_stuff(x.get_raw_coords(),v.comp)
-  if True: # qwe
-    print("x=",io_util.vector_to_str_n_decimals(x.get_raw_coords(),5),
-          ", v=",io_util.vector_to_str_n_decimals(v.comp,5))
   l = z[0]; e = z[1]  
   l_err = (l-l0)/l0
   e_err = (e-e0)/e0

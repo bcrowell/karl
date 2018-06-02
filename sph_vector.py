@@ -68,7 +68,7 @@ class SphVector:
       t=self.point.t ; r=self.point.r
       v = self.point.v_before_transition
       w = self.point.w_before_transition
-      region = ks_to_region(v,w)
+      region = schwarzschild.ks_to_region(v,w)
       j = schwarzschild.ks_sch_jacobian(region,r,t)
       dv = self.comp[0] ; dw = self.comp[1]
       dt = j[0][0]*dv+j[0][1]*dw
