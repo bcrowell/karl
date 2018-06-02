@@ -6,6 +6,7 @@
 # compiled to pdf format by doing a "make doc." (Comments in the code do
 # not document the math or the definitions of the variables.)
 
+import copy
 
 import numpy
 numpy.seterr(all='raise')
@@ -84,9 +85,9 @@ def ks_era_in_range(ks):
 # See ks_tx() for definition of tx. See ks_era_jacobian() for the corresponding
 # Jacobian matrix.
 def force_ks_era(ks,tx,region):
-  t = ks[0]
-  v = ks[1]
-  w = ks[2]
+  t = copy.copy(ks[0])
+  v = copy.copy(ks[1])
+  w = copy.copy(ks[2])
   t = t + 2.0*arctanh(tx)
   root_rho = sqrt(abs(v*w)) # sqrt of absolute value of rho
   v=root_rho*sign(v)
