@@ -19,7 +19,7 @@ from io_util import strcat,print_no_newline
 def main():
   verbosity = 1
   do_test(verbosity,test_ks_sch_round_trip(verbosity))
-  do_test(verbosity,test_ks_metric_against_sch_metric(verbosity))
+  do_test(verbosity,test_ks_metric(verbosity))
   do_test(verbosity,test_ks_era(verbosity))
   do_test(verbosity,test_rotate_unit_sphere(verbosity))
   do_test(verbosity,test_create_sph_point(verbosity))
@@ -322,6 +322,7 @@ def subtest_geodesic_rk_conserved(verbosity,n,r,a,f,method,simple):
   if simple:
     z = runge_kutta.geodesic_rk_simple(x,v,max_lambda,max_lambda/n,ndebug)
   else:
+    #x.allow_automatic_transitions = False
     z = runge_kutta.geodesic_rk       (x,v,max_lambda,max_lambda/n,ndebug,0,10,verbosity>=2)
                                                      # ... ndebug_inner,ntrans,debug_transitions
   err = z[0]
@@ -436,22 +437,27 @@ def subtest_ks_era(verbosity,v,w):
   ok = (new_sch[0]==0.0) and (abs(new_t-old_t)<1.0e-8)
   return [ok,info]
 
-def test_ks_metric_against_sch_metric(verbosity):
+def test_ks_metric(verbosity):
   results = [True,""]
   theta = 0.784
   phi = 0.183
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,0.1,-0.1,theta,phi))
+  results = record_subtest(verbosity,results,subtest_ks_metric(verbosity,0.1,-0.1,theta,phi))
                  # ... region I
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,0.1,0.1,theta,phi))
+  results = record_subtest(verbosity,results,subtest_ks_metric(verbosity,0.1,0.1,theta,phi))
                  # ... region II
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,-0.1,0.1,theta,phi))
+  results = record_subtest(verbosity,results,subtest_ks_metric(verbosity,-0.1,0.1,theta,phi))
                  # ... region III
-  results = record_subtest(verbosity,results,subtest_ks_metric_against_sch_metric(verbosity,-0.1,-0.1,theta,phi))
+  results = record_subtest(verbosity,results,subtest_ks_metric(verbosity,-0.1,-0.1,theta,phi))
                  # ... region IV
-  return summarize_test(results,"test_ks_metric_against_sch_metric",verbosity)
+  return summarize_test(results,"test_ks_metric",verbosity)
 
-def subtest_ks_metric_against_sch_metric(verbosity,v,w,theta,phi):
+# Test the Kruskal-Szekeres metric against (1) the Schwarzschild metric, and (2) against the
+# expressions used in maxima to calculate the Christoffel symbols. Test 1 is done by numerically
+# perturbing a point and converting between coordinate systems. Test 2 is done by comparing
+# the 4x4 matrices.
+def subtest_ks_metric(verbosity,v,w,theta,phi):
   info = ""
+  ok = True
   sch = schwarzschild.ks_to_sch(v,w)
   t = sch[0]
   r = sch[1]
@@ -467,12 +473,21 @@ def subtest_ks_metric_against_sch_metric(verbosity,v,w,theta,phi):
   aux = schwarzschild.sch_aux_ks(v,w)
   rho=aux[0]; r=aux[1]; b=aux[2]
   sin_theta = sin(theta)
-  g = schwarzschild.sch_metric_ks(v,w,sin_theta,r,b)
-  interval_ks = (g[0][1]+g[1][0])*dv*dw
+  g_ks = schwarzschild.sch_metric_ks(v,w,sin_theta,r,b)
+  interval_ks = (g_ks[0][1]+g_ks[1][0])*dv*dw
   g = schwarzschild.sch_metric_sch(r,sin_theta)
   interval_sch = g[0][0]*dt**2+g[1][1]*dr**2
   if verbosity>=2: info += strcat(["V=",v,", W=",w," r=",r," t=",t,", int_ks=",interval_ks," int_sch=",interval_sch])
-  ok = abs(interval_ks-interval_sch)<1.0e-13
+  ok = ok and abs(interval_ks-interval_sch)<1.0e-13
+  g2 = schwarzschild.sch_metric_ks_maxima_input(v,w,theta)
+  for i in range(4):
+    for j in range(4):
+      a = g_ks[i][j]
+      b = g2[i][j]
+      if a==0.0 and b==0.0: continue
+      if a*b!=0.0 and abs((a-b)/a)<1.0e-13: continue # both nonzero, and relative error is small
+      ok = False
+      info += strcat(["metric doesn't match raw form input into maxima, i=",i,", j=",j," elements=",a,", ",b,"\n"])
   return [ok,info]
 
 def subtest_ks_sch_round_trip(verbosity,v,w,theta,phi):
