@@ -31,7 +31,7 @@ def main():
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
   do_test(verbosity,test_geodesic_rk_elliptical_period_fancy(verbosity))
   do_test(verbosity,test_ks_sch_transition_elliptical(verbosity))
-  do_test(verbosity,test_geodesic_rk_hit_singularity(verbosity))
+  do_test(verbosity+1,test_geodesic_rk_hit_singularity(verbosity+1))
 
 def do_test(verbosity,results):
   ok = results[0]

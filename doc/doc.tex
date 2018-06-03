@@ -116,6 +116,11 @@ Maxima uses the equivalent (and also safe) form $e^{-W}/(1+W)$.
 For large $\rho$,
 $\lambert =\ln\rho-\ln(\ln\rho-1)+o(1)$.
 
+For small radii,
+the approximation $r\approx\sqrt{2(1-VW)}$ holds. 
+Error in r is 20\% at $V=W=0.9$. Error in $r$ for $V=W=1-\epsilon$
+shrinks like $\epsilon^{1/2}$ (relative) or $\epsilon$ (absolute).
+
 The metric is
 \begin{equation}
   ds^2 = B(dT^2-dX^2)-(1+\lambert )^2d\Omega^2,
@@ -309,6 +314,42 @@ of radius $\tilde{r}$, at angles $\theta$ and $\phi$. The metric has
   g_{ii} &= -(1+1/4\tilde{r})^4 \\
   g_tt &= \left(\frac{1-1/4\tilde{r}}{1+1/4\tilde{r}}\right)^2.
 \end{align}
+
+\section{Geodesics that hit the singularity}
+
+It would be nice to be able to compute these with good precision, e.g., to play with
+stuff like how much you can prolong your life by using rocket engines after falling
+through the horizon. Atkinson has a discussion of error estimates for Runge-Kutta on
+p. 372, the idea being that you compare step size 2h with step size h. But this has
+several problems for this application: (1) I think he assumes the function is lipschitz,
+which isn't true at the singularity; (2) he's discussing error bounds on coordinates,
+but I want error bound on the proper time when the coordinate reaches a certain value.
+
+In Kruskal coordinates, the Christoffel symbols end up being dominated by
+$\ddot{V}\approx -r^{-2}\dot{W}$ and $\ddot{W}\approx -r^{-2}\dot{V}$.
+
+Or in S coords, the dominant C symbol gives $\ddot{r}\approx -(1/2)r^{-3}\dot{r}^2$.
+
+The main point here is that in terms of errors and adaptation of RK,
+we have a diffeq that misbehaves roughly like $y'=f(y)=y^{-3}$, so that
+maybe we expect errors of order $f^{(3)}$, or $y^{-6}$. Errors in proper
+time may not be as bad as this.
+
+For a massive particle infalling along the Kruskal T axis, the solution to the
+approximate equations of motion, using small-r approx for $r(V,W)$ (see above),
+is $V=W=1-(-\lambda)^{5/4}$ (check this).
+(Is this right? Seems like it doesn't allow rescaling of affine parameter, which doesn't
+seem possible.) This gives $r=2(-\lambda)^{5/8}$. Exponent also seems wrong, see below.
+Note that this was based on the ansatz $V=W=1-(-\lambda)^p$, which is not necessarily the same
+as free-falling from rest at some initial $r_\text{max}>1$ as in MTW below, so the two
+results may or may not be comparable.
+
+Or using MTW's expressions in Schwarzschild coordinates, I get
+$r=12^{2/3}(-\tau)^{2/3}$ (or throw in a factor of $(2m)^{1/3}$ for
+standard units). This makes sense because the 2/3 is the same exponent
+as in Kepler's laws, should be universal based on units. This is for free-falling
+from rest at an initial position $r_\text{max}$, and it ends up not depending
+on $r_\text{max}$.
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 

@@ -166,7 +166,7 @@ def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
     x.set_raw_coords(coords)
     c = x.closeness_to_singularity(coords)
     if c<closest: closest=c
-    if closest>0.1: # not close to one of the singularities
+    if closest>0.4: # not close to one of the singularities
       have_backup = False # Don't keep making backups if not necessary, is an expensive operation.
     else:
       if closest<=0.0 or not v.future_timelike(): # incomplete geodesic

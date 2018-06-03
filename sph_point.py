@@ -312,9 +312,17 @@ class SphPoint:
 
   # Return some measure of closeness to the nearest singularity, 0 meaning close and negative 
   # meaning we overshot. Takes coordinates as an argument for the same reason as get_christoffel().
+  # For these measures of closeness, an observer's proper time until their geodesic terminates
+  # can be estimated as being (1/12)r^3/2 (haven't checked the 1/12 carefully). This estimate
+  # is asymptotically correct for free-fall motion starting from rest outside the horizon.
   def closeness_to_singularity(self,coords):
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
       return coords[1]
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      return 1.0-coords[0]*coords[1]
+      # This is an approximation to r when VW<1, and a non-analytic extension of the same function when VW>1.
+      vw = coords[0]*coords[1]
+      if vw<1.0:
+        return sqrt(2*(1-vw))
+      else:
+        return -sqrt(-2*(1-vw))
 
