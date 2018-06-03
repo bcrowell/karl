@@ -31,8 +31,11 @@ import io_util
 #           run 1/10 of the time, and is therefore probably not a significant use of CPU time
 # debug_transitions -- boolean, do we want a message printed whenever we make a transition?
 # returns
-#   [if_error,error_message,final_x,final_v,final_lambda,incomplete]
+#   [if_error,error_message,final_x,final_v,final_lambda,incomplete,closest_ever]
 # If we hit a singularity, meaning that the geodesic is incomplete, the output incomplete is set to True.
+# The variable closest_ever gives the closest approach to the singularity, according to the measure of
+# closeness defined in SphPoint.closeness_to_singularity(). This should be a sensitive predictor of
+# error.
 def geodesic_rk(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug_transitions):
   return geodesic_rk_recursive(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug_transitions,4)
 
@@ -93,7 +96,7 @@ def geodesic_rk_no_retry(x,v,lambda_max,dlambda,ndebug,ndebug_inner,ntrans,debug
 # geodesic_rk that acts as a wrapper for this one. Inputs are the same as the inputs to
 # geodesic_rk of the same names.
 # returns
-#   [if_error,error_message,final_x,final_v,final_lambda,incomplete,n_completed]
+#   [if_error,error_message,final_x,final_v,final_lambda,incomplete,n_completed,closest_ever]
 # If we hit a singularity, meaning that the geodesic is incomplete, the output incomplete is set to True.
 def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
   ok = False
@@ -111,6 +114,7 @@ def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
   backup_x = copy.deepcopy(x)
   backup_v = copy.deepcopy(v)
   backup_lam = copy.copy(lam)
+  closest_ever = x.closeness_to_singularity(x.get_raw_coords())
   for iter in range(0,n):
     est = [[0 for i in range(8)] for step in range(4)]
             # four estimates of the changes in the independent variables for 4th-order Runge-Kutta 
@@ -129,7 +133,7 @@ def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
     y0 = [0 for i in range(8)]
     for i in range(0,4): y0[i]=copy.deepcopy(coords[i])
     for i in range(0,4): y0[i+4]=copy.deepcopy(v.comp[i])
-    closest = x.closeness_to_singularity(x.get_raw_coords())
+    closest = x.closeness_to_singularity(x.get_raw_coords()) # closest among the 4 sample points in this step
     for step in range(0,4):
       if step==0: y=copy.deepcopy(y0)
       if step==1:
@@ -162,7 +166,7 @@ def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
     for i in range(0, 4):
       coords[i] += tot_est[i]
       if math.isnan(coords[i]):
-        return [True,"coordinate is NaN",x,v,lam,iter]
+        return [True,"coordinate is NaN",x,v,lam,iter,closest_ever]
     x.set_raw_coords(coords)
     c = x.closeness_to_singularity(coords)
     if c<closest: closest=c
@@ -171,11 +175,12 @@ def geodesic_rk_simple(x,v,lambda_max,dlambda,ndebug):
     else:
       if closest<=0.0 or not v.future_timelike(): # incomplete geodesic
         if have_backup:
-          return [False,"",backup_x,backup_v,backup_lam,True,iter]
+          return [False,"",backup_x,backup_v,backup_lam,True,iter,closest_ever]
         else:
-          return [False,"",x,v,lam,True,iter]
+          return [False,"",x,v,lam,True,iter,closest_ever]
       have_backup = True
       backup_x = copy.deepcopy(x)
       backup_v = copy.deepcopy(v)
       backup_lam = copy.copy(lam)
+    if closest<closest_ever: closest_ever=closest
   return [False,"",x,v,lam,False,iter]

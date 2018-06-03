@@ -129,6 +129,7 @@ def subtest_geodesic_rk_hit_singularity(verbosity,n,r0):
   if verbosity>=2:
     info += strcat(["final KS=",str(z[2]),", incomplete=",str(z[5]),"\n"])
     info += strcat(["final tau=",tau_actual,", pred. tau=",tau," r=",r,"\n"])
+    info += strcat(["closest=",z[7],"\n"])
   # eps = 1000.0/(n**4)
   #if abs(rel_err)>eps:
   #  info += strcat(["relative discrepancy of ",rel_err," in final radius is greater than ",eps])
