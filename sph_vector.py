@@ -100,3 +100,13 @@ class SphVector:
   def timelike(self):
     return self.norm()>0.0
 
+  def future_timelike(self):
+    if self.norm()<0.0: return False
+    if self.point.chart==SphPoint.SCHWARZSCHILD_CHART:
+      return self.comp[0]>0.0
+    if self.point.chart==SphPoint.KRUSKAL_VW_CHART:
+      return self.comp[0]>0.0 and self.comp[1]>0.0
+    raise RuntimeError('unknown chart')
+
+
+

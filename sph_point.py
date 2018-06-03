@@ -102,7 +102,7 @@ class SphPoint:
 
   def metric(self):
     if self.chart==SphPoint.KRUSKAL_VW_CHART:
-      z = sch_aux_ks(self.v,self.w)
+      z = schwarzschild.sch_aux_ks(self.v,self.w)
       return schwarzschild.sch_metric_ks(self.v,self.w,sin(self.theta),z[1],z[2]) # v,w,sin theta,r,b
     if self.chart==SphPoint.SCHWARZSCHILD_CHART:
       return schwarzschild.sch_metric_sch(self.r,sin(self.theta))
@@ -309,4 +309,12 @@ class SphPoint:
         return schwarzschild.sch_christoffel_ks(coords[0],coords[1],sin(theta),cos(theta),z[1],z[2])
     print("error in sph_point.get_christoffel, unimplemented spacetime ",self.spacetime," or chart ",self.chart)
     exit(-1)
+
+  # Return some measure of closeness to the nearest singularity, 0 meaning close and negative 
+  # meaning we overshot. Takes coordinates as an argument for the same reason as get_christoffel().
+  def closeness_to_singularity(self,coords):
+    if self.chart==SphPoint.SCHWARZSCHILD_CHART:
+      return coords[1]
+    if self.chart==SphPoint.KRUSKAL_VW_CHART:
+      return 1.0-coords[0]*coords[1]
 

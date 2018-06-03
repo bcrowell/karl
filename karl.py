@@ -31,6 +31,7 @@ def main():
   do_test(verbosity,test_geodesic_rk_free_fall_from_rest(verbosity,simple))
   do_test(verbosity,test_geodesic_rk_elliptical_period_fancy(verbosity))
   do_test(verbosity,test_ks_sch_transition_elliptical(verbosity))
+  do_test(verbosity,test_geodesic_rk_hit_singularity(verbosity))
 
 def do_test(verbosity,results):
   ok = results[0]
@@ -88,6 +89,51 @@ def test_ks_christoffel_vs_raw_maxima(verbosity):
   w = 0.456
   results = record_subtest(verbosity,results,subtest_ks_christoffel_vs_raw_maxima(verbosity,v,w,theta))
   return summarize_test(results,"test_ks_christoffel_vs_raw_maxima",verbosity)
+
+def test_geodesic_rk_hit_singularity(verbosity):
+  results = [True,""]
+  # Choose initial and final r values such that if we're using the fancy version of the Runge-Kutta
+  # routine, a transition will be triggered from Sch. to Kruskal.
+  r0 = 2.0
+  n = 100
+  results = record_subtest(verbosity,results,subtest_geodesic_rk_hit_singularity(
+                   verbosity,n,r0))
+  return summarize_test(results,"test_geodesic_rk_hit_singularity",verbosity)
+
+# Simulate radial free fall from rest in Schwarzschild metric at
+# Schwarzschild radius r0 to the singularity and compare with exact equation (MTW p. 824, eq. 31.10).
+def subtest_geodesic_rk_hit_singularity(verbosity,n,r0):
+  info = ""
+  ok = True
+  t = 0.0
+  theta = pi/2
+  phi = 0.0
+  x = SphPoint(SphPoint.SCHWARZSCHILD,SphPoint.SCHWARZSCHILD_CHART,t,r0,theta,phi)
+  #x.debug_transitions = True
+  tdot = 1.0/sqrt(1.0-1.0/r0) # value of dt/dlambda such that the affine parameter lambda will be proper time
+  v = SphVector(x,[tdot,0.0,0.0,0.0]) # derivative of coordinates with respect to proper time
+  if verbosity>=2: info += strcat(["initial point: chart=",x.chart,", x=",str(x),"\n"])
+  eta = pi # auxiliary parameter defined by MTW; eta=0 at start, and this is the value at the singularity
+  tau = 0.5*r0**1.5*(eta+sin(eta))
+  ndebug=0
+  if verbosity>=2: ndebug = 10
+  f=1.1 # fudge factor to make sure we get to the singularity
+  z = runge_kutta.geodesic_rk(x,v,tau*f,tau*f/n,ndebug,0,10,verbosity>=2) # ... ndebug_inner,ntrans,debug_transitions
+  err = z[0]
+  if err:
+    print("error, "+z[1])
+    exit(-1)
+  tau_actual = z[4]
+  final = z[2].absolute_schwarzschild()
+  r = final[1] # expected to be 0
+  if verbosity>=2:
+    info += strcat(["final KS=",str(z[2]),", incomplete=",str(z[5]),"\n"])
+    info += strcat(["final tau=",tau_actual,", pred. tau=",tau," r=",r,"\n"])
+  # eps = 1000.0/(n**4)
+  #if abs(rel_err)>eps:
+  #  info += strcat(["relative discrepancy of ",rel_err," in final radius is greater than ",eps])
+  #  ok = False
+  return [ok,info]
 
 def test_geodesic_rk_free_fall_from_rest(verbosity,simple):
   results = [True,""]

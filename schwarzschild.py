@@ -174,6 +174,7 @@ def sch_christoffel_sch(t,r,sin_theta,cos_theta):
 # This will give a division by zero exception if used at the coordinate singularities at theta=0 and pi.
 def sch_christoffel_ks(v,w,sin_theta,cos_theta,r,b):
   ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
+  if r<0.0: raise RuntimeError('r<0')
   qb = 0.25*b   # = 1/(re^r)
   qbr = qb/r    # = 1/(r^2e^r)
   c = qb*(1.0+1.0/r)
