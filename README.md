@@ -16,6 +16,7 @@ Current features:
 * implementation in python
 * computation of geodesics using Runge-Kutta integration
 * automatic switching between coordinate charts to avoid coordinate singularities in spherical coordinates and floating-point overflow in Kruskal-Szekeres coordinates
+* automatic handling of the case where a geodesic is terminating
 
 Features I plan to add:
 
@@ -34,6 +35,3 @@ It's written in python3. Any changes required to make it work in python2 would p
 but I haven't tried. It requires the scipy and numpy libraries, which can be installed on a debian
 system by doing `apt-get install python-scipy3 python-numpy3`.
 
-## Bugs/to do
-
-Gracefully handle the case where a geodesic is terminating.
