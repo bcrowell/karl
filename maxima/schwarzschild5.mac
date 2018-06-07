@@ -1,0 +1,37 @@
+/* Calculate the Christoffel coefficients for the metric
+   consisting of the Schwarzschild metric, in Schwarzschild
+   coordinates, with the angular space embedded on the
+   unit 2-sphere in a fictitious additional dimension. The
+   units are such that the schwarzschild radius is 1, i.e.,
+   the mass is 1/2. */
+
+    load(ctensor);
+    dim:5;
+    ct_coords:[t,r,i,j,k];
+    a:1-1/r;
+    lg:matrix(
+               [a,0,0,0,0],
+               [0,-1/a,0,0,0],
+               [0,0,-1,0,0],
+               [0,0,0,-1,0],
+               [0,0,0,0,-1]
+             )$
+    
+cmetric();   
+
+christof(false);
+/*
+  http://maxima.sourceforge.net/docs/manual/maxima_26.html
+  mcs is 
+    symmetric on 1st 2 indices
+    contravariant on final index
+*/
+
+for i:1 thru dim do (
+  for j:i thru dim do (
+    for k:1 thru dim do (
+      if mcs[i,j,k]#0 then
+        print(i,j,k,string(scanmap(letsimp,scanmap(letsimp,mcs[i,j,k]))))
+    )
+  )
+);

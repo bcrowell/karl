@@ -446,6 +446,12 @@ etc. We constrain $\xi=1$, but it's probably a good idea to leave the $\xi^{-2}$
 there for numerical stability. The resulting expressions may be messy. I can probably find simplified
 forms, and if so, they can be tested numerically.
 
+Plan for internal representation: Calling routine passes in a 5-element array of floats.
+All library routines immediately copy this, then delete any 6th element, and calculate a new
+6th element that is the schwarzschild r coordinate. Whenever a library routine modifies one
+of the five coordinates, it must do so on a copy (never in place), and either delete or
+update the 6th element.
+
 \section{Incomplete geodesics}
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the
 $(a,b)$ coordinates as in Penrose coordinates. However, evaluating the Christoffel will always

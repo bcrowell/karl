@@ -32,6 +32,7 @@ not document the math or the definitions of the variables.)
 ## Installing
 
 It's written in python3. Any changes required to make it work in python2 would probably be minimal,
-but I haven't tried. It requires the scipy and numpy libraries, which can be installed on a debian
-system by doing `apt-get install python-scipy3 python-numpy3`.
+but I haven't tried. It requires the scipy and numpy libraries, and the filepp utility,
+which can be installed on a debian
+system by doing `apt-get install python-scipy3 python-numpy3 filepp`.
 
