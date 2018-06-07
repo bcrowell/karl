@@ -116,11 +116,6 @@ Maxima uses the equivalent (and also safe) form $e^{-W}/(1+W)$.
 For large $\rho$,
 $\lambert =\ln\rho-\ln(\ln\rho-1)+o(1)$.
 
-For small radii,
-the approximation $r\approx\sqrt{2(1-VW)}$ holds. 
-Error in r is 20\% at $V=W=0.9$. Error in $r$ for $V=W=1-\epsilon$
-shrinks like $\epsilon^{1/2}$ (relative) or $\epsilon$ (absolute).
-
 The metric is
 \begin{equation}
   ds^2 = B(dT^2-dX^2)-(1+\lambert )^2d\Omega^2,
@@ -150,6 +145,11 @@ The inverse transformation is
 At the horizons, applying the inverse transformation gives $r=1$, $t=\pm\infty$. I'm not
 sure if there's a nice interpretation of this, but the fact that it's not well-behaved
 and one-to-one is what we expect at a place where we were removing a degeneracy of the metric.
+
+For small radii,
+the approximation $r\approx\sqrt{2(1-VW)}$ holds. 
+Error in r is 20\% at $V=W=0.9$. Error in $r$ for $V=W=1-\epsilon$
+shrinks like $\epsilon^{1/2}$ (relative) or $\epsilon$ (absolute).
 
 \section{Null KS coordinates}
 
@@ -186,9 +186,7 @@ Eddington-Finkelstein are well suited to the region near the horizon?)
 (2) Try to do another change of coordinates to get ones that don't misbehave so horribly at
 large distances, while still covering everything with one chart. Don't want to use Penrose diagram
 coordinates for this, because compactification would give them poor precision at large r. For example,
-I think doing $\sinh^{-1}X$ results in a coordinate that varies linearly with r for large r. The problem
-is that then the components of the metric blow up like $\cosh X$, which is the exponential of an
-exponential.
+I think doing $\sinh^{-1}X$ results in a coordinate that varies linearly with r for large r. 
 
 (3) ``Sliding chart.'' The KS coordinates obscure the Killing vector, and make it difficult
 to do computations at large $|t|$, where KS coordinates get exponentially large.
@@ -357,5 +355,108 @@ on $r_\text{max}$.
 MTW p. 840, ex. 31.8 gives the metric in Sch coords. For ``Kruskal-like coordinates,''
 they give a reference to Graves and Brill (1960) and their own fig 34.4, p. 921,
 which is a Penrose diagram.
+
+\section{Arcsinh coordinates}
+
+Let
+\begin{align*}
+  a & = \sinh^{-1} V \\
+  b & = \sinh^{-1} W. 
+\end{align*}
+The metric is
+\begin{equation*}
+  ds^2 = B\sqrt{(1+a^2)(1+b^2)}dadb -\ldots
+\end{equation*}
+For large r and t, the a and b coordinates basically scale like r and t, not exponentially.
+In region I, for large r ($a>0$, $b<0$), let $u$ be defined by
+\begin{equation*}
+  u = \ln(\rho/e) = a-b+\ln(f/4e),
+\end{equation*}
+where
+\begin{equation*}
+  f = 1-e^{2b}-e^{-2a}+e^{-2a+2b}
+\end{equation*}
+is o(1). The variable $u$ basically scales like $r$.
+Then we can compute $r$ without having to directly manipulate V and W:
+\begin{equation*}
+  r = 1+W(e^u) = 1+u+\ldots,
+\end{equation*}
+where \ldots is a series expansion by Corless that falls off as powers of $u$, i.e., like powers of $r$,
+and can be expressed purely in terms of $u$. (See WP,
+\url{https://en.wikipedia.org/wiki/Lambert_W_function#Asymptotic_expansions} .)
+
+For large r, like the earth orbiting the sun, we have $u\sim r\sim 10^8$, and this series
+converges extremely fast. The worst inefficiency will be for intermediate values of u,
+where we can't directly represent $\rho$ in floating point. In IEEE-754 floating point (which seems
+to be what most computers use these days, and is what most implementations of python use),
+the largest number you can store is $2^{128}$, and if $\rho$ is this value, $u\approx r\approx 89$.
+At this value of $r$, the Corless series converges reasonably fast, would need about 8 terms to
+get 16 digits of precision, which seems doable.
+
+Better: Veberic, \url{https://arxiv.org/abs/1003.1628}, sec.~2.3, shows an iterative
+scheme that only requires an initial guess for $W(x)$, and that can be expressed purely
+in terms of $\ln x$. (The iteration scheme actually works for negative $x$ as well, because
+it uses $\ln(x/W_n)$.
+
+\section{Fictitious 5th coordinate}
+Use this to avoid the need for multiple coordinate charts in order to handle the coordinate singularities
+at $\theta=0$ and $\pi$. Define cartesian coordinates
+\begin{align*}
+  i &= \xi \sin\theta \cos\phi \\
+  j &= \xi \sin\theta \sin\phi \\
+  k &= \xi \cos\theta ,
+\end{align*}
+where $\xi=1$ is a fictitious coordinate, constrained to be 1.
+
+So we have a ``big space'' B=$(a,b,i,j,k)$, which consists of the maximal extension of the Schwarzschild
+spacetime embedded in a higher-dimensional space, and a ``little space'' L=$(t,r,\theta,\phi,[\xi])$,
+consisting of regions I and II without the horizons.
+
+The coordinate transformation $T:L\to B$ is known in closed form from
+books, uses only elementary functions, and is special-cased for I vs
+II. The transformation $T^{-1}:B\to L$ is known in closed form from
+books, involves functions like $W$, may not exist (horizons, III, IV),
+and can be extended by precomposing with a ``V-flip'' transformation
+$V\rightarrow -V$. It's differentiable, because $W$'s derivative can
+be expressed in terms of $W$. 
+
+The metric in L is the standard Schwarzschild metric.
+The metric in B can be found by applying the jacobian ${T^{-1}}'$. It's analytic, implicitly involves W,
+and in simplified form I think it's
+\begin{equation*}
+  ds^2 = B\sqrt{(1+a^2)(1+b^2)}dadb -(di^2+dj^2+dk^2).
+\end{equation*}
+This can be tested numerically in a drop-dead-simple way by just taking two
+infinitesimal displacements at a point in L, transforming to B, and comparing inner products.
+
+Since we only work in the chart B, transformations of vectors doesn't have to be
+efficient, can be undefined, only has to happen on input and output. To transform vectors
+from L to B, use $T'$, which is super simple and well behaved wherever $T$ is defined.
+To go the other way, numerically invert the $5\times 5$ matrix for $T'$ at that point,
+and throw away the $\xi$ component.
+
+The Christoffel symbols in B can be found by combining the inverse of the metric
+(which is analytic and well behaved, involves W) with the derivatives of the metric
+(expressible in terms of W). On top of this we add the fictitious centripetal force
+represented by
+\begin{equation*}
+  \Gamma\indices{^i_i_i} = \Gamma\indices{^i_j_j} = \Gamma\indices{^i_k_k} = \frac{i}{\xi^2},
+\end{equation*}
+etc. We constrain $\xi=1$, but it's probably a good idea to leave the $\xi^{-2}$ factor in
+there for numerical stability. The resulting expressions may be messy. I can probably find simplified
+forms, and if so, they can be tested numerically.
+
+\section{Incomplete geodesics}
+The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the
+$(a,b)$ coordinates as in Penrose coordinates. However, evaluating the Christoffel will always
+involve computing $r$ anyway, so if we want to see how close to are to a singularity, we can always
+use that. Accurately handling incomplete geodesics turned out to be very tricky on my first try.
+I'm probably best off just using someone else's adaptive Runge-Kutta code.
+
+\section{Choice of language for second try}
+Clojure: Has the advantage of dual implementation. I hate java. There is runge-kutta, e.g.,
+\url{https://github.com/mobius-eng/numerics}. Doesn't support infix arithmetic, so no.
+
+
 
 \end{document}
