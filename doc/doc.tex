@@ -365,35 +365,32 @@ Let
 \end{align*}
 The metric is
 \begin{equation*}
-  ds^2 = B\sqrt{(1+a^2)(1+b^2)}dadb -\ldots
+  ds^2 = 2\mu dadb -\ldots,
 \end{equation*}
+where $\mu = (1/2)B\cosh a\cosh b$.
 For large r and t, the a and b coordinates basically scale like r and t, not exponentially.
-In region I, for large r ($a>0$, $b<0$), let $u$ be defined by
+In region I ($a>0$, $b<0$), let $u$ be defined by
 \begin{equation*}
   u = \ln(\rho/e) = a-b+\ln(f/4e),
 \end{equation*}
 where
 \begin{equation*}
-  f = 1-e^{2b}-e^{-2a}+e^{-2a+2b}
+  f = (1-e^{-2a})(1-e^{2b})
 \end{equation*}
-is o(1). The variable $u$ basically scales like $r$.
+is positive and o(1). The variable $u$ basically scales like $r$.
 Then we can compute $r$ without having to directly manipulate V and W:
 \begin{equation*}
-  r = 1+W(e^u) = 1+u+\ldots,
+  r = 1+\ell=1+W(e^u).
 \end{equation*}
-where \ldots is a series expansion by Corless that falls off as powers of $u$, i.e., like powers of $r$,
-and can be expressed purely in terms of $u$. (See WP,
-\url{https://en.wikipedia.org/wiki/Lambert_W_function#Asymptotic_expansions} .)
+The function $W(e^u)$ is straightforward to compute --- see below.
+To get the coefficient appearing in the metric,
+\begin{equation*}
+  \mu = \frac{(1+e^{-2a})(1+e^{2b})}{2er} e^{a-b-\ell}.
+\end{equation*}
+Since $\ell\approx a-b$, the quantity inside the exponential is safe to evaluate.
 
-For large r, like the earth orbiting the sun, we have $u\sim r\sim 10^8$, and this series
-converges extremely fast. The worst inefficiency will be for intermediate values of u,
-where we can't directly represent $\rho$ in floating point. In IEEE-754 floating point (which seems
-to be what most computers use these days, and is what most implementations of python use),
-the largest number you can store is $2^{128}$, and if $\rho$ is this value, $u\approx r\approx 89$.
-At this value of $r$, the Corless series converges reasonably fast, would need about 8 terms to
-get 16 digits of precision, which seems doable.
-
-Better: Veberic, \url{https://arxiv.org/abs/1003.1628}, sec.~2.3, shows an iterative
+Computation of $W(e^u)$:
+Veberic, \url{https://arxiv.org/abs/1003.1628}, sec.~2.3, shows an iterative
 scheme that only requires an initial guess for $W(x)$, and that can be expressed purely
 in terms of $\ln x$. (The iteration scheme actually works for negative $x$ as well, because
 it uses $\ln(x/W_n)$.
