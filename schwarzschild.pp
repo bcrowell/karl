@@ -58,8 +58,7 @@ def christoffel(p):
   keeps us constrained to the unit sphere i^2+j^2+k^2=1.
   """
   ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
-  # The following symbols, involving only t and r, are the same as the standard ones in sch4,
-  # and are the only nonzero ones in sch5 except for the centripetal ones.
+  # The following symbols, involving only t and r, are the same as the standard ones in sch4:
   r = p[1]
   r2 = r*r
   c = r-1.0 # = r-2GM in Carroll's notation
@@ -68,6 +67,9 @@ def christoffel(p):
   ch[1][1][1] = -z
   ch[0][1][0] = z
   ch[1][0][0] = z
+  # These terms are analogous to Gamma^r_theta_theta = -c in sch4:
+  for n in range(2,5):
+    ch[n][n][1] = -c
   # Fictitious centripetal terms:
   i=p[2] ; j=p[3]; k=p[4]
   xi2 = i*i+j*j+k*k; # should normally be very close to 1

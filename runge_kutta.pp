@@ -18,8 +18,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     lambda_max = maximum affine parameter, i.e., where to stop (but could stop earlier, e.g., if 
                    we hit a singularity)
     dlambda = step size
-    ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100,
-            then we print debugging output after every ntrans*100 steps
+    ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100
     lambda0 = initial affine parameter, defaults to 0
   returns
     [err,final_x,final_v,final_lambda,info]
@@ -38,7 +37,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
   else:
-    steps_between_debugging=n/ndebug
+    steps_between_debugging=ndebug
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = 0.0
   ok,ndim,christoffel_function = chart_info(spacetime,chart)
@@ -56,7 +55,9 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
       debug_count = 0
       do_debug = True
     if do_debug:
-      print("iter=",iter,", lambda=",("%5.3e" % lam)," x=",io_util.vector_to_str(x))
+      print("i=",iter," lam=",("%4.2e" % lam),
+                      " x=",io_util.vector_to_str_n_decimals(x,1),
+                      " v=",io_util.vector_to_str_n_decimals(v,1))
     debug_count += 1
     y0 = [0 for i in range(ndim2)]
     for i in range(0,ndim): y0[i]=copy.deepcopy(x[i])
