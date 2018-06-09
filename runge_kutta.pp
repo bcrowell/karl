@@ -4,7 +4,7 @@
 #include "spacetimes.h"
 #include "runge_kutta.h"
 
-import schwarzschild
+import schwarzschild,angular
 
 def geodesic_simple(spacetime,chart,x0,v0,opt):
   """
@@ -20,6 +20,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     dlambda = step size
     ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100
     lambda0 = initial affine parameter, defaults to 0
+    norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
+                 default=True
   returns
     [err,final_x,final_v,final_lambda,info]
   where
@@ -32,6 +34,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   lambda_max=opt["lambda_max"]; dlambda=opt["dlambda"]; ndebug=opt["ndebug"]
   lambda0=0.0
   if hasattr(opt,"lambda0"): lambda0=opt["lambda0"]
+  norm_final = True
+  if hasattr(opt,"norm_final"): norm_final=opt["norm_final"]
   ok = False
   n = math.ceil(lambda_max/dlambda)
   if ndebug==0:
@@ -50,15 +54,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     est = [[0 for i in range(ndim2)] for step in range(order)]
             # =k in the notation of most authors
             # Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
-    do_debug = False
-    if ndebug!=0 and (debug_count>=steps_between_debugging or iter==n-1):
-      debug_count = 0
-      do_debug = True
-    if do_debug:
-      print("i=",iter," lam=",("%4.2e" % lam),
-                      " x=",io_util.vector_to_str_n_decimals(x,1),
-                      " v=",io_util.vector_to_str_n_decimals(v,1))
-    debug_count += 1
+    debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
     y0 = [0 for i in range(ndim2)]
     for i in range(0,ndim): y0[i]=copy.deepcopy(x[i])
     for i in range(0,ndim): y0[i+ndim]=copy.deepcopy(v[i])
@@ -90,7 +86,11 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     for i in range(0, ndim):
       v[i] += tot_est[ndim+i]
     for i in range(0, ndim):
-      x[i] += tot_est[i]    
+      x[i] += tot_est[i]
+  debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v)
+  if norm_final:
+    x = angular.renormalize(x)
+    v = angular.make_tangent(x,v)
   return [0,x,v,lam,{}]
 
 def mess(stuff):
@@ -100,5 +100,19 @@ def chart_info(spacetime,chart):
   recognized = False
   if (spacetime|chart)==(SP_SCH|CH_SCH): return [True,5,schwarzschild.christoffel]
   return [False,None,None]
+
+def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
+  """
+  Prints debugging info and returns the updated debug_count.
+  """
+  do_debug = False
+  if ndebug!=0 and (debug_count>=steps_between_debugging):
+    debug_count = 0
+    do_debug = True
+  if do_debug:
+    print("i=",iter," lam=",("%4.2e" % lam),
+                      " x=",io_util.vector_to_str_n_decimals(x,1),
+                      " v=",io_util.vector_to_str_n_decimals(v,1))
+  return debug_count+1
 
   

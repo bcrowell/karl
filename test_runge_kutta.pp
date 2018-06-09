@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 #include "math.h"
+#include "io_util.h"
 #include "init.h"
 #include "test.h"
 #include "spacetimes.h"
@@ -13,7 +14,6 @@ import runge_kutta
 #--------------------------------------------------------------------------------------------------
 
 def smoke_test():
-  # Smoke test.
   # Free fall from rest, from 10 Schwarzschild radii. 
   # Affine param is approximately but not exactly equal to proper time.
   x = [0.0,10.0,1.0,0.0,0.0]
@@ -60,16 +60,18 @@ def simple_newtonian_free_fall():
 # Period of a circular orbit.
 
 def circular_orbit_period():
-  r = 10.0
+  r = 3.0
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
   x = [0.0,r,1.0,0.0,0.0]
   v = [1.0,0.0,0.0,v_phi,0.0]
-  n = 1000
+  n = 100
   period = 2.0*pi/v_phi
-  opt = {'lambda_max':period,'dlambda':period/n,'ndebug':0}
+  opt = {'lambda_max':period,'dlambda':period/n,'ndebug':0,'norm_final':False}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
+  if verbosity>=2:
+    print("final x=",io_util.vector_to_str_n_decimals(final_x,16))
   if err & RK_ERR: raise RuntimeError('error: '+info['message'])
-  eps = 1000.0/n**4
+  eps = 1.0e4/n**4
   test.assert_equal_eps(x[2],final_x[2],eps)
   test.assert_equal_eps(x[3],final_x[3],eps)
   test.assert_equal_eps(x[4],final_x[4],eps)

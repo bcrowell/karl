@@ -67,9 +67,10 @@ def christoffel(p):
   ch[1][1][1] = -z
   ch[0][1][0] = z
   ch[1][0][0] = z
-  # These terms are analogous to Gamma^r_theta_theta = -c in sch4:
+  # These terms are analogous to Gamma^r_theta_theta=-c and Gamma^theta_r_theta=1/r in sch4:
   for n in range(2,5):
     ch[n][n][1] = -c
+    ch[n][1][n] = 1/r
   # Fictitious centripetal terms:
   i=p[2] ; j=p[3]; k=p[4]
   xi2 = i*i+j*j+k*k; # should normally be very close to 1

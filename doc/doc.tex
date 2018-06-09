@@ -395,6 +395,23 @@ scheme that only requires an initial guess for $W(x)$, and that can be expressed
 in terms of $\ln x$. (The iteration scheme actually works for negative $x$ as well, because
 it uses $\ln(x/W_n)$.
 
+Christoffel symbols can be found from \url{https://math.stackexchange.com/q/248267/13618}:
+\begin{align*}
+\Gamma\indices{^a_a_a} &= \tanh a + (r^{-1}+r^{-2})e^{-r}\cosh a\sinh b \\
+\Gamma\indices{^b_b_b} &= \tanh b + (r^{-1}+r^{-2})e^{-r}\cosh b\sinh a \\
+\Gamma\indices{^\theta_a_\theta} = \Gamma\indices{^\phi_a_\phi} &= -(B/4r)\frac{\sinh b}{\cosh a}  \\
+\Gamma\indices{^\theta_b_\theta} = \Gamma\indices{^\phi_b_\phi} &= -(B/4r)\frac{\sinh a}{\cosh b}  \\
+%
+\Gamma\indices{^a_\theta_\theta} &= -(r/8)\tanh a\\
+\Gamma\indices{^b_\theta_\theta} &= -(r/8)\tanh b\\
+\Gamma\indices{^a_\phi_\phi} &= -(r/8) \tanh a\sin^2\theta\\
+\Gamma\indices{^b_\phi_\phi} &= -(r/8) \tanh b\sin^2\theta\\
+%
+\Gamma\indices{^\theta_\phi_\phi} &= -\sin\theta \cos\theta   \\
+\Gamma\indices{^\phi_\theta_\phi} &= \cot\theta   
+\end{align*}
+I need to massage these into forms where they won't cause overflows.
+
 \section{Fictitious 5th coordinate}
 Use this to avoid the need for multiple coordinate charts in order to handle the coordinate singularities
 at $\theta=0$ and $\pi$. Define cartesian coordinates
@@ -421,13 +438,13 @@ The metric in L is the standard Schwarzschild metric.
 The metric in B can be found by applying the jacobian ${T^{-1}}'$. It's analytic, implicitly involves W,
 and in simplified form I think it's
 \begin{equation*}
-  ds^2 = B\sqrt{(1+a^2)(1+b^2)}dadb -(di^2+dj^2+dk^2).
+  ds^2 = 2\mu dadb -r^2(di^2+dj^2+dk^2).
 \end{equation*}
 This can be tested numerically in a drop-dead-simple way by just taking two
 infinitesimal displacements at a point in L, transforming to B, and comparing inner products.
 
-Since we only work in the chart B, transformations of vectors doesn't have to be
-efficient, can be undefined, only has to happen on input and output. To transform vectors
+Since we only work in the chart B, transformations of vectors don't have to be
+efficient, can be undefined, only have to happen on input and output. To transform vectors
 from L to B, use $T'$, which is super simple and well behaved wherever $T$ is defined.
 To go the other way, numerically invert the $5\times 5$ matrix for $T'$ at that point,
 and throw away the $\xi$ component.
@@ -443,11 +460,18 @@ etc. We constrain $\xi=1$, but it's probably a good idea to leave the $\xi^{-2}$
 there for numerical stability. The resulting expressions may be messy. I can probably find simplified
 forms, and if so, they can be tested numerically.
 
-Plan for internal representation: Calling routine passes in a 5-element array of floats.
-All library routines immediately copy this, then delete any 6th element, and calculate a new
-6th element that is the schwarzschild r coordinate. Whenever a library routine modifies one
-of the five coordinates, it must do so on a copy (never in place), and either delete or
-update the 6th element.
+If I take the Schwarzschild metric with $r^2 d\Omega^2\rightarrow r^2(i^2+j^2+k^2)$ and
+compute its Christoffel symbols (schwarzschild5.mac), I get:
+\begin{enumerate}
+\item the usual Schwarzschild symbols involving t and r
+\item symbols like $\Gamma\indices{^i_i_r} = 1/r$, analogous to the standard
+                          $\Gamma\indices{^\theta_\theta_r} = \Gamma\indices{^\phi_\phi_r} = 1/r$
+\item symbols like $\Gamma\indices{^r_i_i} = 1-r$, analogous to the standard
+                         $\Gamma\indices{^r_\theta_\theta}=1-r$ and
+                         $\Gamma\indices{^r_\phi_\phi}=(1-r)\sin^2\theta$
+\end{enumerate}
+There is nothing like the standard $\Gamma\indices{^\theta_\phi_\phi}$ and
+$\Gamma\indices{^\phi_\theta_\phi}$, because $(i,j,k)$ are cartesian.
 
 \section{Incomplete geodesics}
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the

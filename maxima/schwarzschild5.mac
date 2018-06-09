@@ -12,9 +12,9 @@
     lg:matrix(
                [a,0,0,0,0],
                [0,-1/a,0,0,0],
-               [0,0,-1,0,0],
-               [0,0,0,-1,0],
-               [0,0,0,0,-1]
+               [0,0,-r*r,0,0],
+               [0,0,0,-r*r,0],
+               [0,0,0,0,-r*r]
              )$
     
 cmetric();   
@@ -31,7 +31,7 @@ for i:1 thru dim do (
   for j:i thru dim do (
     for k:1 thru dim do (
       if mcs[i,j,k]#0 then
-        print(i,j,k,string(scanmap(letsimp,scanmap(letsimp,mcs[i,j,k]))))
+        print(i-1,j-1,k-1,string(scanmap(letsimp,scanmap(letsimp,mcs[i,j,k]))))
     )
   )
 );
