@@ -473,6 +473,14 @@ compute its Christoffel symbols (schwarzschild5.mac), I get:
 There is nothing like the standard $\Gamma\indices{^\theta_\phi_\phi}$ and
 $\Gamma\indices{^\phi_\theta_\phi}$, because $(i,j,k)$ are cartesian.
 
+I have facilities in the module angular for renormalizing a point so that it lies on the
+$\xi=1$ sphere, and for adjusting a vector so it's tangent to the sphere. Empirically,
+if I do these at each step in Runge-Kutta, the final results are actually no better; it
+still acts like a 4th-order method with almost exactly the same constant of proportionality.
+However, it's a good idea to invoke these adjustments before and after Runge-Kutta to avoid
+nonsense results, e.g., I confused myself by doing initial conditions with $i=1$ and
+$di/d\lambda\ne=0$.
+
 \section{Incomplete geodesics}
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the
 $(a,b)$ coordinates as in Penrose coordinates. However, evaluating the Christoffel will always

@@ -5,10 +5,10 @@ SOURCES = io_util.py test.py \
     schwarzschild.py  test_schwarzschild.py   \
     kruskal.py  test_kruskal.py   \
     runge_kutta.py  test_runge_kutta.py   \
-    angular.py \
+    angular.py test_angular.py \
     util.h math.h init.h
 
-TESTS = lambert_w schwarzschild runge_kutta kruskal
+TESTS = lambert_w angular schwarzschild runge_kutta kruskal 
 
 
 %.py: %.pp
