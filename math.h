@@ -4,5 +4,5 @@ import math
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi,log,floor
 import numpy
 import scipy
-from numpy import arctanh
+from numpy import arctanh,arcsinh
 from scipy import sign
