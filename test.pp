@@ -1,7 +1,7 @@
 import io_util
 from io_util import strcat
 
-#define FLOATING_POINT_PRECISION 1.0e-16
+#include "precision.h"
 
 def assert_equal_eps(x,y,eps):
   err = x-y
@@ -13,10 +13,10 @@ def assert_rel_equal_eps(x,y,eps):
                                                   ", eps=",eps]))
 
 def assert_equal(x,y):
-  return assert_equal_eps(x,y,FLOATING_POINT_PRECISION)
+  return assert_equal_eps(x,y,EPS)
 
 def assert_rel_equal(x,y):
-  return assert_rel_equal_eps(x,y,FLOATING_POINT_PRECISION)
+  return assert_rel_equal_eps(x,y,EPS)
 
 def done(verbosity,name):
   if verbosity>=1: print("Passed test_"+name)

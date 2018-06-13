@@ -399,6 +399,20 @@ scheme that only requires an initial guess for $W(x)$, and that can be expressed
 in terms of $\ln x$. (The iteration scheme actually works for negative $x$ as well, because
 it uses $\ln(x/W_n)$.
 
+For the transformation from Schwarzschild coordinates to (a,b), let
+\begin{equation*}
+  x = \sqrt{|r-1|}\exp\left(\pm\frac{r+t}{2}\right),
+\end{equation*}
+where the $+$ sign holds for the computation of $a$ in region I or $b$ in region II. Then
+\begin{align*}
+  a &= \sinh^{-1} x \\
+  b &= -\sinh^{-1} x' \quad \text{[other value of x]} \\
+\end{align*}
+If $x$ is too big to be represented in floating point, then we have the approximation
+$\sinh^{-1} x = \ln(2x)+O(x^{-2})$. It can happen close to the horizon that the exponential
+factor is too big to represent, but $x$ is not big enough for $x^{-2}$ to be negligible.
+Therefore we may have to use additional terms in the asymptotic expansion for the arcsinh.
+
 Christoffel symbols can be found from \url{https://math.stackexchange.com/q/248267/13618}:
 \begin{align*}
 \Gamma\indices{^a_a_a} &= \tanh a + (r^{-1}+r^{-2})e^{-r}\cosh a\sinh b \\
