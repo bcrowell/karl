@@ -5,7 +5,7 @@
 #include "test.h"
 #include "precision.h"
 
-# The following was calculated by generate_asinh_of_exp_tests.py :
+# The following was calculated by misc/generate_asinh_of_exp_tests.py :
 asinh_of_exp_tests = [
   [ 1 , 0.032235378292369784527865848946712188199057140312684 ], # asinh(exp( 1 ))- 1 -ln(2)=...
   [ 6 , 0.0000015360495491554979773791726417095636553617222490443 ], # asinh(exp( 6 ))- 6 -ln(2)=...

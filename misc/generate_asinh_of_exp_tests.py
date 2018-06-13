@@ -3,7 +3,7 @@
 # Generate test values for asinh_of_exp, to be cut and pasted into test_math_util.pp.
 # Remove final comma.
 
-# apt-get install mpmath
+# apt-get install python3-mpmath
 
 from mpmath import mp
 mp.dps = 50 # decimal precision
