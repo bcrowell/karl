@@ -44,11 +44,11 @@ def jacobian_schwarzschild_to_kruskal(t,r):
   xpi2 = safe_exp(-log_r_minus_1-(r+t)) # x_+^{-2}
   xmi2 = safe_exp(-log_r_minus_1-(r-t)) # x_-^{-2}
   if r>1.0:
-    s = -1.0 # region I
+    s = 1.0 # region I
   else:
-    s = 1.0 # region II
+    s = -1.0 # region II
   jacobian[0][0] =   0.5/sqrt(1+xpi2) # da/dt
-  jacobian[1][0] = s*0.5/sqrt(1+xpm2) # db/dt
+  jacobian[1][0] = s*0.5/sqrt(1+xmi2) # db/dt
   if r!=1.0:
     # not on the horizon
     q = 1.0/(1.0-1.0/r)

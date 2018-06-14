@@ -4,13 +4,13 @@ SOURCES = io_util.py test.py \
     lambert_w.py  test_lambert_w.py  \
     schwarzschild.py  test_schwarzschild.py   \
     kruskal.py  test_kruskal.py   \
-    transform.py \
+    transform.py test_transform.py \
     runge_kutta.py  test_runge_kutta.py   \
     angular.py test_angular.py \
     math_util.py test_math_util.py \
     util.h math.h init.h 
 
-TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal 
+TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal transform
 
 
 %.py: %.pp

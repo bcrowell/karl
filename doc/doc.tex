@@ -401,8 +401,9 @@ it uses $\ln(x/W_n)$.
 
 For the transformation from Schwarzschild coordinates to (a,b), let
 \begin{equation*}
-  x_\pm = \sqrt{|r-1|}\exp\left(\frac{r\pm t}{2}\right).
+  x_\pm = \sqrt{|r-1|}\exp\left(\frac{r\pm t}{2}\right),
 \end{equation*}
+which is equivalent to $x_+= V$ and $x_-=|W|$.
 Then
 \begin{align*}
   a &= \sinh^{-1} x_+ \\
@@ -416,7 +417,7 @@ Therefore we may have to use additional terms in the asymptotic expansion for th
 The jacobian is
 \begin{align*}
   \frac{\partial a}{\partial t} &= \ \ \frac{1}{2}(1+x_+^{-2})^{-1/2} \\
-  \frac{\partial b}{\partial t} &= \mp\frac{1}{2}(1+x_-^{-2})^{-1/2} \qquad \text{[$-$ in I]} \\
+  \frac{\partial b}{\partial t} &= \pm\frac{1}{2}(1+x_-^{-2})^{-1/2} \qquad \text{[$+$ in I]} \\
   \frac{\partial a}{\partial r} &= \ \ (1-1/r)^{-1} \frac{\partial a}{\partial t} \\
   \frac{\partial b}{\partial r} &= -(1-1/r)^{-1} \frac{\partial b}{\partial t}.
 \end{align*}
