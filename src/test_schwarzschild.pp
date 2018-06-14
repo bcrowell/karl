@@ -25,3 +25,4 @@ schwarzschild.christoffel([t,r,i,j,k])
 # tests in test_runge_kutta.
 
 done(verbosity,"schwarzschild")
+

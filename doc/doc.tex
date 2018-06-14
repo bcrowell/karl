@@ -422,9 +422,12 @@ The jacobian is
   \frac{\partial b}{\partial r} &= -(1-1/r)^{-1} \frac{\partial b}{\partial t}.
 \end{align*}
 In these expressions, $x_\pm$ may be too large to evaluate, in which case the $x_\pm^{-2}$ terms
-can simply be neglected. The partials with respect to $r$ blow up at the horizon.
+can simply be neglected. The partials with respect to $r$ blow up at the horizon. The jacobian
+for the transformation $(a,b)\rightarrow(t,r)$ is found by inverting the $2\times 2$ matrix
+above.
 
-Christoffel symbols can be found from \url{https://math.stackexchange.com/q/248267/13618}:
+Christoffel symbols can be found by transforming from $(V,W)$ to $(a,b)$ using the
+transformation law given in \url{https://math.stackexchange.com/q/248267/13618}:
 \begin{align*}
 \Gamma\indices{^a_a_a} &= \tanh a + (r^{-1}+r^{-2})e^{-r}\cosh a\sinh b \\
 \Gamma\indices{^b_b_b} &= \tanh b + (r^{-1}+r^{-2})e^{-r}\cosh b\sinh a \\

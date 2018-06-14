@@ -23,7 +23,7 @@ def metric_sch4(r,sin_theta):
   """
   For the Schwarzschild spacetime, compute the metric, in Schwarzschild coordinates.
 
-  Metric is in lower-index form, in +--- signature, with coordinates (t,r,theta,phi).
+  The metric is in lower-index form, in +--- signature, with coordinates (t,r,theta,phi).
   The mass is assumed to be 1/2, so that r is in units of the Schwarzschild radius.
   Angles in radians.
   Metric taken from https://en.wikipedia.org/wiki/Schwarzschild_metric .

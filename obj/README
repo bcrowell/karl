@@ -1,0 +1,3 @@
+The actual source code consists of the .pp and .h files in the /src
+directory. We use the filepp macro preprocessor to produce .py files
+in this directory.

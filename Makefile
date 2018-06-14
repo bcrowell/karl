@@ -1,26 +1,30 @@
 PYTHON = python3
+OBJ = obj
+SRC = src
 
-SOURCES = io_util.py test.py \
-    lambert_w.py  test_lambert_w.py  \
-    schwarzschild.py  test_schwarzschild.py   \
-    kruskal.py  test_kruskal.py   \
-    transform.py test_transform.py \
-    runge_kutta.py  test_runge_kutta.py   \
-    angular.py test_angular.py \
-    math_util.py test_math_util.py \
-    util.h math.h init.h 
+PY = \
+    $(OBJ)/io_util.py        $(OBJ)/test.py \
+    $(OBJ)/lambert_w.py      $(OBJ)/test_lambert_w.py  \
+    $(OBJ)/schwarzschild.py  $(OBJ)/test_schwarzschild.py   \
+    $(OBJ)/kruskal.py        $(OBJ)/test_kruskal.py   \
+    $(OBJ)/transform.py      $(OBJ)/test_transform.py \
+    $(OBJ)/runge_kutta.py    $(OBJ)/test_runge_kutta.py   \
+    $(OBJ)/angular.py        $(OBJ)/test_angular.py \
+    $(OBJ)/math_util.py      $(OBJ)/test_math_util.py \
+    $(OBJ)/vector.py
 
 TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal transform
 
+VPATH = src
 
-%.py: %.pp
+test: $(PY)
+	@for test in $(TESTS); do \
+	  $(PYTHON3) $(OBJ)/test_$${test}.py; \
+	done
+
+$(PY): $(OBJ)/%.py: $(SRC)/%.pp
 	filepp $< -o $@
 	@chmod +x $@
-
-test: $(SOURCES)
-	@for test in $(TESTS); do \
-	  $(PYTHON3) test_$${test}.py; \
-	done
 
 clean:
 	rm -f *~
