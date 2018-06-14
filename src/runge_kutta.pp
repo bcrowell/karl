@@ -4,7 +4,7 @@
 #include "spacetimes.h"
 #include "runge_kutta.h"
 
-import schwarzschild,angular
+import schwarzschild,kruskal,angular
 
 def geodesic_simple(spacetime,chart,x0,v0,opt):
   """
@@ -99,6 +99,7 @@ def mess(stuff):
 def chart_info(spacetime,chart):
   recognized = False
   if (spacetime|chart)==(SP_SCH|CH_SCH): return [True,5,schwarzschild.christoffel]
+  if (spacetime|chart)==(SP_SCH|CH_AKS): return [True,5,kruskal.christoffel]
   return [False,None,None]
 
 def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):

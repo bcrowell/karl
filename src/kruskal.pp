@@ -95,11 +95,12 @@ def christoffel(p):
   See maxima/schwarzschild5.mac. In addition, we put in a fictitious centripetal term that
   keeps us constrained to the unit sphere i^2+j^2+k^2=1.
   """
-  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
-  r,mu = r(p[0],p[1])
-  # In the following, need to insert the appropriate Christoffel symbols, including the
-  # terms analogous to Gamma^r_theta_theta.
-  raise RuntimeError('FIXME') # not yet implemented
+  a=p[0] ; b=p[1]
+  #ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  ch = christoffel_raw_maxima_output(a,b)
+  t,r,mu = aux(a,b)
+  ta = math_util.safe_tanh(a)
+  tb = math_util.safe_tanh(b)
   # Fictitious centripetal terms:
   i=p[2] ; j=p[3]; k=p[4]
   xi2 = i*i+j*j+k*k; # should normally be very close to 1
@@ -109,37 +110,89 @@ def christoffel(p):
       ch[n][n][m] = z/xi2
   return ch
 
-def christoffel_sch4(t,r,sin_theta,cos_theta):
+def christoffel_raw_maxima_output(a,b):
+  # output of kruskal5.mac
+  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  #------------------------------------------------------
+  ch[0][0][0] = (sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2+(2*sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-exp(a)*cosh(a))*lambert_w(exp((-b)+a-1))+sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-2*exp(a)*cosh(a))/(cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)+2*cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^a _a a
+  ch[0][2][2] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^i _a i
+  ch[2][0][2] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^i _i a
+  ch[0][3][3] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^j _a j
+  ch[3][0][3] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^j _j a
+  ch[0][4][4] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^k _a k
+  ch[4][0][4] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^k _k a
+  ch[1][1][1] = (exp(lambert_w(exp((-b)+a-1))+b+1)*sinh(b)*lambert_w(exp((-b)+a-1))**2+(exp(a)*cosh(b)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*sinh(b))*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*sinh(b)+2*exp(a)*cosh(b))/(exp(lambert_w(exp((-b)+a-1))+b+1)*cosh(b)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*cosh(b)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*cosh(b)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^b _b b
+  ch[1][2][2] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^i _b i
+  ch[2][1][2] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^i _i b
+  ch[1][3][3] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^j _b j
+  ch[3][1][3] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^j _j b
+  ch[1][4][4] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^k _b k
+  ch[4][1][4] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
+  #   ... ^k _k b
+  ch[2][2][0] = -(exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
+  #   ... ^a _i i
+  ch[2][2][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
+  #   ... ^b _i i
+  ch[3][3][0] = -(exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
+  #   ... ^a _j j
+  ch[3][3][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
+  #   ... ^b _j j
+  ch[4][4][0] = -(exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
+  #   ... ^a _k k
+  ch[4][4][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
+  #   ... ^b _k k
+  #------------------------------------------------------
+  return ch
+
+def christoffel4(p):
   """
-  For the Schwarzschild spacetime, compute the Christoffel symbols, in Schwarzschild coordinates (t,r,theta,phi).
+  For the Schwarzschild spacetime, compute the Christoffel symbols, in coordinates (a,b,theta,phi).
 
   The order of indices is as in ctensor:
      symmetric on 1st 2 indices
      contravariant on final index
-  This will give a division by zero exception if used at the coordinate singularities at theta=0 and pi
-  and r=1.
-  The equations are from http://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html ,
-  equation 7.33.
   """
   ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
-  r2 = r*r
-  c = r-1.0 # = r-2GM in Carroll's notation
-  ch[0][0][1] = 0.5*c/(r2*r)
-  z = 0.5/(r*c)
-  ch[1][1][1] = -z
-  ch[0][1][0] = z
-  ch[1][0][0] = z
-  z = 1.0/r
-  ch[1][2][2] = z
-  ch[2][1][2] = z
-  ch[2][2][1] = -c
-  ch[1][3][3] = z
-  ch[3][1][3] = z
-  s2 = sin_theta*sin_theta
-  ch[3][3][1] = -c*s2
-  ch[3][3][2] = -sin_theta*cos_theta
-  cot = cos_theta/sin_theta
-  ch[2][3][3] = cot
-  ch[3][2][3] = cot
+  a=p[0] ; b=p[1]
+  t,r,mu = aux(a,b)
+  ta = math_util.safe_tanh(a)
+  tb = math_util.safe_tanh(b)
+  # FIXME: In the following, we'll get overflows if a or b is large; massage the equations to avoid this problem.
+  ca=cosh(a); cb=cosh(b); sa=sinh(a); sb=sinh(b)
+  q = (1.0/r+1.0/(r*r))
+  big_b = (4.0/r)*exp(-r)
+  eighth_r = r/8.0
+  sin_theta = sin(theta)
+  sin2_theta = sin_theta**2
+  cos_theta = cos(theta)
+  ch[0][0][0] = ta+q*exp(-r)*ca*sb      # ^a_aa
+  ch[1][1][1] = tb+q*exp(-r)*cb*sa      # ^b_bb
+  ch[0][2][2] = -(big_b/(4*r))*sb/ca    # ^theta_a theta
+  ch[2][0][2] = ch[0][2][2]             # ^theta_theta a
+  ch[0][3][3] = ch[0][2][2]             # ^phi_a phi
+  ch[3][0][3] = ch[0][2][2]             # ^phi_phi a
+  ch[1][2][2] = -(big_b/(4*r))*sa/cb    # ^theta_b theta
+  ch[1][3][3] = ch[1][2][2]             # ^phi_b phi
+  ch[2][2][0] = -eighth_r*ta            # ^a_theta theta
+  ch[2][2][1] = -eighth_r*tb            # ^a_theta theta
+  ch[3][3][0] = -eighth_r*ta*sin2_theta   # ^a_theta theta
+  ch[3][3][1] = -eighth_r*tb*sin2_theta   # ^a_theta theta
+  ch[3][3][2] = -sin_theta*cos_theta    # ^theta_phi phi
+  ch[2][3][3] = cos_theta/sin_theta     # ^phi_theta phi
+  ch[3][2][3] = ch[2][3][3]             # ^phi_phi theta
   return ch
+
 

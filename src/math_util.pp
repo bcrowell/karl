@@ -15,6 +15,15 @@ def safe_exp(x):
   if x<LN_EPS: return 0.0
   return exp(x)
 
+def safe_tanh(x):
+  """
+  Return tanh(x), without overflows, underflows, or unnecessarily inefficient evaluation of negligible stuff.
+  """
+  if x<0.0: return -safe_tanh(-x)
+  # From here on, we know x>=0.
+  z = safe_exp(-2*x)
+  return (1.0-z)/(1.0+z)
+
 def asinh_of_exp(u):
   """
   Compute asinh(e^u), using asymptotics if u is large.

@@ -513,6 +513,27 @@ However, it's a good idea to invoke these adjustments before and after Runge-Kut
 nonsense results, e.g., I confused myself by doing initial conditions with $i=1$ and
 $di/d\lambda\ne=0$.
 
+Nearly raw Maxima output of Christoffel symbols:
+\begin{align*}
+\Gamma\indices{^a_a_a} &= (\sinh(a)PQ^2+(2\sinh(a)P-e^a \cosh(a))Q+\sinh(a)P-2e^a \cosh(a))/\\
+                       & \qquad (\cosh(a)P+2\cosh(a)PQ+\cosh(a)PQ^2)  \\
+\Gamma\indices{^i_a_i} &= e^a /(P+2PQ+PQ^2)  \\
+\Gamma\indices{^j_a_j} &= e^a /(P+2PQ+PQ^2)  \\
+\Gamma\indices{^k_a_k} &= e^a /(P+2PQ+PQ^2)  \\
+\Gamma\indices{^b_b_b} &= (P\sinh(b)Q^2+(e^a \cosh(b)+2P\sinh(b))Q+P\sinh(b)+2e^a \cosh(b))/\\
+                       & \qquad (P\cosh(b)+2P\cosh(b)Q+P\cosh(b)Q^2)  \\
+\Gamma\indices{^i_b_i} &= -e^a /(P+2PQ+PQ^2)  \\
+\Gamma\indices{^j_b_j} &= -e^a /(P+2PQ+PQ^2)  \\
+\Gamma\indices{^k_b_k} &= -e^a /(P+2PQ+PQ^2)  \\
+\Gamma\indices{^a_i_i} &= -(e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
+\Gamma\indices{^b_i_i} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
+\Gamma\indices{^a_j_j} &= -(e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
+\Gamma\indices{^b_j_j} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
+\Gamma\indices{^a_k_k} &= -(e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
+\Gamma\indices{^b_k_k} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  
+\end{align*}
+Here $Q=W(e^{a-b-1})$ and $P=e^{Q+b+1}$.
+
 \section{Incomplete geodesics}
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the
 $(a,b)$ coordinates as in Penrose coordinates. However, evaluating the Christoffel will always
