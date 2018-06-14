@@ -4,6 +4,7 @@ SOURCES = io_util.py test.py \
     lambert_w.py  test_lambert_w.py  \
     schwarzschild.py  test_schwarzschild.py   \
     kruskal.py  test_kruskal.py   \
+    transform.py \
     runge_kutta.py  test_runge_kutta.py   \
     angular.py test_angular.py \
     math_util.py test_math_util.py \

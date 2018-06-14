@@ -409,9 +409,19 @@ Then
   b &= \pm\sinh^{-1} x_- \quad \text{[minus sign in region I]} \\
 \end{align*}
 If $x$ is too big to be represented in floating point, then we have the approximation
-$\sinh^{-1} x = \ln(2x)+O(x^{-2})$. It can happen close to the horizon that the exponential
+$\sinh^{-1} x = \ln(2x)+O(x^{-2})$. (Depending on the floating point representation,
+it could happen close to the horizon that the exponential
 factor is too big to represent, but $x$ is not big enough for $x^{-2}$ to be negligible.
-Therefore we may have to use additional terms in the asymptotic expansion for the arcsinh.
+Therefore we may have to use additional terms in the asymptotic expansion for the arcsinh.)
+The jacobian is
+\begin{align*}
+  \frac{\partial a}{\partial t} &= \ \ \frac{1}{2}(1+x_+^{-2})^{-1/2} \\
+  \frac{\partial b}{\partial t} &= \mp\frac{1}{2}(1+x_-^{-2})^{-1/2} \qquad \text{[$-$ in I]} \\
+  \frac{\partial a}{\partial r} &= \ \ (1-1/r)^{-1} \frac{\partial a}{\partial t} \\
+  \frac{\partial b}{\partial r} &= -(1-1/r)^{-1} \frac{\partial b}{\partial t}.
+\end{align*}
+In these expressions, $x_\pm$ may be too large to evaluate, in which case the $x_\pm^{-2}$ terms
+can simply be neglected. The partials with respect to $r$ blow up at the horizon.
 
 Christoffel symbols can be found from \url{https://math.stackexchange.com/q/248267/13618}:
 \begin{align*}
