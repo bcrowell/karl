@@ -41,6 +41,24 @@ def test_jacobian_schwarzschild_to_kruskal(t,r):
       if verbosity>=3: print("i=",i,", j=",j,", der=",der,", J=",jac[i][j])
       test.assert_rel_equal_eps(der,jac[i][j],10*d)
 
+def test_jacobian_kruskal_to_schwarzschild(t,r):
+  # Test analytic Jacobian against numerical differentiation.
+  jac = transform.jacobian_kruskal_to_schwarzschild(t,r)
+  d = sqrt(EPS) # differences of 10^-8, so that we can get numerical approximations to derivatives to 8 decimals
+  a,b = transform.schwarzschild_to_kruskal(t,r)
+  for i in range(2): # t,r
+    for j in range(2): # a,b
+      a1 = a
+      b1 = b
+      if j==0: a1 += d
+      if j==1: b1 += d
+      t1,r1 = transform.kruskal_to_schwarzschild(a1,b1)
+      if i==0: ds=t1-t
+      if i==1: ds=r1-r
+      der = ds/d # numerical approximation to the partial derivative
+      if verbosity>=3: print("i=",i,", j=",j,", der=",der,", J=",jac[i][j])
+      test.assert_rel_equal_eps(der,jac[i][j],10*d)
+
 # region II:
 test_round_trip_ksk(0.5,0.5)
 # ... Note that if we test this with coordinates like (a,b)=(epsilon,epsilon), we get
@@ -54,6 +72,8 @@ test_round_trip_sks(100.0,100.0)
 # In the following, the arguments are (t,r).
 test_jacobian_schwarzschild_to_kruskal(0.111,2.0) # region I
 test_jacobian_schwarzschild_to_kruskal(0.222,0.5) # region II
+test_jacobian_kruskal_to_schwarzschild(0.111,2.0) # region I
+test_jacobian_kruskal_to_schwarzschild(0.222,0.5) # region II
 
 
 done(verbosity,"transform")

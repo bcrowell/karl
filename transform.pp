@@ -13,6 +13,7 @@ not document the math or the definitions of the variables.)
 
 import math_util
 from math_util import safe_exp
+import kruskal
 
 def schwarzschild_to_kruskal(t,r):
   """
@@ -29,11 +30,20 @@ def schwarzschild_to_kruskal_helper(p,q):
   # compute y=asinh(pe^(q/2))
   return math_util.asinh_of_exp(log(p)+q/2)
 
+def kruskal_to_schwarzschild(a,b):
+  """
+  Transforms arcsinh-Kruskal (a,b) coordinates to Schwarzschild (t,r).
+
+  This is really just a wrapper for kruskal.aux().
+  """
+  t,r,mu = kruskal.aux(a,b)
+  return [t,r]
+
 #-----------------------------------------------------------------------------------------------------
 
 def jacobian_schwarzschild_to_kruskal(t,r):
   """
-  Returns the matrix of partial derivatives of (a,b) with respect to (t,r). 
+  Returns the matrix of partial derivatives of (a,b) with respect to (t,r), given t and r.
   The first index is 0 for a, 1 for b. The second index is 0 for t, 1 for r.
 
   For non-horizon points, assumes region I or II.
@@ -59,6 +69,32 @@ def jacobian_schwarzschild_to_kruskal(t,r):
     jacobian[0][1] = float("inf")
     jacobian[1][1] = float("inf")
   return jacobian  
+
+def jacobian_kruskal_to_schwarzschild(t,r):
+  """
+  Returns the matrix of partial derivatives of (t,r) with respect to (a,b), given t and r.
+  The first index is 0 for t, 1 for r. The second index is 0 for a, 1 for b.
+
+  Slightly inefficient because we invert the 2x2 matrix,
+  but not likely to affect performance because not called often.
+  This can throw an error if called for a point on the horizon (r=1), where
+  the Schwarzschild coordinates misbehave, and in general it's probably
+  not going to be numerically accurate to use this near the horizon.
+  """
+  if r==1.0: raise RuntimeError('r=1 in jacobian_kruskal_to_schwarzschild')
+  j1 = jacobian_schwarzschild_to_kruskal(t,r)
+  a = j1[0][0]
+  d = j1[1][1]
+  b = j1[1][0]
+  c = j1[0][1]
+  det = a*d-b*c # should be nonzero because we checked above for r==1
+  j2 = [[0 for i in range(2)] for j in range(2)] # allocate a new matrix, since a-d are just pointers into j1
+  j2[1][1] = a/det
+  j2[0][0] = d/det
+  j2[1][0] = -b/det
+  j2[0][1] = -c/det
+  return j2
+
 #-----------------------------------------------------------------------------------------------------
 
 def schwarzschild_to_kruskal_small(t,r):
