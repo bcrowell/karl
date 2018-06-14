@@ -7,6 +7,14 @@ from scipy import sign
 
 #include "precision.h"
 
+def safe_exp(x):
+  """
+  Return exp(x), or 0 if x is so large and negative that exp(x) is negligible compared to unity,
+  and might have caused an underflow.
+  """
+  if x<LN_EPS: return 0.0
+  return exp(x)
+
 def asinh_of_exp(u):
   """
   Compute asinh(e^u), using asymptotics if u is large.
