@@ -11,9 +11,9 @@ PY = \
     $(OBJ)/runge_kutta.py    $(OBJ)/test_runge_kutta.py   \
     $(OBJ)/angular.py        $(OBJ)/test_angular.py \
     $(OBJ)/math_util.py      $(OBJ)/test_math_util.py \
-    $(OBJ)/vector.py
+    $(OBJ)/vector.py         $(OBJ)/test_vector.py
 
-TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal transform
+TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal transform vector
 
 VPATH = src
 

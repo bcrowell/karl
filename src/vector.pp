@@ -23,7 +23,7 @@ def get_metric4(spacetime,chart,p):
   if (spacetime|chart)==(SP_SCH|CH_SCH): # Schwarzschild metric, in Schwarzschild coordinates
     r = p[1]
     sin_theta = sin(p[2])
-    return metric_sch4(r,sin_theta)
+    return schwarzschild.metric_sch4(r,sin_theta)
   if (spacetime|chart)==(SP_SCH|CH_AKS): # Schwarzschild metric, in arcsinh-Kruskal coordinates
-    return metric_ks4(p)
+    return kruskal.metric_ks4(p)
   raise RuntimeError(strcat(["unrecognized spacetime or chart: ",spacetime," ",chart]))

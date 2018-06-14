@@ -31,8 +31,7 @@ def metric_ks4(p):
   g[0][1] = mu
   g[1][0] = mu
   r2 = r*r
-  g[0][0] = a
-  g[1][1] = -1.0/a
+  sin_theta = sin(p[2])
   g[2][2] = -r2
   g[3][3] = -r2*sin_theta*sin_theta
   return g
