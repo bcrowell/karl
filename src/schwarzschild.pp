@@ -37,7 +37,6 @@ def metric_sch4(r,sin_theta):
   g[3][3] = -r2*sin_theta*sin_theta
   return g
 
-
 def sigma(r):
   """
   Compute sigma(r), whose sign tells us whether we're in region I or II.
@@ -46,6 +45,24 @@ def sigma(r):
     return 1
   else:
     return -1
+
+def metric(r):
+  """
+  For the Schwarzschild spacetime, compute the metric, in 5-dimensional Schwarzschild coordinates.
+
+  The metric is in lower-index form, in +--- signature, with coordinates (t,r,i,j,k).
+  The mass is assumed to be 1/2, so that r is in units of the Schwarzschild radius.
+  Angles in radians.
+  """
+  g = [[0 for i in range(5)] for j in range(5)]
+  a = 1.0-1.0/r
+  r2 = r*r
+  g[0][0] = a
+  g[1][1] = -1.0/a
+  g[2][2] = -r2
+  g[3][3] = -r2
+  g[4][4] = -r2
+  return g
 
 def christoffel(p):
   """

@@ -24,7 +24,9 @@ def make_tangent(x,v0):
   Given a point x and a velocity vector v in its tangent space, return a copy of
   v in which the component perpendicular to the i-j-k sphere has been removed.
 
-  For accurate results, x should already be accurately normalized.
+  For accurate results, x should already be accurately normalized. Since only the
+  angular parts of x and v0 are used, it doesn't matter whether they are expressed
+  in Schwarzschild or Kruskal, as long as they're 5-dimensional.
   """
   v = copy.copy(v0)
   dot = x[2]*v[2]+x[3]*v[3]+x[4]*v[4]
@@ -33,3 +35,6 @@ def make_tangent(x,v0):
   v[4] -= dot*x[4]
   return v
 
+def theta_phi_to_ijk(theta,phi):
+  sin_theta = sin(theta)
+  return [sin_theta*cos(phi),sin_theta*sin(phi),cos(theta)]

@@ -19,6 +19,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
                    we hit a singularity)
     dlambda = step size
     ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100
+               then we print debugging information at every 100th step
     lambda0 = initial affine parameter, defaults to 0
     norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                  default=True

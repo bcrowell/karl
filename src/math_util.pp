@@ -41,7 +41,7 @@ def asinh_of_exp(u):
   for n in range(1,6):
     m = m*g
     term = coeffs[n-1]*m
-    # print("calculating correction, n=",n,", term=",term) # qwe
+    # print("calculating correction, n=",n,", term=",term)
     if term<EPS: return y
     y = y + term
   return y # If we get here, the approx. may not be very good.

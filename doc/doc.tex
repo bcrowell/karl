@@ -442,7 +442,7 @@ transformation law given in \url{https://math.stackexchange.com/q/248267/13618}:
 \Gamma\indices{^\theta_\phi_\phi} &= -\sin\theta \cos\theta   \\
 \Gamma\indices{^\phi_\theta_\phi} &= \cot\theta   
 \end{align*}
-I need to massage these into forms where they won't cause overflows.
+I never actually use these because I use the 5-dimensional ones instead.
 
 \section{Fictitious 5th coordinate}
 Use this to avoid the need for multiple coordinate charts in order to handle the coordinate singularities
@@ -513,7 +513,10 @@ However, it's a good idea to invoke these adjustments before and after Runge-Kut
 nonsense results, e.g., I confused myself by doing initial conditions with $i=1$ and
 $di/d\lambda\ne=0$.
 
-Nearly raw Maxima output of Christoffel symbols:
+For the Christoffel symbols in the arcsinh-Kruskal coordinates, I
+ran maxima using a form of the metric that is
+easy to calculate without  overflows in region I. The nearly
+raw results are:
 \begin{align*}
 \Gamma\indices{^a_a_a} &= (\sinh(a)PQ^2+(2\sinh(a)P-e^a \cosh(a))Q+\sinh(a)P-2e^a \cosh(a))/\\
                        & \qquad (\cosh(a)P+2\cosh(a)PQ+\cosh(a)PQ^2)  \\
@@ -533,6 +536,43 @@ Nearly raw Maxima output of Christoffel symbols:
 \Gamma\indices{^b_k_k} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  
 \end{align*}
 Here $Q=W(e^{a-b-1})$ and $P=e^{Q+b+1}$.
+
+In addition, let $S=e^{a-b-1-Q}(1+Q)^{-2}$ and
+$T=e^{a-b}(Q+1)/(2\cosh a\cosh b)$. Then the above expressions can be written in the following
+forms, which can be evaluated without overflows:
+\begin{align*}
+\Gamma\indices{^a_a_a} &= \tanh a - (Q+2)S  \\
+\Gamma\indices{^b_b_b} &= \tanh b + (Q+2)S  \\
+\Gamma\indices{^i_a_i} &= S \\
+\Gamma\indices{^a_i_i} &= -T  \\
+\end{align*}
+These are all analytic functions, so they should be valid in all four regions. Also, we expect that
+under the transformation $(a,b)\rightarrow(-a,-b)$, each $\Gamma$ should flip signs.\footnote{because it
+should change by a factor of $(-1)^n$, where $n$ is the number of indices that are $a$ or $b$}
+This requires that $S$ and $T$ flip signs while $Q$ stays the same. But in fact these symmetries
+do not seem to hold. I'm not sure why. For computational convenience, I always pre-flip everything
+to I or II, so it's possible that it won't matter. No, fails tests, this is wrong.
+
+Retry, using simpler form of metric:
+\begin{align*}
+\Gamma\indices{^a_a_a} &= (\sinh(a)e^r(r-1)^2+(\cosh(a)^2\sinh(b)+2\sinh(a)e^r)(r-1)+\sinh(a)e^r+2\cosh(a)^2\sinh(b))/ \\
+                       & \qquad (\cosh(a)e^r+2\cosh(a)e^r(r-1)+\cosh(a)e^r(r-1)^2)  \\
+\Gamma\indices{^i_a_i} &= -(\cosh(a)\sinh(b))/(e^r+2e^r(r-1)+e^r(r-1)^2)  \\
+\Gamma\indices{^j_a_j} &= -(\cosh(a)\sinh(b))/(e^r+2e^r(r-1)+e^r(r-1)^2)  \\
+\Gamma\indices{^k_a_k} &= -(\cosh(a)\sinh(b))/(e^r+2e^r(r-1)+e^r(r-1)^2)  \\
+\Gamma\indices{^b_b_b} &= (\sinh(b)e^r(r-1)^2+(\sinh(a)\cosh(b)^2+2\sinh(b)e^r)(r-1)+\sinh(b)e^r+2\sinh(a)\cosh(b)^2)/ \\
+                       & \qquad (\cosh(b)e^r+2\cosh(b)e^r(r-1)+\cosh(b)e^r(r-1)^2)  \\
+\Gamma\indices{^i_b_i} &= -(\sinh(a)\cosh(b))/(e^r+2e^r(r-1)+e^r(r-1)^2)  \\
+\Gamma\indices{^j_b_j} &= -(\sinh(a)\cosh(b))/(e^r+2e^r(r-1)+e^r(r-1)^2)  \\
+\Gamma\indices{^k_b_k} &= -(\sinh(a)\cosh(b))/(e^r+2e^r(r-1)+e^r(r-1)^2)  \\
+\Gamma\indices{^a_i_i} &= -(\sinh(a)(r-1)+\sinh(a))/(2\cosh(a))  \\
+\Gamma\indices{^b_i_i} &= -(\sinh(b)(r-1)+\sinh(b))/(2\cosh(b))  \\
+\Gamma\indices{^a_j_j} &= -(\sinh(a)(r-1)+\sinh(a))/(2\cosh(a))  \\
+\Gamma\indices{^b_j_j} &= -(\sinh(b)(r-1)+\sinh(b))/(2\cosh(b))  \\
+\Gamma\indices{^a_k_k} &= -(\sinh(a)(r-1)+\sinh(a))/(2\cosh(a))  \\
+\Gamma\indices{^b_k_k} &= -(\sinh(b)(r-1)+\sinh(b))/(2\cosh(b))  \\
+\end{align*}
+
 
 \section{Incomplete geodesics}
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the

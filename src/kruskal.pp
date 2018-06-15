@@ -36,7 +36,6 @@ def metric_ks4(p):
   g[3][3] = -r2*sin_theta*sin_theta
   return g
 
-
 def aux(a,b):
   """
   Compute Schwarzschild t and r, and metric element mu, for a point given in rescaled Kruskal coordinates (a,b).
@@ -85,6 +84,21 @@ def small_r_mu(a,b):
   mu = 2.0*((r-1)/(r*rho))*cosh(a)*cosh(b)
   return [r,mu]
 
+def metric(p):
+  """
+  For the Schwarzschild spacetime, compute the metric.
+  Metric is in lower-index form, in +--- signature, with coordinates (a,b,i,j,k).
+  """
+  g = [[0 for i in range(5)] for j in range(5)]
+  t,r,mu = aux(p[0],p[1])
+  g[0][1] = mu
+  g[1][0] = mu
+  r2 = r*r
+  g[2][2] = -r2
+  g[3][3] = -r2
+  g[4][4] = -r2
+  return g
+
 def christoffel(p):
   """
   For the Schwarzschild spacetime, compute the Christoffel symbols, in coordinates (a,b,i,j,k).
@@ -95,23 +109,126 @@ def christoffel(p):
   See maxima/schwarzschild5.mac. In addition, we put in a fictitious centripetal term that
   keeps us constrained to the unit sphere i^2+j^2+k^2=1.
   """
-  a=p[0] ; b=p[1]
-  #ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
-  ch = christoffel_raw_maxima_output(a,b)
-  t,r,mu = aux(a,b)
-  ta = math_util.safe_tanh(a)
-  tb = math_util.safe_tanh(b)
-  # Fictitious centripetal terms:
-  i=p[2] ; j=p[3]; k=p[4]
-  xi2 = i*i+j*j+k*k; # should normally be very close to 1
-  for m in range(2,5): # upper index
-    z = p[m]
-    for n in range(2,5): # lower indices
-      ch[n][n][m] = z/xi2
+  return christoffel_raw_maxima_output(p)
+  #return christoffel_massaged_maxima_output(p)
+
+def christoffel_massaged_maxima_output(p):
+  a=p[0]; b=p[1]
+  # Based on christoffel_raw_maxima_output(), but simplified and massaged into a form that won't cause overflows.
+  if a<0: # regions III and IV
+    p2 = copy.copy(p)
+    p2[0] = -a
+    p2[1] = -b
+    return flip_christoffel(christoffel_massaged_maxima_output(p2))
+  # From now on, we know we're in region I or II.
+  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  #------------------------------------------------------
+  q = lambert_w_of_exp(a-b-1.0)
+  s = exp(a-b-1-q)/((1+q)**2) # doesn't cause overflows because q is approximately a-b-1
+  t = 2.0*(q+1)*(1/(1+safe_exp(-2*a)))
+  if b<0.0:
+    # region I
+    t = t/(1+safe_exp(2*b))
+  else:
+    # region II
+    t = t*safe_exp(-2*b)/(1+safe_exp(-2*b))
+  #------------------------------------------------------
+  ch[0][0][0] = math_util.safe_tanh(a)-(q+2.0)*s
+  ch[1][1][1] = math_util.safe_tanh(b)+(q+2.0)*s
+  ch[0][2][2] = s
+  ch[2][0][2] = s
+  ch[0][3][3] = s
+  ch[3][0][3] = s
+  ch[0][4][4] = s
+  ch[4][0][4] = s
+  ch[1][2][2] = -s
+  ch[2][1][2] = -s
+  ch[1][3][3] = -s
+  ch[3][1][3] = -s
+  ch[1][4][4] = -s
+  ch[4][1][4] = -s
+  ch[2][2][0] = -t
+  ch[3][3][0] = -t
+  ch[4][4][0] = -t
+  ch[2][2][1] = t
+  ch[3][3][1] = t
+  ch[4][4][1] = t
+  #------------------------------------------------------
+  add_centripetal(ch,p)
+  #------------------------------------------------------
+  return ch  
+
+def flip_christoffel(ch):
+  """
+  Given the Christoffel symbols at (a,b), change them, in place, to the ones at (-a,-b), and return the result.
+  """
+  # For every index that equals a or b, we get one sign flip.
+  for i in range(5):
+    for j in range(5):
+      for k in range(5):
+        ch[i][j][k] = flip_a_christoffel_helper(i,j,k)*ch[i][j][k]
   return ch
 
-def christoffel_raw_maxima_output(a,b):
-  # output of kruskal5.mac
+def flip_a_christoffel_helper(i,j,k):
+  s = 1.0
+  if i<=1: s = -s
+  if j<=1: s = -s
+  if k<=1: s = -s
+  return s
+
+def christoffel_raw_maxima_output(p):
+  a=p[0]; b=p[1]
+  # output of kruskal5.mac, plus centripetal terms
+  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  #------------------------------------------------------
+  ch[0][0][0] = (sinh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2+(cosh(a)**2*sinh(b)+2*sinh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1))*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*cosh(a)**2*sinh(b))/(cosh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*cosh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+cosh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^a _a a
+  ch[0][2][2] = -(cosh(a)*sinh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^i _a i
+  ch[2][0][2] = -(cosh(a)*sinh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^i _i a
+  ch[0][3][3] = -(cosh(a)*sinh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^j _a j
+  ch[3][0][3] = -(cosh(a)*sinh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^j _j a
+  ch[0][4][4] = -(cosh(a)*sinh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^k _a k
+  ch[4][0][4] = -(cosh(a)*sinh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^k _k a
+  ch[1][1][1] = (sinh(b)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2+(sinh(a)*cosh(b)**2+2*sinh(b)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1))*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(b)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*sinh(a)*cosh(b)**2)/(cosh(b)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*cosh(b)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+cosh(b)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^b _b b
+  ch[1][2][2] = -(sinh(a)*cosh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^i _b i
+  ch[2][1][2] = -(sinh(a)*cosh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^i _i b
+  ch[1][3][3] = -(sinh(a)*cosh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^j _b j
+  ch[3][1][3] = -(sinh(a)*cosh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^j _j b
+  ch[1][4][4] = -(sinh(a)*cosh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^k _b k
+  ch[4][1][4] = -(sinh(a)*cosh(b))/(exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
+  #   ... ^k _k b
+  ch[2][2][0] = -(sinh(a)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(a))/(2*cosh(a)) 
+  #   ... ^a _i i
+  ch[2][2][1] = -(sinh(b)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(b))/(2*cosh(b)) 
+  #   ... ^b _i i
+  ch[3][3][0] = -(sinh(a)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(a))/(2*cosh(a)) 
+  #   ... ^a _j j
+  ch[3][3][1] = -(sinh(b)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(b))/(2*cosh(b)) 
+  #   ... ^b _j j
+  ch[4][4][0] = -(sinh(a)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(a))/(2*cosh(a)) 
+  #   ... ^a _k k
+  ch[4][4][1] = -(sinh(b)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(b))/(2*cosh(b)) 
+  #   ... ^b _k k
+  #------------------------------------------------------
+  add_centripetal(ch,p)
+  #------------------------------------------------------
+  return ch
+
+def christoffel_raw_maxima_output_first_try(p):
+  a=p[0]; b=p[1]
+  # output of kruskal5.mac, plus centripetal terms
   ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
   #------------------------------------------------------
   ch[0][0][0] = (sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2+(2*sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-exp(a)*cosh(a))*lambert_w(exp((-b)+a-1))+sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-2*exp(a)*cosh(a))/(cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)+2*cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
@@ -155,7 +272,20 @@ def christoffel_raw_maxima_output(a,b):
   ch[4][4][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
   #   ... ^b _k k
   #------------------------------------------------------
+  add_centripetal(ch,p)
+  #------------------------------------------------------
   return ch
+
+def add_centripetal(ch,p):
+  """
+  Modifies ch in place by adding the centripetal parts.
+  """
+  i=p[2] ; j=p[3]; k=p[4]
+  xi2 = i*i+j*j+k*k; # should normally be very close to 1
+  for m in range(2,5): # upper index
+    z = p[m]
+    for n in range(2,5): # lower indices
+      ch[n][n][m] += z/xi2
 
 def christoffel4(p):
   """
