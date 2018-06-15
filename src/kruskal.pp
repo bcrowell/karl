@@ -109,12 +109,13 @@ def christoffel(p):
   See maxima/schwarzschild5.mac. In addition, we put in a fictitious centripetal term that
   keeps us constrained to the unit sphere i^2+j^2+k^2=1.
   """
-  return christoffel_raw_maxima_output(p)
-  #return christoffel_massaged_maxima_output(p)
+  #return christoffel_raw_maxima_output(p)
+  return christoffel_massaged_maxima_output(p)
 
 def christoffel_massaged_maxima_output(p):
   a=p[0]; b=p[1]
   # Based on christoffel_raw_maxima_output(), but simplified and massaged into a form that won't cause overflows.
+  # FIXME: haven't fixed overflows yet.
   if a<0: # regions III and IV
     p2 = copy.copy(p)
     p2[0] = -a
@@ -123,36 +124,38 @@ def christoffel_massaged_maxima_output(p):
   # From now on, we know we're in region I or II.
   ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
   #------------------------------------------------------
-  q = lambert_w_of_exp(a-b-1.0)
-  s = exp(a-b-1-q)/((1+q)**2) # doesn't cause overflows because q is approximately a-b-1
-  t = 2.0*(q+1)*(1/(1+safe_exp(-2*a)))
-  if b<0.0:
-    # region I
-    t = t/(1+safe_exp(2*b))
-  else:
-    # region II
-    t = t*safe_exp(-2*b)/(1+safe_exp(-2*b))
+  t,r,mu = aux(a,b)
+  r2 = r*r
+  r2e = (1/r2)*exp(-r)
   #------------------------------------------------------
-  ch[0][0][0] = math_util.safe_tanh(a)-(q+2.0)*s
-  ch[1][1][1] = math_util.safe_tanh(b)+(q+2.0)*s
-  ch[0][2][2] = s
-  ch[2][0][2] = s
-  ch[0][3][3] = s
-  ch[3][0][3] = s
-  ch[0][4][4] = s
-  ch[4][0][4] = s
-  ch[1][2][2] = -s
-  ch[2][1][2] = -s
-  ch[1][3][3] = -s
-  ch[3][1][3] = -s
-  ch[1][4][4] = -s
-  ch[4][1][4] = -s
-  ch[2][2][0] = -t
-  ch[3][3][0] = -t
-  ch[4][4][0] = -t
-  ch[2][2][1] = t
-  ch[3][3][1] = t
-  ch[4][4][1] = t
+  ch[0][0][0] = math_util.safe_tanh(a)+(1.0/r+1.0/r2)*exp(-r)*cosh(a)*sinh(b)
+  ch[1][1][1] = math_util.safe_tanh(b)+(1.0/r+1.0/r2)*exp(-r)*cosh(b)*sinh(a)
+  #--
+  z = -r2e*cosh(a)*sinh(b)
+  ch[0][2][2] = z
+  ch[2][0][2] = z
+  ch[0][3][3] = z
+  ch[3][0][3] = z
+  ch[0][4][4] = z
+  ch[4][0][4] = z
+  #--
+  z = -r2e*cosh(b)*sinh(a)
+  ch[1][2][2] = z
+  ch[2][1][2] = z
+  ch[1][3][3] = z
+  ch[3][1][3] = z
+  ch[1][4][4] = z
+  ch[4][1][4] = z
+  #--
+  z = -0.5*r*math_util.safe_tanh(a)
+  ch[2][2][0] = z
+  ch[3][3][0] = z
+  ch[4][4][0] = z
+  #--
+  z = -0.5*r*math_util.safe_tanh(b)
+  ch[2][2][1] = z
+  ch[3][3][1] = z
+  ch[4][4][1] = z
   #------------------------------------------------------
   add_centripetal(ch,p)
   #------------------------------------------------------
