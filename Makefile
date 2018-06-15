@@ -22,6 +22,9 @@ test: $(PY)
 	  $(PYTHON3) $(OBJ)/test_$${test}.py; \
 	done
 
+test_kruskal: $(PY)
+	$(PYTHON3) $(OBJ)/test_kruskal.py
+
 $(PY): $(OBJ)/%.py: $(SRC)/%.pp
 	filepp $< -o $@
 	@chmod +x $@

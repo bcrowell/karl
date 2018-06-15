@@ -18,6 +18,8 @@ not document the math or the definitions of the variables.)
 #include "math.h"
 #include "precision.h"
 
+from io_util import fl
+
 import math_util
 from math_util import safe_exp
 
@@ -47,42 +49,29 @@ def aux(a,b):
   i.e., it's the matrix element g_ab of the metric. Returns t=None for points on a horizon.
   Returns None for all three variables if a and b lie beyond the singularity.
   """
-  if a<=0: # Flip to positive a in order to simplify some later computations.
+  if a<0: # Flip to positive a in order to simplify some later computations.
     return aux(-a,-b)
   # From now on, we know a>=0.
   e2a = safe_exp(-2*a)
   e2b = safe_exp(-2*abs(b))
-  if b>=0.0: # Can I simplify the logic by eliminating this?
-    # interior (region II) or horizon of II
-    r,mu = small_r_mu(a,b)
-  else:
-    # exterior, region I
-    # From now on, we know a>0 and b<0.
-    # Here, if r is even moderately large the coordinates v and w can be too big to store in
-    # floating point, so we use a different algorithm.
-    f = (1.0-e2a)*(1.0-e2b)
-    u = a-b+log(f/4.0)-1.0
+  # From now on, we know we're in region I or II, a>0.
+  f = (1.0-e2a)*(1.0-e2b)
+  u = a+abs(b)+log(f/4.0)-1.0
+  if b<0:
+    # region I
     r = 1.0+lambert_w_of_exp(u)
-    # Compute mu:
-    mu = (1.0+e2a)*(1.0+e2b)*(1/(2*math.e*r))*exp(a-b-(r-1))
+  else:
+    # region II
+    if u>-1: return [None,None,None] # beyond the singularity
+    r = 1.0+lambert_w(-safe_exp(u))
+  # Compute mu:
+  mu = (1.0+e2a)*(1.0+e2b)*(1/(2*math.e*r))*exp(a+abs(b)-(r-1))
   # Compute t:
   if a!=0 and b!=0 and r is not None:
     t = a-abs(b)+log((1-e2a)/(1-e2b))
   else:
     t = None
   return [t,r,mu]
-
-def small_r_mu(a,b):
-  """
-  Returns [r,mu]. Works only at small r and t, produces overflows elsewhere. Returns [None,None] in
-  regions beyond the singularity.
-  """
-  v=sinh(a); w=sinh(b)
-  rho = -v*w
-  if rho<-1.0: return [None,None]
-  r = 1+lambert_w(rho/math.e)
-  mu = 2.0*((r-1)/(r*rho))*cosh(a)*cosh(b)
-  return [r,mu]
 
 def metric(p):
   """

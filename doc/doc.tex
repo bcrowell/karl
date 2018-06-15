@@ -151,6 +151,8 @@ the approximation $r\approx\sqrt{2(1-VW)}$ holds.
 Error in r is 20\% at $V=W=0.9$. Error in $r$ for $V=W=1-\epsilon$
 shrinks like $\epsilon^{1/2}$ (relative) or $\epsilon$ (absolute).
 
+For large radii, $r\approx \ln\rho =\ln(-VW)$.
+
 \section{Null KS coordinates}
 
 Let
@@ -363,25 +365,33 @@ Let
   a & = \sinh^{-1} V \\
   b & = \sinh^{-1} W. 
 \end{align*}
+The motivation is that for large r and t, the
+a and b coordinates basically scale like r and t, not exponentially, so they are more manageable numerically.
+For large radii, $r\approx |a-b|$ (check this), so that lines of constant r are
+approximately vertical lines on a spacetime diagram, and if a and b are both large,
+$t\approx|a|+|b|$, so that lines of constant t are approximately horizontal lines.
 The metric is
 \begin{equation*}
   ds^2 = 2\mu dadb -\ldots,
 \end{equation*}
 where $\mu = (1/2)B\cosh a\cosh b$.
-For large r and t, the a and b coordinates basically scale like r and t, not exponentially.
-In region I ($a>0$, $b<0$), let $u$ be defined by
-\begin{equation*}
-  u = \ln(\rho/e) = a-b+\ln(f/4e),
-\end{equation*}
+
+The quantities we need can be calculated in the $(a,b)$ system without floating-point overflows.
+In regions I and II ($a>0$), let $u$ be defined by
+\begin{align*}
+  u &= \ln(\pm \rho/e) \qquad \text{[+ in region I]} \\
+    &= a+|b|+\ln(f/4e),
+\end{align*}
 where
 \begin{equation*}
-  f = (1-e^{-2a})(1-e^{2b})
+  f = (1-e^{-2a})(1-e^{-2|b|})
 \end{equation*}
 is positive and o(1). The variable $u$ basically scales like $r$.
 Then we can compute $r$ without having to directly manipulate V and W:
 \begin{equation*}
-  r = 1+\ell=1+W(e^u).
+  r = 1+\ell=1+W(\pm e^u) \qquad \text{[+ in region I]}.
 \end{equation*}
+(For region II, the singularity is at $u=-1$, and the physical region is $u\le -1$.)
 The function $W(e^u)$ is straightforward to compute --- see below.
 The Schwarzschild time is
 \begin{equation*}
@@ -389,9 +399,9 @@ The Schwarzschild time is
 \end{equation*}
 To get the coefficient appearing in the metric,
 \begin{equation*}
-  \mu = \frac{(1+e^{-2a})(1+e^{2b})}{2er} e^{a-b-\ell}.
+  \mu = \frac{1}{2re} e^{a+|b|-\ell}(1+e^{-2a})(1+e^{-2|b|}).
 \end{equation*}
-Since $\ell\approx a-b$, the quantity inside the exponential is safe to evaluate.
+Since $\ell\approx a+|b|$ (does this hold in II?), the quantity inside the exponential is safe to evaluate.
 
 Computation of $W(e^u)$:
 Veberic, \url{https://arxiv.org/abs/1003.1628}, sec.~2.3, shows an iterative
@@ -425,6 +435,14 @@ In these expressions, $x_\pm$ may be too large to evaluate, in which case the $x
 can simply be neglected. The partials with respect to $r$ blow up at the horizon. The jacobian
 for the transformation $(a,b)\rightarrow(t,r)$ is found by inverting the $2\times 2$ matrix
 above.
+
+Although the a-b coordinates are better suited to large distances and times than are the
+raw Kruskal coordinates, they are not well suited to nonrelativistic motion. If you use them
+to represent the earth orbiting the sun, then in relativistic terms, the earth is essentially
+at rest, so that the trajectory is described approximately by $|a-b|=\text{constant}$.
+You would naturally want to start simulating the earth's motion at $t=0$, and use a time step
+of, say, one day. But in one day, both a and b increase by on the order of a light-day, which
+is orders of magnitude greater than r.
 
 Christoffel symbols can be found by transforming from $(V,W)$ to $(a,b)$ using the
 transformation law given in \url{https://math.stackexchange.com/q/248267/13618}:

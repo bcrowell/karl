@@ -20,6 +20,10 @@ def assert_equal(x,y):
 def assert_rel_equal(x,y):
   return assert_rel_equal_eps(x,y,2.0*EPS)
 
+def assert_rel_equal_eps_vector(x,y,eps):
+  for i in range(len(x)):
+    assert_rel_equal_eps(x[i],y[i],eps)
+
 def done(verbosity,name):
   if verbosity>=1: print("Passed test_"+name)
 

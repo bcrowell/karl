@@ -17,3 +17,6 @@ def vector_to_str_n_decimals(v,n):
     fmt = "%"+str(n+2)+"."+str(n)+"e"
     f.append(fmt % x)
   return ','.join(f)
+
+def fl(x):
+  return "%5.3e" % x

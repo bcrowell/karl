@@ -4,6 +4,8 @@
 #include "spacetimes.h"
 #include "runge_kutta.h"
 
+from io_util import fl
+
 import schwarzschild,kruskal,angular
 
 def geodesic_simple(spacetime,chart,x0,v0,opt):
@@ -23,6 +25,10 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     lambda0 = initial affine parameter, defaults to 0
     norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                  default=True
+    do_limit_change = boolean, should we do a sanity check by limiting changes in coordinates per step,
+            die if limit is violated?; default=False
+    limit_change = this is approximately the maximum fractional change in r or 1/10 the maximum change in i,j,k,
+            expressed in units of 1/n; default: 1
   returns
     [err,final_x,final_v,final_lambda,info]
   where
@@ -37,8 +43,13 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   if hasattr(opt,"lambda0"): lambda0=opt["lambda0"]
   norm_final = True
   if hasattr(opt,"norm_final"): norm_final=opt["norm_final"]
-  ok = False
   n = math.ceil(lambda_max/dlambda)
+  do_limit_change = False
+  if hasattr(opt,"do_limit_change"): do_limit_change=opt["do_limit_change"]
+  if do_limit_change:
+    limit_change = 1.0/n
+    if hasattr(opt,"limit_change"): do_limit_change=float(opt["do_limit_change"])/n
+  ok = False
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
   else:
@@ -87,12 +98,27 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     for i in range(0, ndim):
       v[i] += tot_est[ndim+i]
     for i in range(0, ndim):
+      if do_limit_change: check_limit_change(spacetime,chart,x,tot_est,limit_change)
       x[i] += tot_est[i]
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v)
   if norm_final:
     x = angular.renormalize(x)
     v = angular.make_tangent(x,v)
   return [0,x,v,lam,{}]
+
+def check_limit_change(spacetime,chart,x,dx,limit_change):
+  """
+  Sanity check to flag sudden large changes in coordinates.
+  """
+  ok = True
+  if (spacetime|chart)==(SP_SCH|CH_SCH): rel_dr=abs(dx[1])/x[1]
+  if (spacetime|chart)==(SP_SCH|CH_AKS): rel_dr=(abs(dx[0])+abs(dx[1]))/(1+abs(x[0]-x[1]))
+       # ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances
+  if rel_dr>limit_change: raise RuntimeError(strcat(['r changed by too much , rel_dr=',rel_dr,
+                                                     ', x=',io_util.vector_to_str(x),
+                                                     ', dx=',io_util.vector_to_str(dx)]))
+  for i in range(2,5):
+    if abs(dx[i])>10.0*limit_change: raise RuntimeError('angular coord. changed by too much')
 
 def mess(stuff):
   return {'message':strcat(stuff)}
