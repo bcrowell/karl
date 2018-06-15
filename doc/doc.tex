@@ -513,47 +513,7 @@ However, it's a good idea to invoke these adjustments before and after Runge-Kut
 nonsense results, e.g., I confused myself by doing initial conditions with $i=1$ and
 $di/d\lambda\ne=0$.
 
-For the Christoffel symbols in the arcsinh-Kruskal coordinates, I
-ran maxima using a form of the metric that is
-easy to calculate without  overflows in region I. The nearly
-raw results are:
-\begin{align*}
-\Gamma\indices{^a_a_a} &= (\sinh(a)PQ^2+(2\sinh(a)P-e^a \cosh(a))Q+\sinh(a)P-2e^a \cosh(a))/\\
-                       & \qquad (\cosh(a)P+2\cosh(a)PQ+\cosh(a)PQ^2)  \\
-\Gamma\indices{^i_a_i} &= e^a /(P+2PQ+PQ^2)  \\
-\Gamma\indices{^j_a_j} &= e^a /(P+2PQ+PQ^2)  \\
-\Gamma\indices{^k_a_k} &= e^a /(P+2PQ+PQ^2)  \\
-\Gamma\indices{^b_b_b} &= (P\sinh(b)Q^2+(e^a \cosh(b)+2P\sinh(b))Q+P\sinh(b)+2e^a \cosh(b))/\\
-                       & \qquad (P\cosh(b)+2P\cosh(b)Q+P\cosh(b)Q^2)  \\
-\Gamma\indices{^i_b_i} &= -e^a /(P+2PQ+PQ^2)  \\
-\Gamma\indices{^j_b_j} &= -e^a /(P+2PQ+PQ^2)  \\
-\Gamma\indices{^k_b_k} &= -e^a /(P+2PQ+PQ^2)  \\
-\Gamma\indices{^a_i_i} &= -(e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
-\Gamma\indices{^b_i_i} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
-\Gamma\indices{^a_j_j} &= -(e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
-\Gamma\indices{^b_j_j} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
-\Gamma\indices{^a_k_k} &= -(e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  \\
-\Gamma\indices{^b_k_k} &= (e^{-b}(e^a Q+e^a ))/(2\cosh(a)\cosh(b))  
-\end{align*}
-Here $Q=W(e^{a-b-1})$ and $P=e^{Q+b+1}$.
-
-In addition, let $S=e^{a-b-1-Q}(1+Q)^{-2}$ and
-$T=e^{a-b}(Q+1)/(2\cosh a\cosh b)$. Then the above expressions can be written in the following
-forms, which can be evaluated without overflows:
-\begin{align*}
-\Gamma\indices{^a_a_a} &= \tanh a - (Q+2)S  \\
-\Gamma\indices{^b_b_b} &= \tanh b + (Q+2)S  \\
-\Gamma\indices{^i_a_i} &= S \\
-\Gamma\indices{^a_i_i} &= -T  \\
-\end{align*}
-These are all analytic functions, so they should be valid in all four regions. Also, we expect that
-under the transformation $(a,b)\rightarrow(-a,-b)$, each $\Gamma$ should flip signs.\footnote{because it
-should change by a factor of $(-1)^n$, where $n$ is the number of indices that are $a$ or $b$}
-This requires that $S$ and $T$ flip signs while $Q$ stays the same. But in fact these symmetries
-do not seem to hold. I'm not sure why. For computational convenience, I always pre-flip everything
-to I or II, so it's possible that it won't matter. No, fails tests, this is wrong.
-
-Retry, using simpler form of metric:
+Christoffel symbols, nearly raw maxima output:
 \begin{align*}
 \Gamma\indices{^a_a_a} &= (\sinh(a)e^r(r-1)^2+(\cosh(a)^2\sinh(b)+2\sinh(a)e^r)(r-1)+\sinh(a)e^r+2\cosh(a)^2\sinh(b))/ \\
                        & \qquad (\cosh(a)e^r+2\cosh(a)e^r(r-1)+\cosh(a)e^r(r-1)^2)  \\
@@ -572,7 +532,28 @@ Retry, using simpler form of metric:
 \Gamma\indices{^a_k_k} &= -(\sinh(a)(r-1)+\sinh(a))/(2\cosh(a))  \\
 \Gamma\indices{^b_k_k} &= -(\sinh(b)(r-1)+\sinh(b))/(2\cosh(b))  \\
 \end{align*}
+These are all analytic functions, so they should be valid in all four regions. Also, we expect that
+under the transformation $(a,b)\rightarrow(-a,-b)$, each $\Gamma$ should flip signs.\footnote{because it
+should change by a factor of $(-1)^n$, where $n$ is the number of indices that are $a$ or $b$}
 
+Simplified by hand:
+\begin{align*}
+\Gamma\indices{^a_a_a} &= \tanh a + (r^{-1}+r^{-2})e^{-r}\cosh a\sinh b \\
+\Gamma\indices{^b_b_b} &= \tanh b + (r^{-1}+r^{-2})e^{-r}\cosh b\sinh a \\
+\Gamma\indices{^i_a_i} &= -r^{-2}e^{-r}\cosh a\sinh b  \\
+\Gamma\indices{^i_b_i} &= -r^{-2}e^{-r}\cosh b\sinh a  \\
+\Gamma\indices{^a_i_i} &= -\frac{1}{2}r\tanh a\\
+\Gamma\indices{^b_i_i} &= -\frac{1}{2}r\tanh b
+\end{align*}
+Massaged to avoid overflows:
+\begin{align*}
+\Gamma\indices{^a_a_a} &= \tanh a + \frac{\mu}{2}(1+r^{-1})\tanh b \\
+\Gamma\indices{^b_b_b} &= \tanh b + \frac{\mu}{2}(1+r^{-1})\tanh a \\
+\Gamma\indices{^i_a_i} &= -\frac{\mu}{2}r^{-1}\tanh b  \\
+\Gamma\indices{^i_b_i} &= -\frac{\mu}{2}r^{-1}\tanh a  \\
+\Gamma\indices{^a_i_i} &= -\frac{1}{2}r\tanh a\\
+\Gamma\indices{^b_i_i} &= -\frac{1}{2}r\tanh b
+\end{align*}
 
 \section{Incomplete geodesics}
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the

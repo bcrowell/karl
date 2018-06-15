@@ -115,44 +115,41 @@ def christoffel(p):
 def christoffel_massaged_maxima_output(p):
   a=p[0]; b=p[1]
   # Based on christoffel_raw_maxima_output(), but simplified and massaged into a form that won't cause overflows.
-  # FIXME: haven't fixed overflows yet.
-  if a<0: # regions III and IV
-    p2 = copy.copy(p)
-    p2[0] = -a
-    p2[1] = -b
-    return flip_christoffel(christoffel_massaged_maxima_output(p2))
-  # From now on, we know we're in region I or II.
   ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
   #------------------------------------------------------
   t,r,mu = aux(a,b)
   r2 = r*r
   r2e = (1/r2)*exp(-r)
+  tanha = math_util.safe_tanh(a)
+  tanhb = math_util.safe_tanh(b)
+  q = (mu/2)*(1.0+1.0/r)
+  q2 = -0.5*mu/r
   #------------------------------------------------------
-  ch[0][0][0] = math_util.safe_tanh(a)+(1.0/r+1.0/r2)*exp(-r)*cosh(a)*sinh(b)
-  ch[1][1][1] = math_util.safe_tanh(b)+(1.0/r+1.0/r2)*exp(-r)*cosh(b)*sinh(a)
+  ch[0][0][0] = tanha+q*tanhb # ^a_aa
+  ch[1][1][1] = tanhb+q*tanha
   #--
-  z = -r2e*cosh(a)*sinh(b)
-  ch[0][2][2] = z
+  z = q2*tanhb
+  ch[0][2][2] = z             # ^i_ai
   ch[2][0][2] = z
   ch[0][3][3] = z
   ch[3][0][3] = z
   ch[0][4][4] = z
   ch[4][0][4] = z
   #--
-  z = -r2e*cosh(b)*sinh(a)
-  ch[1][2][2] = z
+  z = q2*tanha
+  ch[1][2][2] = z             # ^i_bi
   ch[2][1][2] = z
   ch[1][3][3] = z
   ch[3][1][3] = z
   ch[1][4][4] = z
   ch[4][1][4] = z
   #--
-  z = -0.5*r*math_util.safe_tanh(a)
+  z = -0.5*r*tanha            # ^a_ii
   ch[2][2][0] = z
   ch[3][3][0] = z
   ch[4][4][0] = z
   #--
-  z = -0.5*r*math_util.safe_tanh(b)
+  z = -0.5*r*tanhb            # ^b_ii
   ch[2][2][1] = z
   ch[3][3][1] = z
   ch[4][4][1] = z
@@ -160,24 +157,6 @@ def christoffel_massaged_maxima_output(p):
   add_centripetal(ch,p)
   #------------------------------------------------------
   return ch  
-
-def flip_christoffel(ch):
-  """
-  Given the Christoffel symbols at (a,b), change them, in place, to the ones at (-a,-b), and return the result.
-  """
-  # For every index that equals a or b, we get one sign flip.
-  for i in range(5):
-    for j in range(5):
-      for k in range(5):
-        ch[i][j][k] = flip_a_christoffel_helper(i,j,k)*ch[i][j][k]
-  return ch
-
-def flip_a_christoffel_helper(i,j,k):
-  s = 1.0
-  if i<=1: s = -s
-  if j<=1: s = -s
-  if k<=1: s = -s
-  return s
 
 def christoffel_raw_maxima_output(p):
   a=p[0]; b=p[1]
