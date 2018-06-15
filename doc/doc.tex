@@ -1,5 +1,5 @@
 \documentclass{article}
-\usepackage{amsmath,url,tensor,amssymb,verbatim}
+\usepackage{amsmath,url,tensor,amssymb,verbatim,graphicx}
 \begin{document}
 \section{Sources of information}
 
@@ -375,6 +375,20 @@ The metric is
   ds^2 = 2\mu dadb -\ldots,
 \end{equation*}
 where $\mu = (1/2)B\cosh a\cosh b$.
+
+\IfFileExists{figs/graph.png}{%
+  \begin{figure}[h]
+    \centering
+    \includegraphics{figs/graph.png}
+    \caption{The $(a,b)$ coordinate chart. The positive $a$ and $b$ axes point northeast and northwest.
+       Lines represent constant values of the Schwarzschild
+       $(t,r)$ coordinates. Dark lines represent integer multiples of the Schwarzschild radius.
+       Note the nearly rectilinear structure of the grid at large distances.}
+  \end{figure}
+}%
+{%
+  [Missing figure. To make the figure, go into the figs subdirectory, do a make, and then convert to png.]
+}
 
 The quantities we need can be calculated in the $(a,b)$ system without floating-point overflows.
 In regions I and II ($a>0$), let $u$ be defined by
