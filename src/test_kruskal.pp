@@ -129,6 +129,16 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
 # run tests
 #--------------------------------------------------------------------------
 
+def test_christoffel_symmetry(ch):
+  l = len(ch)
+  for i in range(l):
+    for j in range(l):
+      for k in range(l):
+        test.assert_equal(ch[i][j][k],ch[j][i][k])
+
+i,j,k = angular.theta_phi_to_ijk(0.333,0.1776)
+test_christoffel_symmetry(kruskal.christoffel([1.0,-3.3,i,j,k])) # check symmetry at a random point
+
 # region II:
 test_round_trip_ksk(0.5,0.5)
 # ... Note that if we test this with coordinates like (a,b)=(epsilon,epsilon), we get

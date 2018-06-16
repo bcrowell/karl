@@ -25,8 +25,11 @@ test: $(PY)
 test_kruskal: $(PY)
 	$(PYTHON3) $(OBJ)/test_kruskal.py
 
+test_runge_kutta: $(PY)
+	$(PYTHON3) $(OBJ)/test_runge_kutta.py
+
 $(PY): $(OBJ)/%.py: $(SRC)/%.pp
-	filepp $< -o $@
+	filepp -DLANG=python $< -o $@
 	@chmod +x $@
 
 clean:

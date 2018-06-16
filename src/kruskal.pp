@@ -14,6 +14,7 @@ compiled to pdf format by doing a "make doc." (Comments in the code do
 not document the math or the definitions of the variables.) 
 """
 
+#include "language.h"
 #include "util.h"
 #include "math.h"
 #include "precision.h"
@@ -67,7 +68,7 @@ def aux(a,b):
   # Compute mu:
   mu = (1.0+e2a)*(1.0+e2b)*(1/(2*math.e*r))*exp(a+abs(b)-(r-1))
   # Compute t:
-  if a!=0 and b!=0 and r is not None:
+  if a!=0 and b!=0 and IS_REAL(r):
     t = a-abs(b)+log((1-e2a)/(1-e2b))
   else:
     t = None
