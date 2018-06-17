@@ -114,8 +114,8 @@ def check_limit_change(spacetime,chart,x,dx,limit_change):
   if (spacetime|chart)==(SP_SCH|CH_SCH): rel_dr=abs(dx[1])/x[1]
   if (spacetime|chart)==(SP_SCH|CH_AKS): rel_dr=(abs(dx[0])+abs(dx[1]))/(1+abs(x[0]-x[1]))
        # ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances
-  if rel_dr>limit_change: raise RuntimeError(strcat(['r changed by too much , rel_dr=',rel_dr,
-                                                     ', x=',io_util.vector_to_str(x),
+  if rel_dr>limit_change: raise RuntimeError(strcat(['r changed by too much , rel_dr=',rel_dr, \
+                                                     ', x=',io_util.vector_to_str(x), \
                                                      ', dx=',io_util.vector_to_str(dx)]))
   for i in range(2,5):
     if abs(dx[i])>10.0*limit_change: raise RuntimeError('angular coord. changed by too much')
@@ -138,8 +138,8 @@ def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
     debug_count = 0
     do_debug = True
   if do_debug:
-    print("i=",iter," lam=",("%4.2e" % lam),
-                      " x=",io_util.vector_to_str_n_decimals(x,1),
+    print("i=",iter," lam=",("%4.2e" % lam), \
+                      " x=",io_util.vector_to_str_n_decimals(x,1), \
                       " v=",io_util.vector_to_str_n_decimals(v,1))
   return debug_count+1
 

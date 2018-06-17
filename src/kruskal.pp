@@ -63,7 +63,7 @@ def aux(a,b):
     r = 1.0+lambert_w_of_exp(u)
   else:
     # region II
-    if u>-1: return [None,None,None] # beyond the singularity
+    if u>-1: return [NONE,NONE,NONE] # beyond the singularity
     r = 1.0+lambert_w(-safe_exp(u))
   # Compute mu:
   mu = (1.0+e2a)*(1.0+e2b)*(1/(2*math.e*r))*exp(a+abs(b)-(r-1))
@@ -71,7 +71,7 @@ def aux(a,b):
   if a!=0 and b!=0 and IS_REAL(r):
     t = a-abs(b)+log((1-e2a)/(1-e2b))
   else:
-    t = None
+    t = NONE
   return [t,r,mu]
 
 def metric(p):

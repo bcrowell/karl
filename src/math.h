@@ -1,3 +1,4 @@
+#if "LANG" eq "python"
 import lambert_w
 from lambert_w import lambert_w,lambert_w_of_exp
 import math_util
@@ -8,4 +9,4 @@ import numpy
 import scipy
 from numpy import arctanh,arcsinh
 from scipy import sign
-
+#endif
