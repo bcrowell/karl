@@ -13,14 +13,13 @@ operators = {'MTIMES':'*','MPLUS':'+','RAT':'/'}
 # Operators in Maxima. The associative ones aren't just 2-valent, can have 3 or more inputs.
 # There are no subtraction and division operators, they're handled as a+(-1*b) and a*b^-1.
 # Although MEXPT (exponentiation) is an operator, if you want it to be changed into a function like
-# pow(), just leave it off the list, and put it into fns_to_translate, e.g.,
-#   fns_to_translate = {'mexpt':'pow'}.
+# pow(), just leave it off the list, and put it into fns_to_translate.
 
 constants = {'%e':'math.E','%pi':'math.PI'}
 fns_to_prepend_with_math = ['sqrt','abs','sin','cos','tan','sinh','cosh','tanh',
-                            'arcsinh','arccosh','arctanh',
+                            'arcsinh','arccosh','arctanh','exp','log',
                             'pow']
-fns_to_translate = {'mexpt':'pow'}
+fns_to_translate = {'mexpt':'pow','mabs':'abs'}
 ##################################################################################################
 
 def main():

@@ -77,8 +77,9 @@ def preprocess(t)
     ind = $1.length
     done = false
     if ind>indent_stack[-1] then
+      done = true
       t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
-      t2 = t2 + " {\n" + l + ";\n"
+      t2 = t2 + " {\n" + translate_line(l,current_function_key) + ";\n"
       indent_stack.push(ind)
       last_line =~ /([^ ]*)/ # first non-blank text is assumed to be keyword starting the block
       opener = $1
@@ -88,7 +89,6 @@ def preprocess(t)
         t2 = t2+' '*ind+current_function_key
         $vars_placeholders[current_function_key] = Hash.new
       end
-      done = true
     end
     while ind<indent_stack[-1]
       indent_stack.pop
@@ -97,8 +97,7 @@ def preprocess(t)
       t2 = t2 + (" "*indent_stack[-1]) + "}" + semicolon +"\n"
     end
     if !done then
-      if l=~/^\s*(\w[\w0-9,\[\]]*)\s*=/ then l=translate_assignment(l,current_function_key) end
-      t2 = t2 + l + ";\n"
+      t2 = t2 + translate_line(l,current_function_key) + ";\n"
     end
     last_line = l
   }
@@ -113,9 +112,14 @@ def preprocess(t)
   return t
 end
 
+def translate_line(l,current_function_key)
+  if l=~/^\s*(\w[\w0-9,\[\]]*)\s*=/ then l=translate_assignment(l,current_function_key) end
+  return l
+end
+
 def translate_assignment(l,current_function_key)
-  l=~/^\s*(.*)\s*=(.*)/
-  lhs,rhs = $1,$2
+  l=~/^(\s*)(.*)\s*=(.*)/
+  indentation,lhs,rhs = [$1,$2,$3]
   if lhs.nil? || rhs.nil? then return l end
   lhs.scan(/[a-zA-Z]\w*/) { |var| 
     # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,
@@ -124,45 +128,79 @@ def translate_assignment(l,current_function_key)
       $vars_placeholders[current_function_key][var] = 1
     end
   }
-  has_math = (rhs=~/(sin|cos|tan|exp|log|sqrt|abs|\*\*)/)
+  has_math = false
+  if (rhs=~/(sin|cos|tan|exp|log|sqrt|abs|\*\*)/) then has_math=true end
   if has_math then
-    rhs.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
-    rhs.gsub!(/^\s+/,'') # delete leading whitespace, which upsets it, not sure why
-    if rhs=~/(.*[^\s])\s*\/\*(.*)\*\// then
-      rhs,comment = $1,$2
-    else
-      comment = ''
-    end
-    file1 = "temp1_"+digest(rhs)+".mac"
-    file2 = "temp2_"+digest(rhs)+".mac"
-    File.open(file1,'w') { |f|
-      f.print rhs
-    }
-    cmd = "python3 translate_maxima.py <#{file1} >#{file2}"
-    err = ''
-    if !system(cmd) then
-      err = "cmd=#{cmd} failed, $?=#{$?}\n"
-    end
-    if err=='' then
-      File.open(file2,'r') { |f|
-        result = f.gets(nil)
-        if ! result.nil? then 
-          if result=~/^\^(.*)/ then
-            err = $1
-          else
-            l=lhs+"="+result
-          end
-        else
-          err = "null result"
-        end
-      }
-    end
-    remove_temp_file(file1)
-    remove_temp_file(file2)
-    if err!='' then comment=err+' '+comment end
-    if comment!='' then l=l+' /*'+comment+'*/' end
+    rhs = translate_math(rhs)
+    l = indentation+lhs + "=" + rhs
   end
   return l
+end
+
+# For a line like this
+#     x = y+z /* blah */,
+# the input is "y+z /* blah */", and the comment is maintained.
+def translate_math(e)
+  debug = false
+  if debug then print "e=#{e}, in translate_math\n" end
+  e.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
+  e.gsub!(/^\s+/,'') # delete leading whitespace, which upsets it, not sure why
+  if e=~/(.*[^\s])\s*\/\*(.*)\*\// then
+    e,comment = $1,$2
+  else
+    comment = ''
+  end
+  e,err = translate_math2(e)
+  if err!='' then comment=err+' '+comment end
+  if comment!='' then e=e+' /*'+comment+'*/' end
+  return e
+end
+
+# For a line like this
+#     x = y+z[2] /* blah */,
+# the input is "y+z[2]".
+def translate_math2(e)
+  # Project array subscripts from translation, since translate_maxima can't handle them.
+  k = 0
+  protect = Hash.new
+  e.gsub!(/([a-zA-Z]\w*(\[[^\]]+\])+)/) {k=k+1; protect[k]=$1; "protectme#{k}"}
+  # Translate:
+  e,err = translate_math3(e)
+  e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
+  return [e,err]
+end
+
+def translate_math3(e)
+  debug = false
+  file1 = "temp1_"+digest(e)+".mac"
+  file2 = "temp2_"+digest(e)+".mac"
+  File.open(file1,'w') { |f|
+    f.print e
+  }
+  cmd = "python3 translate_maxima.py <#{file1} >#{file2}"
+  err = ''
+  if !system(cmd) then
+    err = "cmd=#{cmd} failed, $?=#{$?}\n"
+  end
+  if debug then print "e=#{e}, ran command\n" end
+  if err=='' then
+    File.open(file2,'r') { |f|
+      result = f.gets(nil).gsub(/\n$/,'')
+      if debug then print "e=#{e} result=#{result}\n" end
+      if ! result.nil? then 
+        if result=~/^\^(.*)/ then
+          err = $1
+        else
+          e = result
+        end
+      else
+        err = "null result"
+      end
+    }
+  end
+  remove_temp_file(file1)
+  remove_temp_file(file2)
+  return [e,err]
 end
 
 def remove_temp_file(file)
