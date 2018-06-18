@@ -7,6 +7,7 @@ compiled to pdf format by doing a "make doc." (Comments in the code do
 not document the math or the definitions of the variables.) 
 """
 
+#include "language.h"
 #include "util.h"
 #include "math.h"
 #include "precision.h"
@@ -49,7 +50,7 @@ def jacobian_schwarzschild_to_kruskal(t,r):
   For non-horizon points, assumes region I or II.
   For points on the horizon, the result contains some infinite matrix elements.
   """
-  jacobian = [[0 for i in range(2)] for j in range(2)]
+  jacobian = EMPTY2DIM(2)
   log_r_minus_1 = log(abs(r-1))
   xpi2 = safe_exp(-log_r_minus_1-(r+t)) # x_+^{-2}
   xmi2 = safe_exp(-log_r_minus_1-(r-t)) # x_-^{-2}
@@ -88,7 +89,7 @@ def jacobian_kruskal_to_schwarzschild(t,r):
   b = j1[1][0]
   c = j1[0][1]
   det = a*d-b*c # should be nonzero because we checked above for r==1
-  j2 = [[0 for i in range(2)] for j in range(2)] # allocate a new matrix, since a-d are just pointers into j1
+  j2 = EMPTY2DIM(2) # allocate a new matrix, since a-d are just pointers into j1
   j2[1][1] = a/det
   j2[0][0] = d/det
   j2[1][0] = -b/det

@@ -63,11 +63,13 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     return [RK_ERR,x,v,0.0,mess(["x or v has wrong length"])]
   order = 4 # 4th order Runge-Kutta
   for iter in range(0,n):
-    est = [[0 for i in range(ndim2)] for step in range(order)]
+    est = [[0 for i in range(ndim2)] for step in range(order)] \
+    #js est=[[]]; for (var i = 0; i < ndim2; i++) { for (var j = 0; j < order; j++) { est[i][j]=0; }}
             # =k in the notation of most authors
             # Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
     debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
-    y0 = [0 for i in range(ndim2)]
+    y0 = [0 for i in range(ndim2)] \
+    #js y0=[]; for (var i = 0; i < order; j++) { y0[i]=0; }
     for i in range(0,ndim): y0[i]=copy.deepcopy(x[i])
     for i in range(0,ndim): y0[i+ndim]=copy.deepcopy(v[i])
     for step in range(0,order):
@@ -138,7 +140,7 @@ def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
     debug_count = 0
     do_debug = True
   if do_debug:
-    print("i=",iter," lam=",("%4.2e" % lam), \
+    PRINT("i=",iter," lam=",("%4.2e" % lam), \
                       " x=",io_util.vector_to_str_n_decimals(x,1), \
                       " v=",io_util.vector_to_str_n_decimals(v,1))
   return debug_count+1

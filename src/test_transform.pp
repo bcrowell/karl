@@ -12,14 +12,14 @@ def test_round_trip_ksk(a,b):
   # We don't expect this to work if we're in regions III or IV, which can't be represented in S coords.
   t,r,mu = kruskal.aux(a,b)
   a2,b2 = transform.schwarzschild_to_kruskal(t,r)
-  if verbosity>=3: print("ksk: a=",a,", b=",b,", t=",t,", r=",r,", a'=",a2,", b'=",b2)
+  if verbosity>=3: PRINT("ksk: a=",a,", b=",b,", t=",t,", r=",r,", a'=",a2,", b'=",b2)
   test.assert_rel_equal(a,a2)
   test.assert_rel_equal(b,b2)
 
 def test_round_trip_sks(t,r):
   a,b = transform.schwarzschild_to_kruskal(t,r)
   t2,r2,mu = kruskal.aux(a,b)
-  if verbosity>=3: print("sks: t=",t,", r=",r,", a=",a,", b=",b,", t2=",t2,", r2=",r2)
+  if verbosity>=3: PRINT("sks: t=",t,", r=",r,", a=",a,", b=",b,", t2=",t2,", r2=",r2)
   test.assert_rel_equal(t,t2)  
   test.assert_rel_equal(r,r2)  
 
@@ -38,7 +38,7 @@ def test_jacobian_schwarzschild_to_kruskal(t,r):
       if i==0: dk=a1-a0
       if i==1: dk=b1-b0
       der = dk/d # numerical approximation to the partial derivative
-      if verbosity>=3: print("i=",i,", j=",j,", der=",der,", J=",jac[i][j])
+      if verbosity>=3: PRINT("i=",i,", j=",j,", der=",der,", J=",jac[i][j])
       test.assert_rel_equal_eps(der,jac[i][j],10*d)
 
 def test_jacobian_kruskal_to_schwarzschild(t,r):
@@ -56,7 +56,7 @@ def test_jacobian_kruskal_to_schwarzschild(t,r):
       if i==0: ds=t1-t
       if i==1: ds=r1-r
       der = ds/d # numerical approximation to the partial derivative
-      if verbosity>=3: print("i=",i,", j=",j,", der=",der,", J=",jac[i][j])
+      if verbosity>=3: PRINT("i=",i,", j=",j,", der=",der,", J=",jac[i][j])
       test.assert_rel_equal_eps(der,jac[i][j],10*d)
 
 # region II:

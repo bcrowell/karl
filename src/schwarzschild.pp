@@ -18,6 +18,7 @@ not document the math or the definitions of the variables.)
 
 #include "util.h"
 #include "math.h"
+#include "language.h"
 
 def metric_sch4(r,sin_theta):
   """
@@ -28,7 +29,7 @@ def metric_sch4(r,sin_theta):
   Angles in radians.
   Metric taken from https://en.wikipedia.org/wiki/Schwarzschild_metric .
   """
-  g = [[0 for i in range(4)] for j in range(4)]
+  g = EMPTY2DIM(4)
   a = 1.0-1.0/r
   r2 = r*r
   g[0][0] = a
@@ -54,7 +55,7 @@ def metric(r):
   The mass is assumed to be 1/2, so that r is in units of the Schwarzschild radius.
   Angles in radians.
   """
-  g = [[0 for i in range(5)] for j in range(5)]
+  g = EMPTY2DIM(5)
   a = 1.0-1.0/r
   r2 = r*r
   g[0][0] = a
@@ -74,7 +75,7 @@ def christoffel(p):
   See maxima/schwarzschild5.mac. In addition, we put in a fictitious centripetal term that
   keeps us constrained to the unit sphere i^2+j^2+k^2=1.
   """
-  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  ch = EMPTY3DIM(5)
   # The following symbols, involving only t and r, are the same as the standard ones in sch4:
   r = p[1]
   r2 = r*r
@@ -110,7 +111,7 @@ def christoffel_sch4(t,r,sin_theta,cos_theta):
   The equations are from http://ned.ipac.caltech.edu/level5/March01/Carroll3/Carroll7.html ,
   equation 7.33.
   """
-  ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
+  ch = EMPTY3DIM(4)
   r2 = r*r
   c = r-1.0 # = r-2GM in Carroll's notation
   ch[0][0][1] = 0.5*c/(r2*r)

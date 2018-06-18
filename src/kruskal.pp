@@ -29,7 +29,7 @@ def metric_ks4(p):
   For the Schwarzschild spacetime, compute the metric.
   Metric is in lower-index form, in +--- signature, with coordinates (a,b,theta,phi).
   """
-  g = [[0 for i in range(4)] for j in range(4)]
+  g = EMPTY2DIM(4)
   t,r,mu = aux(p[0],p[1])
   g[0][1] = mu
   g[1][0] = mu
@@ -79,7 +79,7 @@ def metric(p):
   For the Schwarzschild spacetime, compute the metric.
   Metric is in lower-index form, in +--- signature, with coordinates (a,b,i,j,k).
   """
-  g = [[0 for i in range(5)] for j in range(5)]
+  g = EMPTY2DIM(5)
   t,r,mu = aux(p[0],p[1])
   g[0][1] = mu
   g[1][0] = mu
@@ -105,7 +105,7 @@ def christoffel(p):
 def christoffel_massaged_maxima_output(p):
   a=p[0]; b=p[1]
   # Based on christoffel_raw_maxima_output(), but simplified and massaged into a form that won't cause overflows.
-  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  ch = EMPTY3DIM(5)
   #------------------------------------------------------
   t,r,mu = aux(a,b)
   r2 = r*r
@@ -151,7 +151,7 @@ def christoffel_massaged_maxima_output(p):
 def christoffel_raw_maxima_output(p):
   a=p[0]; b=p[1]
   # output of kruskal5.mac, plus centripetal terms
-  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  ch = EMPTY3DIM(5)
   #------------------------------------------------------
   ch[0][0][0] = (sinh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2+(cosh(a)**2*sinh(b)+2*sinh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1))*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*cosh(a)**2*sinh(b))/(cosh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)+2*cosh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+cosh(a)*exp(lambert_w(-exp(-1)*sinh(a)*sinh(b))+1)*lambert_w(-exp(-1)*sinh(a)*sinh(b))**2) 
   #   ... ^a _a a
@@ -201,7 +201,7 @@ def christoffel_raw_maxima_output(p):
 def christoffel_raw_maxima_output_first_try(p):
   a=p[0]; b=p[1]
   # output of kruskal5.mac, plus centripetal terms
-  ch = [[[0 for i in range(5)] for j in range(5)] for k in range(5)]
+  ch = EMPTY3DIM(5)
   #------------------------------------------------------
   ch[0][0][0] = (sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2+(2*sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-exp(a)*cosh(a))*lambert_w(exp((-b)+a-1))+sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-2*exp(a)*cosh(a))/(cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)+2*cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
   #   ... ^a _a a
@@ -267,7 +267,7 @@ def christoffel4(p):
      symmetric on 1st 2 indices
      contravariant on final index
   """
-  ch = [[[0 for i in range(4)] for j in range(4)] for k in range(4)]
+  ch = EMPTY3DIM(4)
   a=p[0] ; b=p[1]
   t,r,mu = aux(a,b)
   ta = math_util.safe_tanh(a)

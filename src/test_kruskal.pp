@@ -15,14 +15,14 @@ def test_round_trip_ksk(a,b):
   # We don't expect this to work if we're in regions III or IV, which can't be represented in S coords.
   t,r,mu = kruskal.aux(a,b)
   a2,b2 = transform.schwarzschild_to_kruskal(t,r)
-  if verbosity>=3: print("ksk: a=",a,", b=",b,", t=",t,", r=",r,", a'=",a2,", b'=",b2)
+  if verbosity>=3: PRINT("ksk: a=",a,", b=",b,", t=",t,", r=",r,", a'=",a2,", b'=",b2)
   test.assert_rel_equal(a,a2)
   test.assert_rel_equal(b,b2)
 
 def test_round_trip_sks(t,r):
   a,b = transform.schwarzschild_to_kruskal(t,r)
   t2,r2,mu = kruskal.aux(a,b)
-  if verbosity>=3: print("sks: t=",t,", r=",r,", a=",a,", b=",b,", t2=",t2,", r2=",r2)
+  if verbosity>=3: PRINT("sks: t=",t,", r=",r,", a=",a,", b=",b,", t2=",t2,", r2=",r2)
   test.assert_rel_equal(t,t2)  
   test.assert_rel_equal(r,r2)  
 
@@ -55,7 +55,7 @@ def test_christoffel_raw_vs_massaged(a,b):
   for i in range(5):
     for j in range(5):
       for k in range(5):
-        #print("i=",i,", j=",j,", k=",k,", raw=",ch[i][j][k],", massaged=",ch2[i][j][k])
+        #PRINT("i=",i,", j=",j,", k=",k,", raw=",ch[i][j][k],", massaged=",ch2[i][j][k])
         test.assert_rel_equal_eps(ch[i][j][k],ch2[i][j][k],10*EPS)
 
 def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
@@ -88,17 +88,17 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
     v0k[1] = -v0k[1]
   # ---
   if verbosity>=3:
-    print("----------------------")
-    print("x0s=",io_util.vector_to_str_n_decimals(x0s,8))
-    print("x0k=",io_util.vector_to_str_n_decimals(x0k,8))
-    print("v0s=",io_util.vector_to_str_n_decimals(v0s,8))
-    print("v0k=",io_util.vector_to_str_n_decimals(v0k,8))
+    PRINT("----------------------")
+    PRINT("x0s=",io_util.vector_to_str_n_decimals(x0s,8))
+    PRINT("x0k=",io_util.vector_to_str_n_decimals(x0k,8))
+    PRINT("v0s=",io_util.vector_to_str_n_decimals(v0s,8))
+    PRINT("v0k=",io_util.vector_to_str_n_decimals(v0k,8))
   # ---
   for i in range(2): # 0 for Schwarzschild, 1 for Kruskal
     n = 100
     ndebug = 0
     if False and verbosity>=3:
-      print("----------------------")
+      PRINT("----------------------")
       ndebug=n/100
     opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug}
     if i==0:
@@ -120,8 +120,8 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
   xfk[0] = tf
   xfk[1] = rf
   if verbosity>=3:
-    print("xfs=",io_util.vector_to_str_n_decimals(xfs,8))
-    print("xfk=",io_util.vector_to_str_n_decimals(xfk,8))
+    PRINT("xfs=",io_util.vector_to_str_n_decimals(xfs,8))
+    PRINT("xfk=",io_util.vector_to_str_n_decimals(xfk,8))
   eps = 1000.0/n**4
   test.assert_rel_equal_eps_vector(xfs,xfk,eps)
 
