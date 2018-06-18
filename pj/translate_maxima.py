@@ -1,25 +1,29 @@
 #!/usr/bin/python3
 
 # For documentation, see the README.md file in the same subdirectory as this script.
+# Read lines containing expressions as maxima source code from stdin and translate them one at a time.
 
 import os,os.path,sys,hashlib,re,copy
 
+##################################################################################################
 # The following global variables contain all the information about how to translate from Maxima to
 # the target language:
+
 operators = {'MTIMES':'*','MPLUS':'+','RAT':'/'}
 # Operators in Maxima. The associative ones aren't just 2-valent, can have 3 or more inputs.
 # There are no subtraction and division operators, they're handled as a+(-1*b) and a*b^-1.
 # Although MEXPT (exponentiation) is an operator, if you want it to be changed into a function like
 # pow(), just leave it off the list, and put it into fns_to_translate, e.g.,
 #   fns_to_translate = {'mexpt':'pow'}.
-constants = {'%e':'math.e','%pi':'math.pi'}
+
+constants = {'%e':'math.E','%pi':'math.PI'}
 fns_to_prepend_with_math = ['sqrt','abs','sin','cos','tan','sinh','cosh','tanh',
                             'arcsinh','arccosh','arctanh',
                             'pow']
 fns_to_translate = {'mexpt':'pow'}
+##################################################################################################
 
 def main():
-  # Read lines containing expressions as maxima source code from stdin and translate them one at a time.
   for line in sys.stdin:
     line = line.rstrip('\n') # strip newline
     if not re.match("[^\s]",line): continue # skip blank lines
@@ -77,7 +81,7 @@ def translate(e):
   try:
     return decompile(copy.deepcopy(e))
   except:
-    return "error processing "+str(e)
+    return "^error processing "+str(e)
 
 # Typical input:
 #     ['MTIMES', ['MPLUS', 'a', 'b'], 'c']
