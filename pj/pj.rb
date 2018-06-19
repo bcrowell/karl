@@ -78,23 +78,27 @@ def preprocess(t)
     done = false
     if ind>indent_stack[-1] then
       done = true
-      indent_stack.push(ind)
       last_line =~ /([^ ]*)/ # first non-blank text is assumed to be keyword starting the block
       opener = $1
       opener_stack.push(opener)
       if opener=='def' then
         current_function_key = "vars_placeholder"+digest(l+i.to_s)
+      end
+      indent_stack.push(ind)
+      t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
+      t2 = t2 + " {\n"
+      if opener=='def' then
         t2 = t2+' '*ind+current_function_key
         $vars_placeholders[current_function_key] = Hash.new
       end
       t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
-      t2 = t2 + " {\n" + translate_line(l,current_function_key) + ";\n"
+      t2 = t2 + translate_line(l,current_function_key) + ";\n"
     end
     while ind<indent_stack[-1]
       indent_stack.pop
       opener = opener_stack.pop
       if opener=='def' || opener=='' then semicolon='' else semicolon=';' end
-      t2 = t2 + (" "*indent_stack[-1]) + "}" + semicolon +"\n"
+      t2 = t2 + (" "*indent_stack[-1]) + "}" + semicolon +"\n\n"
     end
     if !done then
       t2 = t2 + translate_line(l,current_function_key) + ";\n"
