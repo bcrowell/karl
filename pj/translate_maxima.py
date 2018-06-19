@@ -15,7 +15,7 @@ operators = {'MTIMES':'*','MPLUS':'+','RAT':'/'}
 # Although MEXPT (exponentiation) is an operator, if you want it to be changed into a function like
 # pow(), just leave it off the list, and put it into fns_to_translate.
 
-constants = {'%e':'math.E','%pi':'math.PI'}
+constants = {'%e':'Math.E','%pi':'Math.PI'}
 fns_to_prepend_with_math = ['sqrt','abs','sin','cos','tan','sinh','cosh','tanh',
                             'arcsinh','arccosh','arctanh','exp','log',
                             'pow']
@@ -100,7 +100,7 @@ def decompile(e):
       if f in fns_to_translate:
         f = fns_to_translate[f]
       if f in fns_to_prepend_with_math:
-        f = "math."+f
+        f = "Math."+f
       e.pop(0)
       stuff = ",".join(["("+decompile(x)+")" for x in e])
       return f+"("+stuff+")"

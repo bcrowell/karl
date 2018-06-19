@@ -8,14 +8,14 @@ from io_util import strcat
 def assert_equal_eps(x,y,eps):
   err = x-y
   if IS_NAN(x) or IS_NAN(y) or abs(err)>eps:
-    raise RuntimeError(strcat(["test failed, x=",x,", y=",y,", err=",err,", eps=",eps]))
+    THROW(strcat(["test failed, x=",x,", y=",y,", err=",err,", eps=",eps]))
 
 def assert_rel_equal_eps(x,y,eps):
   if x==0.0 and y==0.0: return
   if x==0.0: return assert_rel_equal_eps(y,x,eps) # avoid division by zero
   rel_err = (x-y)/x
   if IS_NAN(x) or IS_NAN(y) or abs(rel_err)>eps:
-    raise RuntimeError(strcat(["test failed, x=",x,", y=",y,", rel err=",rel_err,", eps=",eps]))
+    THROW(strcat(["test failed, x=",x,", y=",y,", rel err=",rel_err,", eps=",eps]))
 
 def assert_equal(x,y):
   return assert_equal_eps(x,y,2.0*EPS)

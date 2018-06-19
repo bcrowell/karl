@@ -8,6 +8,7 @@
 #define EMPTY2DIM(x) [[0 for i in range(x)] for j in range(x)]
 #define EMPTY3DIM(x) [[[0 for i in range(x)] for j in range(x)] for k in range(x)]
 #define PRINT print
+#define THROW(message) raise RuntimeError(message)
 #endif
 
 #if "LANG" eq "js"
@@ -23,4 +24,7 @@
 #define EMPTY3DIM(x) [EMPTY2DIM(x),EMPTY2DIM(x),EMPTY2DIM(x),EMPTY2DIM(x),EMPTY2DIM(x)]
 #define PRINT print
   # ... works in rhino and d8
+#define IS_BROWSER (typeof window !== 'undefined')
+  # ... https://stackoverflow.com/q/26738943/1142217
+#define THROW(message) throw message;
 #endif

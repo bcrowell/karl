@@ -42,7 +42,7 @@ def postprocess(t)
     if vars.length>0 then
       decl = "var "+vars.join(',')+";\n"
     else
-      decl = 'wugga'
+      decl = ''
     end
     t.gsub!(/#{key}/,decl)
   }
@@ -53,14 +53,14 @@ end
 
 def preprocess(t)
   t = docstrings_to_comments(t)
-  # Protect text of comments from munging:
-  t.gsub!(/#([^\n]*)$/) {d=digest($1); $saved_comments[d]=$1; '#'+digest($1); }
   # Combine long lines into single lines:
   t.gsub!(/([^\n]*)\\\s*\n([^\n]*)/) {"#{$1} #{$2}"}
   # Change tabs to 8 blanks:
   t.gsub!(/\t/,"        ")
   # Hand-translated lines are marked with #js comments.
   t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}#{$4}"}
+  # Protect text of comments from munging:
+  t.gsub!(/#([^\n]*)$/) {d=digest($1); $saved_comments[d]=$1; '#'+digest($1); }
   # Translate comments:
   t.gsub!(/^([^#]*)#([^\n]*)$/) {"#{$1}/*#{$2} */"}
   # Split into lines:
@@ -204,7 +204,7 @@ def translate_math2(e)
     e,err = translate_math_using_translate_maxima(e)
     e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
   else
-    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsing|acccosh|arctanh|exp|log)/) {"math.#{$1}"}
+    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|acccosh|arctanh|exp|log)/) {"math.#{$1}"}
     #     ... see similar list in fns_to_prepend_with_math in translate_maxima.
   end
   return [e,err]

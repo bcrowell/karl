@@ -1,6 +1,7 @@
 PYTHON = python3
 OBJ = obj
 SRC = src
+JS = js
 
 PY = \
     $(OBJ)/io_util.py        $(OBJ)/test.py \
@@ -12,6 +13,17 @@ PY = \
     $(OBJ)/angular.py        $(OBJ)/test_angular.py \
     $(OBJ)/math_util.py      $(OBJ)/test_math_util.py \
     $(OBJ)/vector.py         $(OBJ)/test_vector.py
+
+JS_FILES = \
+    $(JS)/io_util.js        $(JS)/test.js \
+    $(JS)/lambert_w.js      $(JS)/test_lambert_w.js  \
+    $(JS)/schwarzschild.js  $(JS)/test_schwarzschild.js   \
+    $(JS)/kruskal.js        $(JS)/test_kruskal.js   \
+    $(JS)/transform.js      $(JS)/test_transform.js \
+    $(JS)/runge_kutta.js    $(JS)/test_runge_kutta.js   \
+    $(JS)/angular.js        $(JS)/test_angular.js \
+    $(JS)/math_util.js      $(JS)/test_math_util.js \
+    $(JS)/vector.js         $(JS)/test_vector.js
 
 TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal transform vector
 
@@ -32,6 +44,13 @@ $(PY): $(OBJ)/%.py: $(SRC)/%.pp
 	filepp -DLANG=python $< -o $@
 	@chmod +x $@
 
+js: $(JS_FILES)
+	@#
+
+$(JS)/%.js: $(SRC)/%.pp
+	filepp -DLANG=js $< -o $@i
+	pj/pj.rb <$@i >$@
+
 clean:
-	rm -f *~
+	rm -f *~ src/*~ obj/*~ pj/*~ js/*~
 	cd doc && make clean && cd -
