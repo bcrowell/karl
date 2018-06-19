@@ -113,8 +113,29 @@ def preprocess(t)
 end
 
 def translate_line(l,current_function_key)
-  if l=~/^\s*(\w[\w0-9,\[\]]*)\s*=/ then l=translate_assignment(l,current_function_key) end
+  if l=~/^\s*(\w[\w0-9,\[\]]*)\s*=/ then 
+    return translate_assignment(l,current_function_key)
+  end
+  if l=~/for/ and l=~/range/ then
+    return translate_for_loop(l,current_function_key)
+  end
   return l
+end
+
+def translate_for_loop(l,current_function_key)
+  # bug: doesn't preserve indentation, deletes comments; this should be handled using common logic, not cutting and
+  #    pasting code from translate_assignment()
+  # example: for j in range(3,len(x)):
+  if l =~ /for\s+(\w+)\s+in\s+range\((.*)\):/ then
+    var,r = [$1,$2]
+    lo=0
+    if r=~/(.*),(.*)/ then
+      lo,hi = [$1,$2]
+    else
+      hi = r
+    end
+    return "for (var #{var}=#{lo}; #{var}<#{hi}; #{var}++)"
+  end
 end
 
 def translate_assignment(l,current_function_key)
