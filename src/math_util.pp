@@ -1,8 +1,8 @@
 import math
-from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi,log,floor
+from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,tanh,atan2,pi,log,floor
 import numpy
 import scipy
-from numpy import arctanh,arcsinh
+from numpy import arctanh,arcsinh,arccosh
 from scipy import sign
 
 #include "precision.h"

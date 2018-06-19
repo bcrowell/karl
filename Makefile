@@ -12,7 +12,8 @@ PY = \
     $(OBJ)/runge_kutta.py    $(OBJ)/test_runge_kutta.py   \
     $(OBJ)/angular.py        $(OBJ)/test_angular.py \
     $(OBJ)/math_util.py      $(OBJ)/test_math_util.py \
-    $(OBJ)/vector.py         $(OBJ)/test_vector.py
+    $(OBJ)/vector.py         $(OBJ)/test_vector.py \
+    $(OBJ)/test_math.py
 
 JS_FILES = \
     $(JS)/io_util.js        $(JS)/test.js \
@@ -25,7 +26,7 @@ JS_FILES = \
     $(JS)/math_util.js      $(JS)/test_math_util.js \
     $(JS)/vector.js         $(JS)/test_vector.js
 
-TESTS = math_util lambert_w angular schwarzschild runge_kutta kruskal transform vector
+TESTS = math math_util lambert_w angular schwarzschild runge_kutta kruskal transform vector
 
 VPATH = src
 
@@ -50,6 +51,7 @@ js: $(JS_FILES)
 $(JS)/%.js: $(SRC)/%.pp
 	filepp -DLANG=js $< -o $@i
 	pj/pj.rb <$@i >$@
+	-js-beautify $@
 
 clean:
 	rm -f *~ src/*~ obj/*~ pj/*~ js/*~

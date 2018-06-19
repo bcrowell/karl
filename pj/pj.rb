@@ -34,6 +34,7 @@ def translate_stuff(t)
 end
 
 def postprocess(t)
+  t.gsub!(/__NO_SEMICOLON__;?/,'')
   $saved_comments.each_pair { |key,value|
     t.gsub!(/#{key}/,value)
   }
@@ -58,7 +59,7 @@ def preprocess(t)
   # Change tabs to 8 blanks:
   t.gsub!(/\t/,"        ")
   # Hand-translated lines are marked with #js comments.
-  t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}#{$4}"}
+  t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}#{$4}__NO_SEMICOLON__"}
   # Protect text of comments from munging:
   t.gsub!(/#([^\n]*)$/) {d=digest($1); $saved_comments[d]=$1; '#'+digest($1); }
   # Translate comments:

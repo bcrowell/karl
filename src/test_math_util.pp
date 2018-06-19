@@ -28,18 +28,4 @@ for t in asinh_of_exp_tests:
   test.assert_rel_equal_eps(y,yy,EPS*2)
 
 
-if False:
-  u = 18.0
-  y = asinh_of_exp(u)
-  yy = 18.693147180559945367405302877547406231957565357996
-  test.assert_rel_equal(y,yy)
-
-if False:
-  u = 1.0
-  for i in range(90):
-    y = asinh_of_exp(u)
-    if verbosity>=3: PRINT("====== testing asinh_of_exp, u=",u,", y=",y)
-    test.assert_rel_equal_eps(sinh(y),exp(u),1.0e-6)
-    u = u*2.5 # a little less than e, to try to work out all possible whole-number parts of ln(u)
-
 done(verbosity,"test_math_util")
