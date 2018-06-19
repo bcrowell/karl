@@ -22,6 +22,7 @@ def process(t)
 end
 
 def translate_stuff(t)
+  # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
   t.gsub!(/^(\s*)def\s+([^:]+):/) {$1+"function "+$2}
   t.gsub!(/^(\s*)if\s+([^:]+):/) {$1+"if ("+$2+")"}
   t.gsub!(/^(\s*)else:/) {$1+"else"}
@@ -97,8 +98,8 @@ def preprocess(t)
     while ind<indent_stack[-1]
       indent_stack.pop
       opener = opener_stack.pop
-      if opener=='def' || opener=='' then semicolon='' else semicolon=';' end
-      t2 = t2 + (" "*indent_stack[-1]) + "}" + semicolon +"\n\n"
+      t2 = t2 + (" "*indent_stack[-1]) + "}"
+      if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+';\n' end
     end
     if !done then
       t2 = t2 + translate_line(l,current_function_key) + ";\n"
@@ -116,6 +117,8 @@ def preprocess(t)
   return t
 end
 
+# kludge: def, if, ... are handled in translate_stuff(), but assignments and for loops are handled in this
+# routine, which gets called by preprocess()
 def translate_line(l,current_function_key)
   if l=~/^\s*(\w[\w0-9,\[\]]*)\s*=/ then 
     return translate_assignment(l,current_function_key)
@@ -159,6 +162,7 @@ end
 # For a line like this
 #     x = y+z /* blah */,
 # the input is "y+z /* blah */", and the comment is maintained.
+# 
 def translate_math(e)
   debug = false
   if debug then print "e=#{e}, in translate_math\n" end
@@ -175,25 +179,16 @@ def translate_math(e)
   return e
 end
 
-def list_variables_to_declare(lhs,current_function_key)
-  lhs.scan(/[a-zA-Z]\w*/) { |var|
-    # Make a list of variables inside this function so that we can declare them.
-    # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,
-    # this also has the effect of declaring i, which is harmless.
-    if !current_function_key.nil? then
-      $vars_placeholders[current_function_key][var] = 1
-    end
-  }
-end
-
 # For a line like this
 #     x = y+z[2] /* blah */,
 # the input is "y+z[2]".
 def translate_math2(e)
-  # Project array subscripts from translation, since translate_maxima can't handle them.
+  # Protect array subscripts from translation, since translate_maxima can't handle them.
+  # Also protect things like module.function(x), because maxima thinks . is multiplication.
   k = 0
   protect = Hash.new
   e.gsub!(/([a-zA-Z]\w*(\[[^\]]+\])+)/) {k=k+1; protect[k]=$1; "protectme#{k}"}
+  e.gsub!(/(([a-zA-Z]\w*\.)+([a-zA-Z]\w*))/) {k=k+1; protect[k]=$1; "protectme#{k}"}
   # Translate:
   e,err = translate_math3(e)
   e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
@@ -231,6 +226,17 @@ def translate_math3(e)
   remove_temp_file(file1)
   remove_temp_file(file2)
   return [e,err]
+end
+
+def list_variables_to_declare(lhs,current_function_key)
+  lhs.scan(/[a-zA-Z]\w*/) { |var|
+    # Make a list of variables inside this function so that we can declare them.
+    # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,
+    # this also has the effect of declaring i, which is harmless.
+    if !current_function_key.nil? then
+      $vars_placeholders[current_function_key][var] = 1
+    end
+  }
 end
 
 def remove_temp_file(file)
@@ -275,8 +281,9 @@ def docstrings_to_comments(t)
 end
 
 def digest(s)
-  return Digest::SHA256.hexdigest(s).upcase
-  # upcase makes it less likely that something inside the hex will match a keyword or something
+  return Digest::SHA256.hexdigest(s).gsub(/[a-f]/,'')
+  # Filter out alphabetic hex characters to prevent any parser from accidentally thinking this is something
+  # other than an atomic symbol, not to be tampered with.
 end
 
 main()
