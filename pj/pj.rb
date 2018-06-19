@@ -80,7 +80,7 @@ def preprocess(t)
     if ind>indent_stack[-1] then
       done = true
       last_line =~ /([^ ]*)/ # first non-blank text is assumed to be keyword starting the block
-      opener = $1
+      opener = process_opener($1)
       opener_stack.push(opener)
       if opener=='def' then
         current_function_key = "vars_placeholder"+digest(l+i.to_s)
@@ -92,14 +92,13 @@ def preprocess(t)
         t2 = t2+' '*ind+current_function_key
         $vars_placeholders[current_function_key] = Hash.new
       end
-      t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
       t2 = t2 + translate_line(l,current_function_key) + ";\n"
     end
     while ind<indent_stack[-1]
       indent_stack.pop
       opener = opener_stack.pop
       t2 = t2 + (" "*indent_stack[-1]) + "}"
-      if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+';\n' end
+      if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+";\n" end
     end
     if !done then
       t2 = t2 + translate_line(l,current_function_key) + ";\n"
@@ -115,6 +114,14 @@ def preprocess(t)
   t.gsub!(/^( *);( *)(\/\*[^\n]*\*\/)( *)$/) {"#{$1+$2+$3+$4}"}
   # Done:
   return t
+end
+
+# Normally opener is whatever keyword opened the block, e.g., "def".
+# But in a few cases, we get comments here. This happens, e.g., when include files have indented comments below
+# defines.
+def process_opener(opener)
+  if opener=~/\/\*/ then return '' end
+  return opener
 end
 
 # kludge: def, if, ... are handled in translate_stuff(), but assignments and for loops are handled in this
@@ -166,8 +173,6 @@ end
 def translate_math(e)
   debug = false
   if debug then print "e=#{e}, in translate_math\n" end
-  e.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
-  e.gsub!(/^\s+/,'') # delete leading whitespace, which upsets it, not sure why
   if e=~/(.*[^\s])\s*\/\*(.*)\*\// then
     e,comment = $1,$2
   else
@@ -181,21 +186,31 @@ end
 
 # For a line like this
 #     x = y+z[2] /* blah */,
-# the input is "y+z[2]".
+# the input is "y+z[2]". If there is fancy math (basically just the exponentiation operator)
+# that requires translate_maxima, use that. But in simpler cases, just do regexes, because
+# (a) translate_maxima is super slow, and (b) translate_maxima reduces readability by adding
+# lots of parens.
 def translate_math2(e)
-  # Protect array subscripts from translation, since translate_maxima can't handle them.
-  # Also protect things like module.function(x), because maxima thinks . is multiplication.
-  k = 0
-  protect = Hash.new
-  e.gsub!(/([a-zA-Z]\w*(\[[^\]]+\])+)/) {k=k+1; protect[k]=$1; "protectme#{k}"}
-  e.gsub!(/(([a-zA-Z]\w*\.)+([a-zA-Z]\w*))/) {k=k+1; protect[k]=$1; "protectme#{k}"}
-  # Translate:
-  e,err = translate_math3(e)
-  e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
+  err = ''
+  if e=~/\*\*/ then # fancy math that requires translate_maxima
+    e.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
+    e.gsub!(/^\s+/,'') # delete leading whitespace, which upsets it, not sure why
+    # Protect array subscripts from translation, since translate_maxima can't handle them.
+    # Also protect things like module.function(x), because maxima thinks . is multiplication.
+    k = 0
+    protect = Hash.new
+    e.gsub!(/([a-zA-Z]\w*(\[[^\]]+\])+)/) {k=k+1; protect[k]=$1; "protectme#{k}"}
+    e.gsub!(/(([a-zA-Z]\w*\.)+([a-zA-Z]\w*))/) {k=k+1; protect[k]=$1; "protectme#{k}"}
+    e,err = translate_math_using_translate_maxima(e)
+    e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
+  else
+    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsing|acccosh|arctanh|exp|log)/) {"math.#{$1}"}
+    #     ... see similar list in fns_to_prepend_with_math in translate_maxima.
+  end
   return [e,err]
 end
 
-def translate_math3(e)
+def translate_math_using_translate_maxima(e)
   debug = false
   file1 = "temp1_"+digest(e)+".mac"
   file2 = "temp2_"+digest(e)+".mac"
