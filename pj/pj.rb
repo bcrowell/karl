@@ -78,8 +78,6 @@ def preprocess(t)
     done = false
     if ind>indent_stack[-1] then
       done = true
-      t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
-      t2 = t2 + " {\n" + translate_line(l,current_function_key) + ";\n"
       indent_stack.push(ind)
       last_line =~ /([^ ]*)/ # first non-blank text is assumed to be keyword starting the block
       opener = $1
@@ -89,6 +87,8 @@ def preprocess(t)
         t2 = t2+' '*ind+current_function_key
         $vars_placeholders[current_function_key] = Hash.new
       end
+      t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
+      t2 = t2 + " {\n" + translate_line(l,current_function_key) + ";\n"
     end
     while ind<indent_stack[-1]
       indent_stack.pop
@@ -142,13 +142,7 @@ def translate_assignment(l,current_function_key)
   l=~/^(\s*)(.*)\s*=(.*)/
   indentation,lhs,rhs = [$1,$2,$3]
   if lhs.nil? || rhs.nil? then return l end
-  lhs.scan(/[a-zA-Z]\w*/) { |var| 
-    # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,
-    # this also has the effect of declaring i, which is harmless.
-    if !current_function_key.nil? then
-      $vars_placeholders[current_function_key][var] = 1
-    end
-  }
+  list_variables_to_declare(lhs,current_function_key)
   has_math = false
   if (rhs=~/(sin|cos|tan|exp|log|sqrt|abs|\*\*)/) then has_math=true end
   if has_math then
@@ -175,6 +169,17 @@ def translate_math(e)
   if err!='' then comment=err+' '+comment end
   if comment!='' then e=e+' /*'+comment+'*/' end
   return e
+end
+
+def list_variables_to_declare(lhs,current_function_key)
+  lhs.scan(/[a-zA-Z]\w*/) { |var|
+    # Make a list of variables inside this function so that we can declare them.
+    # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,
+    # this also has the effect of declaring i, which is harmless.
+    if !current_function_key.nil? then
+      $vars_placeholders[current_function_key][var] = 1
+    end
+  }
 end
 
 # For a line like this
