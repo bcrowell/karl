@@ -249,7 +249,8 @@ def translate_math_using_translate_maxima(e)
   File.open(file1,'w') { |f|
     f.print e
   }
-  cmd = "python3 translate_maxima.py <#{file1} >#{file2}"
+  my_dir = __dir__ # translate_maxima.py is supposed to be in my directory
+  cmd = "python3 #{my_dir}/translate_maxima.py <#{file1} >#{file2}"
   err = ''
   if !system(cmd) then
     err = "cmd=#{cmd} failed, $?=#{$?}\n"

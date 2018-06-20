@@ -49,6 +49,9 @@ $(PY): $(OBJ)/%.py: $(SRC)/%.pp
 js: $(JS_FILES)
 	@#
 
+clean_js:
+	rm -f js/*.js js/*.jsi
+
 $(JS)/%.js: $(SRC)/%.pp
 	filepp -DLANG=js $< -o $@i
 	pj/pj.rb $@i <$@i >$@
