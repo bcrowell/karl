@@ -12,11 +12,11 @@
 #endif
 
 #if "LANG" eq "js"
-#define IS_NAN(x) (Number.isNaN(x))
+#define IS_NAN(x) (isNaN(x))
 #define IS_NONE(x) ((x)==null)
 #define IS_REAL(x) (not (IS_NONE(x) or IS_NAN(x)))
 #define NONE null
-#define NAN (Number.isNaN)
+#define NAN (NaN)
 # ... note that NAN==NAN is false
 #define EMPTY1DIM(x) [0,0,0,0,0]
 # kludge: ignore x and allocate it with size 5, which is the biggest I ever need

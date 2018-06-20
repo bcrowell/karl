@@ -1,3 +1,5 @@
+/* math.h */
+
 #if "LANG" eq "python"
 import lambert_w
 from lambert_w import lambert_w,lambert_w_of_exp
@@ -15,9 +17,11 @@ from scipy import sign
 #ifndef IS_BROWSER
 #error Symbol IS_BROWSER is not defined in math.h. Make sure to include language.h before math.h.
 #endif
-#js if (!IS_BROWSER) {
+#js if (!IS_BROWSER && (typeof Math.karl === 'undefined')) {
 #js   /* load() works in rhino, not sure about other engines */
 #js   load("lib/math.js");
 #js   load("lib/lambertw.js");
+#js   Math.karl = 1;
 #js }
 #endif
+
