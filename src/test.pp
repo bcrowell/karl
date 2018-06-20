@@ -1,9 +1,9 @@
 import io_util
 from io_util import strcat
 
+#include "language.h"
 #include "math.h"
 #include "precision.h"
-#include "language.h"
 
 def assert_equal_eps(x,y,eps):
   err = x-y

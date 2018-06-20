@@ -16,9 +16,9 @@ compiled to pdf format by doing a "make doc." (Comments in the code do
 not document the math or the definitions of the variables.) 
 """
 
+#include "language.h"
 #include "util.h"
 #include "math.h"
-#include "language.h"
 
 def metric_sch4(r,sin_theta):
   """

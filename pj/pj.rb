@@ -76,6 +76,7 @@ def preprocess(t)
   t.gsub!(/\t/,"        ")
   # Hand-translated lines are marked with #js comments.
   t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}__NO_TRANSLATION__#{$4}__NO_SEMICOLON__"}
+  #$stderr.print "1"*80+"\n"+t # qwe
   # Protect text of comments from munging:
   t.gsub!(/#([^\n]*)$/) {d=digest($1); $saved_comments[d]=$1; '#'+digest($1); }
   # Translate comments:
@@ -112,6 +113,8 @@ def preprocess(t)
           $vars_placeholders[current_function_key] = Hash.new
         end
         t2 = t2 + translate_line(l,current_function_key) + ";\n"
+      else
+        t2 = t2+l
       end
     end
     while ind<indent_stack[-1]
@@ -121,7 +124,11 @@ def preprocess(t)
       if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+";\n" end
     end
     if !done then
-      if !no_trans then t2 = t2 + translate_line(l,current_function_key) + ";\n" end
+      if !no_trans then
+        t2 = t2 + translate_line(l,current_function_key) + ";\n"
+      else
+        t2 = t2 + l
+      end
     end
     last_line = l
   }
@@ -153,6 +160,7 @@ def translate_line(l,current_function_key)
   if l=~/for/ and l=~/range/ then
     return translate_for_loop(l,current_function_key)
   end
+  if has_math(l) then l=translate_math_with_comment(l) end # things like function calls that have math in them
   return l
 end
 
@@ -172,33 +180,34 @@ def translate_for_loop(l,current_function_key)
   end
 end
 
+# Heuristic pattern matching to see whether a line of code has math that needs to be
+# translated.
+def has_math(l)
+  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|\*\*)/) then return true end
+  return false
+end
+
 def translate_assignment(l,current_function_key)
   l=~/^(\s*)(.*)\s*=(.*)/
   indentation,lhs,rhs = [$1,$2,$3]
   if lhs.nil? || rhs.nil? then return l end
   list_variables_to_declare(lhs,current_function_key)
-  has_math = false
-  if (rhs=~/(sin|cos|tan|exp|log|sqrt|abs|\*\*)/) then has_math=true end
-  if has_math then
-    rhs = translate_math(rhs)
+  if has_math(rhs) then
+    rhs = translate_math_with_comment(rhs)
     l = indentation+lhs + "=" + rhs
   end
   return l
 end
 
-# For a line like this
-#     x = y+z /* blah */,
-# the input is "y+z /* blah */", and the comment is maintained.
-# 
-def translate_math(e)
-  debug = false
-  if debug then print "e=#{e}, in translate_math\n" end
+# Input is like "y+z /* blah */", and the comment is maintained.
+# Only handles the rhs of an assignment.
+def translate_math_with_comment(e)
   if e=~/(.*[^\s])\s*\/\*(.*)\*\// then
     e,comment = $1,$2
   else
     comment = ''
   end
-  e,err = translate_math2(e)
+  e,err = translate_math_expression(e)
   if err!='' then comment=err+' '+comment end
   if comment!='' then e=e+' /*'+comment+'*/' end
   return e
@@ -210,7 +219,7 @@ end
 # that requires translate_maxima, use that. But in simpler cases, just do regexes, because
 # (a) translate_maxima is super slow, and (b) translate_maxima reduces readability by adding
 # lots of parens.
-def translate_math2(e)
+def translate_math_expression(e)
   err = ''
   if e=~/\*\*/ then # fancy math that requires translate_maxima
     e.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
@@ -224,7 +233,7 @@ def translate_math2(e)
     e,err = translate_math_using_translate_maxima(e)
     e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
   else
-    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|acccosh|arctanh|exp|log)/) {"math.#{$1}"}
+    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log)/) {"Math.#{$1}"}
     #     ... see similar list in fns_to_prepend_with_math in translate_maxima.
   end
   return [e,err]

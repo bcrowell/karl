@@ -12,6 +12,9 @@ from scipy import sign
 #endif
 
 #if "LANG" eq "js"
+#ifndef IS_BROWSER
+#error Symbol IS_BROWSER is not defined in math.h. Make sure to include language.h before math.h.
+#endif
 #js if (!IS_BROWSER) {
 #js   /* load() works in rhino, not sure about other engines */
 #js   load("lib/math.js");
