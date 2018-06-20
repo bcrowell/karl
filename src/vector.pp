@@ -26,7 +26,7 @@ def get_metric4(spacetime,chart,p):
     return schwarzschild.metric_sch4(r,sin_theta)
   if (spacetime|chart)==(SP_SCH|CH_AKS): # Schwarzschild metric, in arcsinh-Kruskal coordinates
     return kruskal.metric_ks4(p)
-  raise RuntimeError(strcat(["unrecognized spacetime or chart: ",spacetime," ",chart]))
+  raise RuntimeError(io_util.strcat(["unrecognized spacetime or chart: ",spacetime," ",chart]))
 
 def scalar_mult(v0,s):
   """
@@ -67,4 +67,4 @@ def get_metric(spacetime,chart,p):
     return schwarzschild.metric(r)
   if (spacetime|chart)==(SP_SCH|CH_AKS): # Schwarzschild metric, in arcsinh-Kruskal coordinates
     return kruskal.metric(p)
-  raise RuntimeError(strcat(["unrecognized spacetime or chart: ",spacetime," ",chart]))
+  raise RuntimeError(io_util.strcat(["unrecognized spacetime or chart: ",spacetime," ",chart]))

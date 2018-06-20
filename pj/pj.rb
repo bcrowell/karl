@@ -105,9 +105,9 @@ def preprocess(t)
         current_function_key = "vars_placeholder"+digest(l+i.to_s)
       end
       indent_stack.push(ind)
+      t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
+      t2 = t2 + " {\n"
       if !no_trans then
-        t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
-        t2 = t2 + " {\n"
         if opener=='def' then
           t2 = t2+' '*ind+current_function_key+"\n"
           $vars_placeholders[current_function_key] = Hash.new
@@ -183,7 +183,7 @@ end
 # Heuristic pattern matching to see whether a line of code has math that needs to be
 # translated.
 def has_math(l)
-  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|\*\*)/) then return true end
+  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|lambert_w|\*\*)/) then return true end
   return false
 end
 
@@ -233,7 +233,7 @@ def translate_math_expression(e)
     e,err = translate_math_using_translate_maxima(e)
     e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
   else
-    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log)/) {"Math.#{$1}"}
+    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w)/) {"Math.#{$1}"}
     #     ... see similar list in fns_to_prepend_with_math in translate_maxima.
   end
   return [e,err]

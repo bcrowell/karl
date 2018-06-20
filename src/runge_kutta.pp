@@ -116,14 +116,14 @@ def check_limit_change(spacetime,chart,x,dx,limit_change):
   if (spacetime|chart)==(SP_SCH|CH_SCH): rel_dr=abs(dx[1])/x[1]
   if (spacetime|chart)==(SP_SCH|CH_AKS): rel_dr=(abs(dx[0])+abs(dx[1]))/(1+abs(x[0]-x[1]))
        # ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances
-  if rel_dr>limit_change: raise RuntimeError(strcat(['r changed by too much , rel_dr=',rel_dr, \
+  if rel_dr>limit_change: raise RuntimeError(io_util.strcat(['r changed by too much , rel_dr=',rel_dr, \
                                                      ', x=',io_util.vector_to_str(x), \
                                                      ', dx=',io_util.vector_to_str(dx)]))
   for i in range(2,5):
     if abs(dx[i])>10.0*limit_change: raise RuntimeError('angular coord. changed by too much')
 
 def mess(stuff):
-  return {'message':strcat(stuff)}
+  return {'message':io_util.strcat(stuff)}
 
 def chart_info(spacetime,chart):
   recognized = False
