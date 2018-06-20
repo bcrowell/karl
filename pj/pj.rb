@@ -18,7 +18,7 @@ end
 
 def header(module_name)
   return "/* --- module #{module_name} ---\n   This was translated from python. Do not edit directly.\n"+
-         "*/\nif (!#{module_name}) {#{module_name} = {};}\n"
+         "*/\nif (typeof #{module_name} === 'undefined') {#{module_name} = {};}\n"
 end
 
 def extract_file_stem(filename)
@@ -37,7 +37,7 @@ def translate_stuff(t,module_name)
   # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
   t.gsub!(/^(\s*)def\s+([^\(]+)([^:]+):/) {
     indentation,func,args = [$1,$2,$3];
-    "#{indentation}var #{module_name}.#{func} = function#{args}"
+    "#{indentation} #{module_name}.#{func} = function#{args}"
   }
   t.gsub!(/^(\s*)if\s+([^:]+):/) {$1+"if ("+$2+")"}
   t.gsub!(/^(\s*)else:/) {$1+"else"}
@@ -64,6 +64,7 @@ def postprocess(t)
   }
   t.gsub!(/ \/\*\s*"""/,"/*") # kludge for docstrings
   t.gsub!(/^((  )*) \/\*/) {$1+"/*"} # kludge to convert 2n+1 spaces before /* to 2n
+  t.gsub!(/__NO_TRANSLATION__/,'')
   return t
 end
 
@@ -74,7 +75,7 @@ def preprocess(t)
   # Change tabs to 8 blanks:
   t.gsub!(/\t/,"        ")
   # Hand-translated lines are marked with #js comments.
-  t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}#{$4}__NO_SEMICOLON__"}
+  t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}__NO_TRANSLATION__#{$4}__NO_SEMICOLON__"}
   # Protect text of comments from munging:
   t.gsub!(/#([^\n]*)$/) {d=digest($1); $saved_comments[d]=$1; '#'+digest($1); }
   # Translate comments:
@@ -92,6 +93,7 @@ def preprocess(t)
     l = lines[i]
     l =~ /^( *)/
     ind = $1.length
+    no_trans = (l=~/__NO_TRANSLATION__/)
     done = false
     if ind>indent_stack[-1] then
       done = true
@@ -102,13 +104,15 @@ def preprocess(t)
         current_function_key = "vars_placeholder"+digest(l+i.to_s)
       end
       indent_stack.push(ind)
-      t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
-      t2 = t2 + " {\n"
-      if opener=='def' then
-        t2 = t2+' '*ind+current_function_key
-        $vars_placeholders[current_function_key] = Hash.new
+      if !no_trans then
+        t2.gsub!(/;\n\Z/,'') # go back and erase semicolon and newline from previous line
+        t2 = t2 + " {\n"
+        if opener=='def' then
+          t2 = t2+' '*ind+current_function_key+"\n"
+          $vars_placeholders[current_function_key] = Hash.new
+        end
+        t2 = t2 + translate_line(l,current_function_key) + ";\n"
       end
-      t2 = t2 + translate_line(l,current_function_key) + ";\n"
     end
     while ind<indent_stack[-1]
       indent_stack.pop
@@ -117,7 +121,7 @@ def preprocess(t)
       if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+";\n" end
     end
     if !done then
-      t2 = t2 + translate_line(l,current_function_key) + ";\n"
+      if !no_trans then t2 = t2 + translate_line(l,current_function_key) + ";\n" end
     end
     last_line = l
   }

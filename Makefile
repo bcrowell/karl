@@ -52,7 +52,7 @@ js: $(JS_FILES)
 $(JS)/%.js: $(SRC)/%.pp
 	filepp -DLANG=js $< -o $@i
 	pj/pj.rb $@i <$@i >$@
-	-js-beautify -r $@
+	-js-beautify --replace -n $@
 
 clean:
 	rm -f *~ src/*~ obj/*~ pj/*~ js/*~

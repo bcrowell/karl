@@ -11,8 +11,10 @@ def assert_equal_eps(x,y,eps):
     THROW(strcat(["test failed, x=",x,", y=",y,", err=",err,", eps=",eps]))
 
 def assert_rel_equal_eps(x,y,eps):
-  if x==0.0 and y==0.0: return
-  if x==0.0: return assert_rel_equal_eps(y,x,eps) # avoid division by zero
+  if x==0.0 and y==0.0:
+    return
+  if x==0.0:
+    return assert_rel_equal_eps(y,x,eps) # avoid division by zero
   rel_err = (x-y)/x
   if IS_NAN(x) or IS_NAN(y) or abs(rel_err)>eps:
     THROW(strcat(["test failed, x=",x,", y=",y,", rel err=",rel_err,", eps=",eps]))
@@ -28,6 +30,7 @@ def assert_rel_equal_eps_vector(x,y,eps):
     assert_rel_equal_eps(x[i],y[i],eps)
 
 def done(verbosity,name):
-  if verbosity>=1: print("Passed test_"+name)
+  if verbosity>=1:
+    print("Passed test_"+name)
 
 

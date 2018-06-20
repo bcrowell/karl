@@ -5,3 +5,7 @@ from test import assert_rel_equal,assert_rel_equal_eps,assert_equal,assert_equal
 verbosity=1 # default, can be modified
 
 #endif
+
+#if "LANG" eq "js"
+load("test.js")
+#endif

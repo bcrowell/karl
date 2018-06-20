@@ -5,6 +5,6 @@
 #define SP_SCH 256
 
 #define CH_SCH 1
-  # ... sch5 coordinates
+# ... sch5 coordinates
 #define CH_AKS 2
-  # ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...), 
+# ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...), 

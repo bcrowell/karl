@@ -12,9 +12,9 @@ from scipy import sign
 #endif
 
 #if "LANG" eq "js"
-if (!IS_BROWSER) {
-  /* load() works in rhino, not sure about other engines */
-  load("lib/math.js");
-  load("lib/lambertw.js");
-}
+#js if (!IS_BROWSER) {
+#js   /* load() works in rhino, not sure about other engines */
+#js   load("lib/math.js");
+#js   load("lib/lambertw.js");
+#js }
 #endif

@@ -4,7 +4,7 @@
 #define IS_REAL(x) (not (IS_NONE(x) or IS_NAN(x)))
 #define NONE (None)
 #define NAN float('nan')
-  # ... note that NAN==NAN is false
+# ... note that NAN==NAN is false
 #define EMPTY2DIM(x) [[0 for i in range(x)] for j in range(x)]
 #define EMPTY3DIM(x) [[[0 for i in range(x)] for j in range(x)] for k in range(x)]
 #define PRINT print
@@ -17,14 +17,14 @@
 #define IS_REAL(x) (not (IS_NONE(x) or IS_NAN(x)))
 #define NONE null
 #define NAN (Number.isNaN)
-  # ... note that NAN==NAN is false
+# ... note that NAN==NAN is false
 #define EMPTY1DIM(x) [0,0,0,0,0]
-  # kludge: ignore x and allocate it with size 5, which is the biggest I ever need
+# kludge: ignore x and allocate it with size 5, which is the biggest I ever need
 #define EMPTY2DIM(x) [EMPTY1DIM(x),EMPTY1DIM(x),EMPTY1DIM(x),EMPTY1DIM(x),EMPTY1DIM(x)]
 #define EMPTY3DIM(x) [EMPTY2DIM(x),EMPTY2DIM(x),EMPTY2DIM(x),EMPTY2DIM(x),EMPTY2DIM(x)]
 #define PRINT print
-  # ... works in rhino and d8
+# ... works in rhino and d8
 #define IS_BROWSER (typeof window !== 'undefined')
-  # ... https://stackoverflow.com/q/26738943/1142217
+# ... https://stackoverflow.com/q/26738943/1142217
 #define THROW(message) throw message;
 #endif
