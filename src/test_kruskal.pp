@@ -193,4 +193,4 @@ duration = 1.0e-10 # Kruskal coordinates are not well adapted to covering the mo
                    # a nonrelativistic object for long times.
 test_motion_kruskal_vs_schwarzschild(t0,r0,False,theta,phi,v,duration)
 
-done(verbosity,"kruskal")
+test.done(verbosity,"kruskal")

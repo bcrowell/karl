@@ -11,4 +11,4 @@ for i in range(90):
   assert_rel_equal(u,log(w)+w)
   u = u*2.5 # a little less than e, to try to work out all possible whole-number parts of ln(u)
 
-done(verbosity,"lambert_w")
+test.done(verbosity,"lambert_w")

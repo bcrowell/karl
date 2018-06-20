@@ -76,4 +76,4 @@ test_jacobian_kruskal_to_schwarzschild(0.111,2.0) # region I
 test_jacobian_kruskal_to_schwarzschild(0.222,0.5) # region II
 
 
-done(verbosity,"transform")
+test.done(verbosity,"transform")

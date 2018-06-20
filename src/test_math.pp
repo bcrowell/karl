@@ -13,4 +13,4 @@ test.assert_rel_equal_eps(1776,sinh(arcsinh(1776)),5*EPS)
 test.assert_rel_equal_eps(0.1776,tanh(arctanh(0.1776)),5*EPS)
 
 
-done(verbosity,"test_math")
+test.done(verbosity,"test_math")

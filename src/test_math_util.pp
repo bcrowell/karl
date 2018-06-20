@@ -28,4 +28,4 @@ for t in asinh_of_exp_tests:
   test.assert_rel_equal_eps(y,yy,EPS*2)
 
 
-done(verbosity,"test_math_util")
+done.done(verbosity,"test_math_util")

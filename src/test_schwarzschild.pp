@@ -35,5 +35,5 @@ test_christoffel_symmetry(ch5)
 # As far as testing whether the results are actually correct, see
 # tests in test_runge_kutta.
 
-done(verbosity,"schwarzschild")
+test.done(verbosity,"schwarzschild")
 

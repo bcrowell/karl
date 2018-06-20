@@ -25,5 +25,5 @@ max_err = 20*d
 test_norm_schwarzschild_vs_kruskal(0.111,2.0,d,0.777*d,max_err) # random point and displacement in region I
 test_norm_schwarzschild_vs_kruskal(0.111,0.5,d,0.777*d,max_err) # ... region II
 
-done(verbosity,"vector")
+test.done(verbosity,"vector")
 

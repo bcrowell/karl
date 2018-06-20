@@ -33,4 +33,4 @@ def done(verbosity,name):
   if verbosity>=1:
     print("Passed test_"+name)
 
-
+verbosity=1

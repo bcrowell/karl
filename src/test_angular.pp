@@ -16,4 +16,4 @@ v = angular.make_tangent(x,v)
 test.assert_equal(v[2],0)
 test.assert_equal(v[3],700)
 
-done(verbosity,"angular")
+test.done(verbosity,"angular")
