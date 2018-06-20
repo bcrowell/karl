@@ -1,5 +1,3 @@
-/* math.h */
-
 #if "LANG" eq "python"
 import lambert_w
 from lambert_w import lambert_w,lambert_w_of_exp

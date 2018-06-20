@@ -12,5 +12,7 @@ test.assert_rel_equal_eps(1776,cosh(arccosh(1776)),5*EPS)
 test.assert_rel_equal_eps(1776,sinh(arcsinh(1776)),5*EPS)
 test.assert_rel_equal_eps(0.1776,tanh(arctanh(0.1776)),5*EPS)
 
+z = 0.1492
+test.assert_rel_equal_eps(z,lambert_w(z*exp(z)),5*EPS)
 
 test.done(verbosity,"test_math")
