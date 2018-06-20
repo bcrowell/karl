@@ -24,7 +24,8 @@ JS_FILES = \
     $(JS)/runge_kutta.js    $(JS)/test_runge_kutta.js   \
     $(JS)/angular.js        $(JS)/test_angular.js \
     $(JS)/math_util.js      $(JS)/test_math_util.js \
-    $(JS)/vector.js         $(JS)/test_vector.js
+    $(JS)/vector.js         $(JS)/test_vector.js \
+    $(JS)/test_math.js
 
 TESTS = math math_util lambert_w angular schwarzschild runge_kutta kruskal transform vector
 
@@ -50,8 +51,8 @@ js: $(JS_FILES)
 
 $(JS)/%.js: $(SRC)/%.pp
 	filepp -DLANG=js $< -o $@i
-	pj/pj.rb <$@i >$@
-	-js-beautify $@
+	pj/pj.rb $@i <$@i >$@
+	-js-beautify -r $@
 
 clean:
 	rm -f *~ src/*~ obj/*~ pj/*~ js/*~

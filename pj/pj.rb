@@ -6,24 +6,39 @@ require 'digest'
 require 'fileutils'
 
 def main()
+  module_name = ''
+  if ARGV.length>0 then module_name = extract_file_stem(ARGV[0]) end
   t = gets(nil)
   if t.nil? then exit(-1) end
   $saved_comments = Hash.new
   $vars_placeholders = Hash.new
-  t = process(t)
+  t = process(t,module_name)
   print t
 end
 
-def process(t)
+def header(module_name)
+  return "/* --- module #{module_name} ---\n   This was translated from python. Do not edit directly.\n"+
+         "*/\nif (!#{module_name}) {#{module_name} = {};}\n"
+end
+
+def extract_file_stem(filename)
+  return filename.sub(/\A(.*)\//,'').sub(/\.[a-z]+/,'')
+end
+
+def process(t,module_name)
   t = preprocess(t)
-  t = translate_stuff(t)
+  t = translate_stuff(t,module_name)
   t = postprocess(t)
+  t = header(module_name) + t
   return t
 end
 
-def translate_stuff(t)
+def translate_stuff(t,module_name)
   # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
-  t.gsub!(/^(\s*)def\s+([^:]+):/) {$1+"function "+$2}
+  t.gsub!(/^(\s*)def\s+([^\(]+)([^:]+):/) {
+    indentation,func,args = [$1,$2,$3];
+    "#{indentation}var #{module_name}.#{func} = function#{args}"
+  }
   t.gsub!(/^(\s*)if\s+([^:]+):/) {$1+"if ("+$2+")"}
   t.gsub!(/^(\s*)else:/) {$1+"else"}
   t.gsub!(/^(\s*)(from|import).*/) {''}

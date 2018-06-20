@@ -25,7 +25,7 @@ def vector_to_str_n_decimals(v,n):
     f.append(fmt % x)
   return ','.join(f)
 #endif
-#js function vector_to_str_n_decimals(v,n) {
+#js function io_util.vector_to_str_n_decimals(v,n) {
 #js   var s = "";
 #js   for (var i=0; i<v.length; i++) {
 #js     s = s+v[i].toExponential(n).toString();
