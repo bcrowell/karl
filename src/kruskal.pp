@@ -23,6 +23,7 @@ from io_util import fl
 
 import math_util
 from math_util import safe_exp
+import lambert_w_stuff
 
 def metric_ks4(p):
   """
@@ -60,7 +61,7 @@ def aux(a,b):
   u = a+abs(b)+log(f/4.0)-1.0
   if b<0:
     # region I
-    r = 1.0+lambert_w_of_exp(u)
+    r = 1.0+lambert_w_stuff.lambert_w_of_exp(u)
   else:
     # region II
     if u>-1: return [NONE,NONE,NONE] # beyond the singularity

@@ -18,8 +18,10 @@ from scipy import sign
 #js if (!IS_BROWSER && (typeof Math.karl === 'undefined')) {
 #js   /* load() works in rhino, not sure about other engines */
 #js   load("lib/math.js");
-#js   load("lib/lambertw.js");
+#js   if (typeof one_over_E === 'undefined') {load("lib/lambertw.js")}
+#js   load("lambert_w_stuff.js");
 #js   Math.karl = 1;
 #js }
 #endif
+
 

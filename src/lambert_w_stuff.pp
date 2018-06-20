@@ -7,11 +7,15 @@ from numpy import arctanh
 from math import sin,cos,exp,sinh,cosh,sqrt,asin,acos,atan2,pi,log,floor
 from scipy import sign
 
+#include "language.h"
+
 ###################################################################
 
+#if "LANG" eq "python"
 def lambert_w(x):
   """Lambert W function W0."""
   return lambertw(x).real
+#endif
 
 ###################################################################
 

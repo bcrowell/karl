@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+#include "language.h"
 #include "util.h"
 #include "io_util.h"
 #include "math.h"
@@ -9,7 +10,7 @@
 #include "runge_kutta.h"
 #include "precision.h"
 
-import kruskal,transform,runge_kutta,angular,vector
+import kruskal,transform,runge_kutta,angular,vector,lambert_w_stuff
 
 def test_round_trip_ksk(a,b):
   # We don't expect this to work if we're in regions III or IV, which can't be represented in S coords.

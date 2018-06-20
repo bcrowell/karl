@@ -183,7 +183,7 @@ end
 # Heuristic pattern matching to see whether a line of code has math that needs to be
 # translated.
 def has_math(l)
-  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|lambert_w|\*\*)/) then return true end
+  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|lambert_w|floor|\*\*)/) then return true end
   return false
 end
 
@@ -233,7 +233,10 @@ def translate_math_expression(e)
     e,err = translate_math_using_translate_maxima(e)
     e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
   else
-    e.gsub!(/(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w)/) {"Math.#{$1}"}
+    # Look for one of these math functions that is not preceded by a word char, and that is followed by a (.
+    e.gsub!(/(?<!\w)(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w|floor)(?=\()/) {
+      "Math.#{$1}"
+    }
     #     ... see similar list in fns_to_prepend_with_math in translate_maxima.
   end
   return [e,err]

@@ -221,3 +221,4 @@ if (typeof module !== 'undefined') {
 }
 
 Math.lambert_w = gsl_sf_lambert_W0;
+

@@ -4,6 +4,7 @@ unit sphere as a sphere embedded in three-dimensional cartesian
 space (i,j,k).
 """
 
+#include "language.h"
 #include "util.h"
 #include "math.h"
 

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+#include "language.h"
 #include "math.h"
 #include "init.h"
 #include "test.h"

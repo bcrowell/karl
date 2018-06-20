@@ -5,7 +5,7 @@ JS = js
 
 PY = \
     $(OBJ)/io_util.py        $(OBJ)/test.py \
-    $(OBJ)/lambert_w.py      $(OBJ)/test_lambert_w.py  \
+    $(OBJ)/lambert_w_stuff.py $(OBJ)/test_lambert_w.py  \
     $(OBJ)/schwarzschild.py  $(OBJ)/test_schwarzschild.py   \
     $(OBJ)/kruskal.py        $(OBJ)/test_kruskal.py   \
     $(OBJ)/transform.py      $(OBJ)/test_transform.py \
@@ -17,7 +17,7 @@ PY = \
 
 JS_FILES = \
     $(JS)/io_util.js        $(JS)/test.js \
-    $(JS)/lambert_w.js      $(JS)/test_lambert_w.js  \
+    $(JS)/lambert_w_stuff.js $(JS)/test_lambert_w.js  \
     $(JS)/schwarzschild.js  $(JS)/test_schwarzschild.js   \
     $(JS)/kruskal.js        $(JS)/test_kruskal.js   \
     $(JS)/transform.js      $(JS)/test_transform.js \
