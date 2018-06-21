@@ -58,7 +58,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = 0.0
   ok,ndim,christoffel_function = chart_info(spacetime,chart)
-  if not ok: return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
+  if not ok:
+    return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
   ndim2 = ndim*2 # Reduce 2nd-order ODE to ndim2 coupled 1st-order ODEs.
   if len(x)!=ndim or len(v)!=ndim:
     return [RK_ERR,x,v,0.0,mess(["x or v has wrong length"])]
@@ -66,8 +67,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   for iter in range(0,n):
     est = [[0 for i in range(ndim2)] for step in range(order)] \
     #js est=[[]]; for (var i = 0; i < ndim2; i++) { for (var j = 0; j < order; j++) { est[i][j]=0; }}
-            # =k in the notation of most authors
-            # Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
+    #         =k in the notation of most authors
+    #         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
     debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
     y0 = [0 for i in range(ndim2)] \
     #js y0=[]; for (var i = 0; i < order; j++) { y0[i]=0; }
@@ -95,7 +96,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
       for i in range(0, ndim):
         est[step][i] = y[ndim+i]*dlambda
     lam= lam+dlambda
-    tot_est = [0 for i in range(ndim2)]
+    tot_est = EMPTY1DIM(ndim2)
     for i in range(0,ndim2):
       tot_est[i] = (est[0][i]+2.0*est[1][i]+2.0*est[2][i]+est[3][i])/6.0
     for i in range(0, ndim):
@@ -117,11 +118,11 @@ def check_limit_change(spacetime,chart,x,dx,limit_change):
   if (spacetime|chart)==(SP_SCH|CH_SCH): rel_dr=abs(dx[1])/x[1]
   if (spacetime|chart)==(SP_SCH|CH_AKS): rel_dr=(abs(dx[0])+abs(dx[1]))/(1+abs(x[0]-x[1]))
        # ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances
-  if rel_dr>limit_change: raise RuntimeError(io_util.strcat(['r changed by too much , rel_dr=',rel_dr, \
+  if rel_dr>limit_change: THROW(io_util.strcat(['r changed by too much , rel_dr=',rel_dr, \
                                                      ', x=',io_util.vector_to_str(x), \
                                                      ', dx=',io_util.vector_to_str(dx)]))
   for i in range(2,5):
-    if abs(dx[i])>10.0*limit_change: raise RuntimeError('angular coord. changed by too much')
+    if abs(dx[i])>10.0*limit_change: THROW('angular coord. changed by too much')
 
 def mess(stuff):
   return {'message':io_util.strcat(stuff)}

@@ -41,7 +41,7 @@ def simple_free_fall():
   n = 100
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':0}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_AKS,x,v,opt)
-  if err & RK_ERR: raise RuntimeError('error: '+info['message'])
+  if err & RK_ERR: THROW('error: '+info['message'])
   tf,rf = transform.kruskal_to_schwarzschild(final_x[0],final_x[1])
   delta_r = r0-rf
   m=1/2 # coordinates are such that mass=1/2
@@ -111,7 +111,7 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
       v=v0k
       chart = CH_AKS
     err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,chart,x,v,opt)
-    if err & RK_ERR: raise RuntimeError('error: '+info['message'])
+    if err & RK_ERR: THROW('error: '+info['message'])
     if i==0:
       xfs = copy.copy(final_x)
     else:
@@ -191,7 +191,7 @@ q = 1/r0 # scale angular motion down by this amount to keep the motion from bein
 #v = [1.0,0.01776,0.01066*q,0.01492*q,0.02001*q] # random initial motion
 v = [1.0,0,0,0,0] # random initial motion
 duration = 1.0e-10 # Kruskal coordinates are not well adapted to covering the motion of
-                   # a nonrelativistic object for long times.
+#                    a nonrelativistic object for long times.
 test_motion_kruskal_vs_schwarzschild(t0,r0,False,theta,phi,v,duration)
 
 test.done(verbosity,"kruskal")

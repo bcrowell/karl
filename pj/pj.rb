@@ -15,7 +15,7 @@ def main()
   if t.nil? then exit(-1) end
   is_main = false
   if t=~/\A#!/ then is_main=true end # If it has #!/usr/bin/python3 at the top, it's a program, not a module.
-  $saved_comments = Hash.new
+  $protected_strings = Hash.new
   $vars_placeholders = {"vars_placeholder_global"=>{}}
   t = process(t,module_name,is_main)
   print t
@@ -96,7 +96,7 @@ end
 
 def postprocess(t)
   t.gsub!(/__NO_SEMICOLON__;?/,'')
-  $saved_comments.each_pair { |key,value|
+  $protected_strings.each_pair { |key,value|
     t.gsub!(/#{key}/,value)
   }
   $vars_placeholders.each_pair { |key,value|
@@ -121,11 +121,13 @@ def preprocess(t)
   # Change tabs to 8 blanks:
   t.gsub!(/\t/,"        ")
   # Hand-translated lines are marked with #js comments.
-  t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}__NO_TRANSLATION__#{$4}__NO_SEMICOLON__"}
+  t = hand_translated_lines(t)
   #$stderr.print "1"*80+"\n"+t # qwe
   # Protect text of comments from munging:
-  t.gsub!(/#([^\n]*)$/) {d=digest($1); $saved_comments[d]=$1; '#'+digest($1); }
-  # Translate comments:
+  t.gsub!(/#([^\n]*)$/) {d=digest("comment"+$1); $protected_strings[d]=$1; '#'+d }
+  # Protect string literals:
+  t.gsub!(/"([^"\n]*)"/) {d=digest("string_literal"+$1); $protected_strings[d]=$1; '"'+d+'"' }
+  # Translate comments from # to /**/:
   t.gsub!(/^([^#]*)#([^\n]*)$/) {"#{$1}/*#{$2} */"}
   # Split into lines:
   lines = t.split(/\n+/)
@@ -187,6 +189,23 @@ def preprocess(t)
   # No semicolon on a line consisting only of a comment:
   t.gsub!(/^( *);( *)(\/\*[^\n]*\*\/)( *)$/) {"#{$1+$2+$3+$4}"}
   # Done:
+  return t
+end
+
+def hand_translated_lines(t0)
+  t = t0.clone
+  lines = t.split(/\n+/)
+  t2 = ''
+  0.upto(lines.length-1) { |i|
+    l = lines[i]
+    t2 = t2 + hand_translated_line(l) + "\n"
+  }
+  return t2
+end
+
+def hand_translated_line(t0)
+  t = t0.clone
+  t.gsub!(/^( *)([^#\n]*)#js( *)([^\n]*)$/) {"#{$1}__NO_TRANSLATION__#{$4}__NO_SEMICOLON__"}
   return t
 end
 
@@ -370,7 +389,7 @@ def docstrings_to_comments(t)
         this_comment = this_comment+$1
         d = digest(k.to_s)
         k = k+1
-        $saved_comments[d]=this_comment
+        $protected_strings[d]=this_comment
         this_comment = ''
         l = d+"*/"+$2
       end

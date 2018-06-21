@@ -14,6 +14,9 @@ Limitations:
 * doesn't handle any OOP
 * needs explicit \ characters for continuation lines in all cases
 * is so simple that certain stuff will always have to be translated by hand
+* many common idioms and tasks are implemented as macros in language.h, so the translator doesn't have to handle them
+
+
 
 Hand-translation is handled using active comments that look like this:
 
@@ -21,6 +24,14 @@ Hand-translation is handled using active comments that look like this:
     #js var x=[0,0];
 
 (The active comment does not have to be on a continuation line if you'd rather have it on the same line.)
+
+Can also prevent translation on a line-by-line basis by putting __NO_TRANSLATION__ somewhere
+in the line. In python, this is a null string defined in language.h.
+In js, this is a signal to the translator to leave the line alone.
+We need this sometimes when writing a macro that evaluates to different things in python and js.
+We don't want the js version to be translated by the translator, since it's already js.
+However, this prevents translation of the *entire line*, so don't use it in macros that will
+be invoked simply as part of an expression.
 
 For js code that doesn't have any counterpart in the python code:
 
