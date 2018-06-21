@@ -51,7 +51,8 @@ def aux(a,b):
   i.e., it's the matrix element g_ab of the metric. Returns t=None for points on a horizon.
   Returns None for all three variables if a and b lie beyond the singularity.
   """
-  if a<0: # Flip to positive a in order to simplify some later computations.
+  if a<0:
+    # Flip to positive a in order to simplify some later computations.
     return aux(-a,-b)
   # From now on, we know a>=0.
   e2a = safe_exp(-2*a)
@@ -64,7 +65,8 @@ def aux(a,b):
     r = 1.0+lambert_w_stuff.lambert_w_of_exp(u)
   else:
     # region II
-    if u>-1: return [NONE,NONE,NONE] # beyond the singularity
+    if u>-1:
+      return [NONE,NONE,NONE] # beyond the singularity
     r = 1.0+lambert_w(-safe_exp(u))
   # Compute mu:
   mu = (1.0+e2a)*(1.0+e2b)*(1/(2*math.e*r))*exp(a+abs(b)-(r-1))

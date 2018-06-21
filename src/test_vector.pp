@@ -17,7 +17,8 @@ def test_norm_schwarzschild_vs_kruskal(t,r,dt,dr,eps):
   a2,b2 = transform.schwarzschild_to_kruskal(t+dt,r+dr)
   p_k = [a,b,0,0]
   norm_k = vector.norm4(SP_SCH,CH_AKS,p_k,[a2-a,b2-b,0,0])
-  if verbosity>=3: print("test_norm_schwarzschild_vs_kruskal: t=",t,", r=",r,", a=",a,", b=",b,
+  if verbosity>=3:
+    print("test_norm_schwarzschild_vs_kruskal: t=",t,", r=",r,", a=",a,", b=",b, \
             ", norm_s=",norm_s,", norm_k=",norm_k)
   test.assert_rel_equal_eps(norm_s,norm_k,eps)
 

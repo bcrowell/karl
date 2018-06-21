@@ -82,7 +82,8 @@ def jacobian_kruskal_to_schwarzschild(t,r):
   the Schwarzschild coordinates misbehave, and in general it's probably
   not going to be numerically accurate to use this near the horizon.
   """
-  if r==1.0: THROW('r=1 in jacobian_kruskal_to_schwarzschild')
+  if r==1.0:
+    THROW('r=1 in jacobian_kruskal_to_schwarzschild')
   j1 = jacobian_schwarzschild_to_kruskal(t,r)
   a = j1[0][0]
   d = j1[1][1]

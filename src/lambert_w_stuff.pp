@@ -29,7 +29,8 @@ def lambert_w_of_exp(u):
   sec. 2.3. The output W of the function satisfies u=ln W+W to within a
   relative error of 10^-16.
   """
-  if u<100: return lambert_w(exp(u))
+  if u<100:
+    return lambert_w(exp(u))
   # Find an initial guess, https://en.wikipedia.org/wiki/Lambert_W_function#Asymptotic_expansions .
   l2 = log(u) # ln(ln(x))
   nterms = floor(88/l2) # truncate series to avoid underflow; IEEE-754 can represent 2^128; here 88=ln(2^128)

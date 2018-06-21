@@ -21,7 +21,8 @@ def smoke_test():
   v = [1.0,0.0,0.0,0.0,0.0]
   opt = {'lambda_max':3.0,'dlambda':0.1,'ndebug':0}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
-  if err & RK_ERR: THROW('error: '+info['message'])
+  if err & RK_ERR:
+    THROW('error: '+info['message'])
   # Angular coordinates shouldn't have changed:
   test.assert_equal(x[2],final_x[2])
   test.assert_equal(x[3],final_x[3])
@@ -38,7 +39,8 @@ def simple_newtonian_free_fall():
   n = 100
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':0}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
-  if err & RK_ERR: THROW('error: '+info['message'])
+  if err & RK_ERR:
+    THROW('error: '+info['message'])
   rf = final_x[1]
   delta_r = r0-rf
   m=1/2 # coordinates are such that mass=1/2
@@ -46,15 +48,19 @@ def simple_newtonian_free_fall():
   delta_r_newtonian = 0.5*g*lambda_max**2
   rel_err = (delta_r-delta_r_newtonian)/delta_r_newtonian
   expect_err = 2*delta_r_newtonian/r0 # expected rel error due to constant-accel approximation
-  if verbosity>=2: PRINT("delta_r=",delta_r,", delta_r_newtonian=",delta_r_newtonian," rel err=",rel_err,", expected=",expect_err)
+  if verbosity>=2:
+    PRINT("delta_r=",delta_r,", delta_r_newtonian=",delta_r_newtonian," rel err=",rel_err,", expected=",expect_err)
   test.assert_rel_equal_eps(delta_r,delta_r_newtonian,expect_err)
-  if abs(rel_err)>2*expect_err: THROW('error in final r greater than expected')
+  if abs(rel_err)>2*expect_err:
+    THROW('error in final r greater than expected')
   v_newtonian = -sqrt(2*m*(1/rf-1/r0))
   vf = final_v[1]
   rel_err_v = (vf-v_newtonian)/v_newtonian
-  if verbosity>=2: PRINT("vf=",vf,", vf_newtonian=",v_newtonian," rel err=",rel_err_v,", expected=",expect_err)
+  if verbosity>=2:
+    PRINT("vf=",vf,", vf_newtonian=",v_newtonian," rel err=",rel_err_v,", expected=",expect_err)
   test.assert_rel_equal_eps(vf,v_newtonian,expect_err)
-  if abs(rel_err_v)>2*expect_err: THROW('error in final v greater than expected')
+  if abs(rel_err_v)>2*expect_err:
+    THROW('error in final v greater than expected')
 
 #--------------------------------------------------------------------------------------------------
 
@@ -72,7 +78,8 @@ def circular_orbit_period():
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
   if verbosity>=2:
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
-  if err & RK_ERR: THROW('error: '+info['message'])
+  if err & RK_ERR:
+    THROW('error: '+info['message'])
   eps = 1.0e4/n**4
   test.assert_equal_eps(x[2],final_x[2],eps)
   test.assert_equal_eps(x[3],final_x[3],eps)
@@ -108,12 +115,14 @@ def elliptical_orbit_period(r,a,direction,n):
   lambda_max = period
   #--
   ndebug=0
-  if verbosity>=3: ndebug=n/10
+  if verbosity>=3:
+    ndebug=n/10
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug,'norm_final':False}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(spacetime,chart,x,v,opt)
   if verbosity>=2:
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
-  if err & RK_ERR: THROW('error: '+info['message'])
+  if err & RK_ERR:
+    THROW('error: '+info['message'])
   eps = 100.0/r + 10000.0/(n**4) # first term is for error in Keplerian period, second for Runge-Kutta
   test.assert_equal_eps(x[2],final_x[2],eps)
   test.assert_equal_eps(x[3],final_x[3],eps)

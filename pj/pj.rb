@@ -6,13 +6,15 @@ require 'digest'
 require 'fileutils'
 
 $modules_not_to_load = ['numpy','scipy','math','sys']
-# If the python code does an "import numpy", don't try to translate that into javascript.
+# ...If the python code does an "import numpy", don't try to translate that into javascript.
+$local_functions = {}
+# ... keys are names of functions inside this module, which in python are referred to without module. as a prefix
 
 def main()
   module_name = ''
   if ARGV.length>0 then module_name = extract_file_stem(ARGV[0]) end
   t = gets(nil)
-  if t=~/^((\s*)if\s+(.*): *[^\s]+)/ then
+  if t=~/^((\s*)if\s+(.*): *[^\s#]+)/ then
     $stderr.print "Error: if statement on a single line: \'#{$1}\'\n"
     exit(-1)
   end
@@ -33,6 +35,7 @@ def process(t,module_name,is_main)
   t = preprocess(t)
   t = translate_stuff(t,module_name,is_main)
   t = "vars_placeholder_global\n"+t
+  t = qualify_local_functions(t,module_name)
   t = postprocess(t)
   t = header(module_name,is_main) + t
   return t
@@ -65,6 +68,14 @@ def header(module_name,is_main)
   return h
 end
 
+def qualify_local_functions(t0,module_name)
+  t = t0.clone
+  $local_functions.keys.each { |f|
+    t.gsub!(/(?<!#{module_name}\.)#{f}/) {module_name+'.'+f} # change f(x) to module.f(x)
+  }
+  return t
+end
+
 def translate_stuff(t,module_name,is_main)
   lines = t.split(/\n+/)
   t2 = ''
@@ -85,6 +96,7 @@ def translate_stuff_one_line(t,module_name,is_main)
   # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
   t.gsub!(/^(\s*)def\s+([^\(]+)([^:]+):/) {
     indentation,func,args = [$1,$2,$3];
+    $local_functions[func] = 1
     if is_main then m="" else m="#{module_name}." end
     "#{indentation}#{m}#{func} = function#{args}"
   }
