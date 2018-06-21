@@ -27,7 +27,7 @@ end
 
 def process(t,module_name,is_main)
   t = preprocess(t)
-  t = translate_stuff(t,module_name)
+  t = translate_stuff(t,module_name,is_main)
   t = "vars_placeholder_global\n"+t
   t = postprocess(t)
   t = header(module_name,is_main) + t
@@ -36,7 +36,7 @@ end
 
 def header(module_name,is_main)
   if is_main then
-    return <<-HEADER
+    h = <<-HEADER
       /*
          --- main program #{module_name} ---
          This was translated from python. Do not edit directly.
@@ -48,7 +48,7 @@ def header(module_name,is_main)
       }
       HEADER
   else
-    return <<-HEADER
+    h = <<-HEADER
       /*
          --- module #{module_name} ---
          This was translated from python. Do not edit directly.
@@ -58,23 +58,25 @@ def header(module_name,is_main)
       }
       HEADER
   end
+  return h
 end
 
-def translate_stuff(t,module_name)
+def translate_stuff(t,module_name,is_main)
   lines = t.split(/\n+/)
   t2 = ''
   0.upto(lines.length-1) { |i|
     l = lines[i]
-    t2 = t2 + translate_stuff_one_line(l,module_name) + "\n"
+    t2 = t2 + translate_stuff_one_line(l,module_name,is_main) + "\n"
   }
   return t2
 end
 
-def translate_stuff_one_line(t,module_name)
+def translate_stuff_one_line(t,module_name,is_main)
   # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
   t.gsub!(/^(\s*)def\s+([^\(]+)([^:]+):/) {
     indentation,func,args = [$1,$2,$3];
-    "#{indentation} #{module_name}.#{func} = function#{args}"
+    if is_main then m="" else m="#{module_name}." end
+    "#{indentation}#{m}#{func} = function#{args}"
   }
   t.gsub!(/^(\s*)if\s+([^:]+):/) {$1+"if ("+$2+")"}
   t.gsub!(/^(\s*)else:/) {$1+"else"}
