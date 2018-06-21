@@ -52,6 +52,10 @@ js: $(JS_FILES)
 clean_js:
 	rm -f js/*.js js/*.jsi
 
+test_js:
+	cd js ; rhino -opt -1 test_math.js ; cd -
+	cd js ; rhino -opt -1 test_lambert_w.js ; cd -
+
 $(JS)/%.js: $(SRC)/%.pp
 	filepp -DLANG=js $< -o $@i
 	pj/pj.rb $@i <$@i >$@

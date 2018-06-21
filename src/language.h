@@ -1,3 +1,6 @@
+#ifndef LANGUAGE_H
+#define LANGUAGE_H
+
 #if "LANG" eq "python"
 #define IS_NAN(x) (math.isnan(x))
 #define IS_NONE(x) ((x) is None)
@@ -27,4 +30,6 @@
 #define IS_BROWSER (typeof window !== 'undefined')
 # ... https://stackoverflow.com/q/26738943/1142217
 #define THROW(message) throw message;
+#endif
+
 #endif

@@ -5,6 +5,9 @@
 require 'digest'
 require 'fileutils'
 
+$modules_not_to_load = ['numpy','scipy','math','sys']
+# If the python code does an "import numpy", don't try to translate that into javascript.
+
 def main()
   module_name = ''
   if ARGV.length>0 then module_name = extract_file_stem(ARGV[0]) end
@@ -40,7 +43,7 @@ def header(module_name,is_main)
       */
       karl = {};
       karl.modules_loaded = {};
-      if (!IS_BROWSER) {
+      if (!(typeof window !== 'undefined')) { /* IS_BROWSER can't be defined yet. */
         load("lib/loader.js");
       }
       HEADER
@@ -67,7 +70,10 @@ def translate_stuff(t,module_name)
   t.gsub!(/^(\s*)else:/) {$1+"else"}
   t.gsub!(/^(\s*)import\s+([^;]*)/) {
     indentation,modules = [$1,$2]
-    indentation+modules.split(/,/).map{ |m| "karl.load(\"#{m}\")"}.join(";")
+    indentation+modules.split(/,/)\
+      .select{ |m| !$modules_not_to_load.include?(m)}\
+      .map{ |m| "karl.load(\"#{m}\")"}\
+      .join(";")
   }
   t.gsub!(/^(\s*)from.*/) {''}
   t.gsub!(/ and /,' && ')
