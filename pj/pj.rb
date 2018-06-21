@@ -61,6 +61,16 @@ def header(module_name,is_main)
 end
 
 def translate_stuff(t,module_name)
+  lines = t.split(/\n+/)
+  t2 = ''
+  0.upto(lines.length-1) { |i|
+    l = lines[i]
+    t2 = t2 + translate_stuff_one_line(l,module_name) + "\n"
+  }
+  return t2
+end
+
+def translate_stuff_one_line(t,module_name)
   # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
   t.gsub!(/^(\s*)def\s+([^\(]+)([^:]+):/) {
     indentation,func,args = [$1,$2,$3];
@@ -162,7 +172,7 @@ def preprocess(t)
       if !no_trans then
         t2 = t2 + translate_line(l,current_function_key) + ";\n"
       else
-        t2 = t2 + l
+        t2 = t2 + l + "\n"
       end
     end
     last_line = l
