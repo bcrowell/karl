@@ -24,15 +24,15 @@
 #define NONE null
 #define NAN (NaN)
 # ... note that NAN==NAN is false
-#define ARRAY_WITH_VAL(n,v) (function(n,v) {a=new Array(n); for (var i=0; i<n; i++) {a[i]=v}; return a}(n,v))
-# ... Surrounding this with parens makes it a function expression, which then gets evaluated on args (n,v).
+#define ARRAY_WITH_VAL(size,vvv) ((function() {a=new Array(size); for (var i=0; i<size; i++) {a[i]=vvv}; return a})())
+# ... Surrounding this with parens makes it a function expression, which then gets evaluated on empty args ().
 #     https://stackoverflow.com/a/9091416/1142217
-#define EMPTY1DIM_BARE(n) ARRAY_WITH_VAL(n,0)
-#define EMPTY2DIM_BARE(n) ARRAY_WITH_VAL(n,EMPTY1DIM(n))
-#define EMPTY3DIM_BARE(n) ARRAY_WITH_VAL(n,EMPTY2DIM(n))
-#define EMPTY1DIM(n) EMPTY1DIM_BARE(n)__NO_TRANSLATION__
-#define EMPTY2DIM(n) EMPTY2DIM_BARE(n)__NO_TRANSLATION__
-#define EMPTY3DIM(n) EMPTY3DIM_BARE(n)__NO_TRANSLATION__
+#define EMPTY1D_BARE(size) ARRAY_WITH_VAL((size),0)
+#define EMPTY2D_BARE(size) ARRAY_WITH_VAL((size),EMPTY1D_BARE((size)))
+#define EMPTY3D_BARE(size) ARRAY_WITH_VAL((size),EMPTY2D_BARE((size)))
+#define EMPTY1DIM(size) EMPTY1D_BARE(size)__NO_TRANSLATION__
+#define EMPTY2DIM(size) EMPTY2D_BARE(size)__NO_TRANSLATION__
+#define EMPTY3DIM(size) EMPTY3D_BARE(size)__NO_TRANSLATION__
 #define PRINT print
 # ... works in rhino and d8
 #define IS_BROWSER (typeof window !== 'undefined')

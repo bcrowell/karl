@@ -88,9 +88,9 @@ def translate_stuff_one_line(t,module_name,is_main)
       .join(";")
   }
   t.gsub!(/^(\s*)from.*/) {''}
-  t.gsub!(/ and /,' && ')
-  t.gsub!(/ or /,' || ')
-  t.gsub!(/ not /,' ! ')
+  t.gsub!(/(?<!\w)and(?!\w)/,' && ')
+  t.gsub!(/(?<!\w)or(?!\w)/,' || ')
+  t.gsub!(/(?<!\w)not(?!\w)/,' ! ')
   return t
 end
 
