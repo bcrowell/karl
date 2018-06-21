@@ -243,12 +243,23 @@ def translate_assignment(l,current_function_key)
     rhs = translate_math_with_comment(rhs)
     l = indentation+lhs + "=" + rhs
   end
+  l = translate_expression_common_idioms(l)
   return l
+end
+
+# This is very simpleminded, won't handle nested parens.
+def translate_expression_common_idioms(e0)
+  e = e0.clone
+  # Translate len(x)->x.length, str(x)->x.toString().
+  e.gsub!(/(?<!\w)len\(([^)]+)\)/) {"#{$1}.length"}
+  e.gsub!(/(?<!\w)str\(([^)]+)\)/) {"#{$1}.toString()"}
+  return e
 end
 
 # Input is like "y+z /* blah */", and the comment is maintained.
 # Only handles the rhs of an assignment.
-def translate_math_with_comment(e)
+def translate_math_with_comment(e0)
+  e = e0.clone
   if e=~/(.*[^\s])\s*\/\*(.*)\*\// then
     e,comment = $1,$2
   else
@@ -266,7 +277,8 @@ end
 # that requires translate_maxima, use that. But in simpler cases, just do regexes, because
 # (a) translate_maxima is super slow, and (b) translate_maxima reduces readability by adding
 # lots of parens.
-def translate_math_expression(e)
+def translate_math_expression(e0)
+  e = e0.clone
   err = ''
   if e=~/\*\*/ then # fancy math that requires translate_maxima
     e.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
@@ -289,7 +301,8 @@ def translate_math_expression(e)
   return [e,err]
 end
 
-def translate_math_using_translate_maxima(e)
+def translate_math_using_translate_maxima(e0)
+  e = e0.clone
   debug = false
   file1 = "temp1_"+digest(e)+".mac"
   file2 = "temp2_"+digest(e)+".mac"
