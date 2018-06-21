@@ -12,6 +12,10 @@ def main()
   module_name = ''
   if ARGV.length>0 then module_name = extract_file_stem(ARGV[0]) end
   t = gets(nil)
+  if t=~/^((\s*)if\s+(.*): *[^\s]+)/ then
+    $stderr.print "Error: if statement on a single line: \'#{$1}\'\n"
+    exit(-1)
+  end
   if t.nil? then exit(-1) end
   is_main = false
   if t=~/\A#!/ then is_main=true end # If it has #!/usr/bin/python3 at the top, it's a program, not a module.
@@ -72,13 +76,19 @@ def translate_stuff(t,module_name,is_main)
 end
 
 def translate_stuff_one_line(t,module_name,is_main)
+  # There is something wrong with the following, which are based on curlycurlycurly in footex. They
+  # cause infinite loops, don't behave as expected. Don't use them without figuring out what's wrong.
+  # paren = "(?:(?:\([^()]*\)|[^()]*)*)"; # match anything, as long as parens in it are matched, and not nested
+  # parenparen = "(?:(?:\(#{paren}\)|#{paren})*)"; # allow one level of nesting
+  # parenparenparen = "(?:(?:\(#{parenparen}\)|#{parenparen})*)"; # allow two levels of nesting
+
   # kludge: def, if, ... are handled here, but assignments and for loops are handled in preprocess()
   t.gsub!(/^(\s*)def\s+([^\(]+)([^:]+):/) {
     indentation,func,args = [$1,$2,$3];
     if is_main then m="" else m="#{module_name}." end
     "#{indentation}#{m}#{func} = function#{args}"
   }
-  t.gsub!(/^(\s*)if\s+([^:]+):/) {$1+"if ("+$2+")"}
+  t.gsub!(/^(\s*)if\s+(.*):/) {$1+"if ("+$2+")"}
   t.gsub!(/^(\s*)else:/) {$1+"else"}
   t.gsub!(/^(\s*)import\s+([^;]*)/) {
     indentation,modules = [$1,$2]

@@ -41,15 +41,19 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   x=copy.deepcopy(x0); v=copy.deepcopy(v0)
   lambda_max=opt["lambda_max"]; dlambda=opt["dlambda"]; ndebug=opt["ndebug"]
   lambda0=0.0
-  if hasattr(opt,"lambda0"): lambda0=opt["lambda0"]
+  if hasattr(opt,"lambda0"):
+    lambda0=opt["lambda0"]
   norm_final = True
-  if hasattr(opt,"norm_final"): norm_final=opt["norm_final"]
+  if hasattr(opt,"norm_final"):
+    norm_final=opt["norm_final"]
   n = math.ceil(lambda_max/dlambda)
   do_limit_change = False
-  if hasattr(opt,"do_limit_change"): do_limit_change=opt["do_limit_change"]
+  if hasattr(opt,"do_limit_change"):
+    do_limit_change=opt["do_limit_change"]
   if do_limit_change:
     limit_change = 1.0/n
-    if hasattr(opt,"limit_change"): do_limit_change=float(opt["do_limit_change"])/n
+    if hasattr(opt,"limit_change"):
+      do_limit_change=float(opt["do_limit_change"])/n
   ok = False
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
@@ -75,7 +79,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     for i in range(0,ndim): y0[i]=copy.deepcopy(x[i])
     for i in range(0,ndim): y0[i+ndim]=copy.deepcopy(v[i])
     for step in range(0,order):
-      if step==0: y=copy.deepcopy(y0)
+      if step==0:
+        y=copy.deepcopy(y0)
       if step==1:
         for i in range(0,ndim2):
           y[i] = y0[i]+0.5*est[0][i]
@@ -102,7 +107,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     for i in range(0, ndim):
       v[i] += tot_est[ndim+i]
     for i in range(0, ndim):
-      if do_limit_change: check_limit_change(spacetime,chart,x,tot_est,limit_change)
+      if do_limit_change:
+        check_limit_change(spacetime,chart,x,tot_est,limit_change)
       x[i] += tot_est[i]
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v)
   if norm_final:
@@ -115,22 +121,28 @@ def check_limit_change(spacetime,chart,x,dx,limit_change):
   Sanity check to flag sudden large changes in coordinates.
   """
   ok = True
-  if (spacetime|chart)==(SP_SCH|CH_SCH): rel_dr=abs(dx[1])/x[1]
-  if (spacetime|chart)==(SP_SCH|CH_AKS): rel_dr=(abs(dx[0])+abs(dx[1]))/(1+abs(x[0]-x[1]))
-       # ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances
-  if rel_dr>limit_change: THROW(io_util.strcat(['r changed by too much , rel_dr=',rel_dr, \
+  if (spacetime|chart)==(SP_SCH|CH_SCH):
+    rel_dr=abs(dx[1])/x[1]
+  if (spacetime|chart)==(SP_SCH|CH_AKS):
+    rel_dr=(abs(dx[0])+abs(dx[1]))/(1+abs(x[0]-x[1]))
+    # ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances
+  if rel_dr>limit_change:
+    THROW(io_util.strcat(['r changed by too much , rel_dr=',rel_dr, \
                                                      ', x=',io_util.vector_to_str(x), \
                                                      ', dx=',io_util.vector_to_str(dx)]))
   for i in range(2,5):
-    if abs(dx[i])>10.0*limit_change: THROW('angular coord. changed by too much')
+    if abs(dx[i])>10.0*limit_change:
+      THROW('angular coord. changed by too much')
 
 def mess(stuff):
   return {'message':io_util.strcat(stuff)}
 
 def chart_info(spacetime,chart):
   recognized = False
-  if (spacetime|chart)==(SP_SCH|CH_SCH): return [True,5,schwarzschild.christoffel]
-  if (spacetime|chart)==(SP_SCH|CH_AKS): return [True,5,kruskal.christoffel]
+  if (spacetime|chart)==(SP_SCH|CH_SCH):
+    return [True,5,schwarzschild.christoffel]
+  if (spacetime|chart)==(SP_SCH|CH_AKS):
+    return [True,5,kruskal.christoffel]
   return [False,None,None]
 
 def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
