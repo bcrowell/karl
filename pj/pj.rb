@@ -10,27 +10,51 @@ def main()
   if ARGV.length>0 then module_name = extract_file_stem(ARGV[0]) end
   t = gets(nil)
   if t.nil? then exit(-1) end
+  is_main = false
+  if t=~/\A#!/ then is_main=true end # If it has #!/usr/bin/python3 at the top, it's a program, not a module.
   $saved_comments = Hash.new
-  $vars_placeholders = Hash.new
-  t = process(t,module_name)
+  $vars_placeholders = {"vars_placeholder_global"=>{}}
+  t = process(t,module_name,is_main)
   print t
-end
-
-def header(module_name)
-  return "/* --- module #{module_name} ---\n   This was translated from python. Do not edit directly.\n"+
-         "*/\nif (typeof #{module_name} === 'undefined') {#{module_name} = {};}\n"
 end
 
 def extract_file_stem(filename)
   return filename.sub(/\A(.*)\//,'').sub(/\.[a-z]+/,'')
 end
 
-def process(t,module_name)
+def process(t,module_name,is_main)
   t = preprocess(t)
   t = translate_stuff(t,module_name)
+  t = "vars_placeholder_global\n"+t
   t = postprocess(t)
-  t = header(module_name) + t
+  t = header(module_name,is_main) + t
   return t
+end
+
+def header(module_name,is_main)
+  if is_main then
+    return <<-HEADER
+      /*
+         --- main program #{module_name} ---
+         This was translated from python. Do not edit directly.
+      */
+      karl = {};
+      karl.modules_loaded = {};
+      if (!IS_BROWSER) {
+        load("lib/loader.js");
+      }
+      HEADER
+  else
+    return <<-HEADER
+      /*
+         --- module #{module_name} ---
+         This was translated from python. Do not edit directly.
+      */
+      if (typeof #{module_name} === 'undefined') {
+        #{module_name} = {};
+      }
+      HEADER
+  end
 end
 
 def translate_stuff(t,module_name)
@@ -41,7 +65,11 @@ def translate_stuff(t,module_name)
   }
   t.gsub!(/^(\s*)if\s+([^:]+):/) {$1+"if ("+$2+")"}
   t.gsub!(/^(\s*)else:/) {$1+"else"}
-  t.gsub!(/^(\s*)(from|import).*/) {''}
+  t.gsub!(/^(\s*)import\s+([^;]*)/) {
+    indentation,modules = [$1,$2]
+    indentation+modules.split(/,/).map{ |m| "karl.load(\"#{m}\")"}.join(";")
+  }
+  t.gsub!(/^(\s*)from.*/) {''}
   t.gsub!(/ and /,' && ')
   t.gsub!(/ or /,' || ')
   t.gsub!(/ not /,' ! ')
@@ -89,7 +117,7 @@ def preprocess(t)
   indent_stack = [0]  # level of indentation at the start of the block
   opener_stack = [''] # keyword that started the block, e.g. "def"
   last_line = ''
-  current_function_key = nil
+  current_function_key = "vars_placeholder_global"
   0.upto(lines.length-1) { |i|
     l = lines[i]
     l =~ /^( *)/
@@ -122,6 +150,7 @@ def preprocess(t)
       opener = opener_stack.pop
       t2 = t2 + (" "*indent_stack[-1]) + "}"
       if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+";\n" end
+      if opener=='def' then current_function_key = "vars_placeholder_global" end
     end
     if !done then
       if !no_trans then

@@ -36,6 +36,28 @@ of which only the stem of the filename will be used. So a typical invocation of 
 
     pj.rb foo.py <foo.py >foo.js
 
+### Handling of modules and loading
+
+The translator looks at the top of a source-code file for a #! line in order to tell
+whether it's a module or the main program. At runtime, the generated code also uses
+the IS_BROWSER macro to determine whether it's running in a browser or in an environment
+like rhino from the command line.
+
+The main program automatically has a header generated, which initializes a global
+called karl, and a hash karl.modules_loaded. Import statements in python translate
+to code which, in a non-browser environment, causes a module to be loaded (through
+lib/loader.js) using
+rhino's load() method, and the module is marked in karl.modules_loaded so that
+it won't inadvertently be loaded twice. 
+
+A module also automatically has a header generated. For a module named foo, this
+header causes a global variable called foo to be created, and if the module defines
+a function named bar, then a member foo.bar is created as a reference to that function.
+Thus python syntax like foo.bar(x,y) is also valid in javascript.
+
+The module-loading stuff is not used for the modules test.js, lib/math.js, and lib/lambertw.js.
+It should be, but I coded it after I set up those modules.
+
 ### Not yet implemented, may not need
 
 To control the behavior of the translator, can do active comments like this:
