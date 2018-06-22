@@ -59,9 +59,9 @@ test_js:
 	cd js ; rhino -opt -1 test_kruskal.js ; cd -
 
 $(JS)/%.js: $(SRC)/%.pp
-	filepp -DLANG=js $< -o $@i
+	@filepp -DLANG=js $< -o $@i
 	pj/pj.rb $@i <$@i >$@
-	-js-beautify --replace -n $@
+	@-js-beautify --replace -n $@
 
 clean:
 	rm -f *~ src/*~ obj/*~ pj/*~ js/*~

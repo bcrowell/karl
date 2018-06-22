@@ -73,7 +73,7 @@ end
 def qualify_local_functions(t0,module_name)
   t = t0.clone
   $local_functions.keys.each { |f|
-    t.gsub!(/(?<!#{module_name}\.)#{f}/) {module_name+'.'+f} # change f(x) to module.f(x)
+    t.gsub!(/(?<![\.\w])#{f}/) {module_name+'.'+f} # change f(x) to module.f(x)
   }
   return t
 end
