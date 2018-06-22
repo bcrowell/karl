@@ -18,16 +18,16 @@ def test_round_trip_ksk(a,b):
   a2,b2 = transform.schwarzschild_to_kruskal(t,r)
   if verbosity>=3:
     PRINT("ksk: a=",a,", b=",b,", t=",t,", r=",r,", a'=",a2,", b'=",b2)
-  test.assert_rel_equal(a,a2)
-  test.assert_rel_equal(b,b2)
+  test.assert_rel_equal_eps(a,a2,10*EPS)
+  test.assert_rel_equal_eps(b,b2,10*EPS)
 
 def test_round_trip_sks(t,r):
   a,b = transform.schwarzschild_to_kruskal(t,r)
   t2,r2,mu = kruskal.aux(a,b)
   if verbosity>=3:
     PRINT("sks: t=",t,", r=",r,", a=",a,", b=",b,", t2=",t2,", r2=",r2)
-  test.assert_rel_equal(t,t2)  
-  test.assert_rel_equal(r,r2)  
+  test.assert_rel_equal_eps(t,t2,10*EPS)
+  test.assert_rel_equal_eps(r,r2,10*EPS)
 
 def simple_free_fall():
   # Free fall from rest in a semi-newtonian region, where all the math can be evaluated without
@@ -76,14 +76,14 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
     a0 = -a0
     b0 = -b0
   # --- Find initial position in both coordinate systems: ------------------------------------
-  x0s = copy.copy([t0,r0,i,j,k]) # initial point in Schwarzschild coordinates
-  x0k = copy.copy([a0,b0,i,j,k]) # ... in Kruskal
+  x0s = CLONE_ARRAY_OF_FLOATS(([t0,r0,i,j,k])) # initial point in Schwarzschild coordinates
+  x0k = CLONE_ARRAY_OF_FLOATS(([a0,b0,i,j,k])) # ... in Kruskal
   # --- Find initial velocity vector in Schwarzschild coordinates: ---------------------------
   v0s = angular.make_tangent(x0s,v) # initial velocity in Schwarzschild coordinates
   v0s = vector.normalize(SP_SCH,CH_SCH,x0s,v0s)
   # --- Find initial velocity vector in Kruskal coordinates: ---------------------------------
   jac = transform.jacobian_schwarzschild_to_kruskal(t0,r0)
-  v0k = copy.copy(v0s)
+  v0k = CLONE_ARRAY_OF_FLOATS(v0s)
   v0k[0] = jac[0][0]*v0s[0]+jac[0][1]*v0s[1]
   v0k[1] = jac[1][0]*v0s[0]+jac[1][1]*v0s[1]
   v0k = vector.normalize(SP_SCH,CH_AKS,x0k,v0k)
@@ -117,9 +117,9 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
     if err & RK_ERR:
       THROW('error: '+info['message'])
     if i==0:
-      xfs = copy.copy(final_x)
+      xfs = CLONE_ARRAY_OF_FLOATS(final_x)
     else:
-      xfk = copy.copy(final_x)
+      xfk = CLONE_ARRAY_OF_FLOATS(final_x)
   # Convert final result of Kruskal calculations to Schwarzschild coordinates:
   tf,rf = transform.kruskal_to_schwarzschild(xfk[0],xfk[1])
   xfk[0] = tf

@@ -33,7 +33,7 @@ def scalar_mult(v0,s):
   """
   Returns a copy of v, which has been multiplied by the scalar s. Works for 4 or 5 dimensions.
   """
-  v = copy.copy(v0)
+  v = CLONE_ARRAY_OF_FLOATS(v0)
   for i in range(len(v)):
     v[i] = v[i]*s
   return v

@@ -1,4 +1,18 @@
-/* Functions for making arrays initialized with zeroes. */
+/* This library contains functions for cloning one-dimensional arrays,
+   and for making new arrays initialized with zeroes. */
+
+/* Clone a one-dimensional array. This is a shallow copy, so only use it
+   on an array consisting of primitives such as floating-point numbers. */
+karl.clone_array1d = function(a) {
+  var n = a.length;
+  var b = Array(n);
+  for (var i=0; i<n; i++) {
+    b[i] = a[i];
+  }
+  return b;
+};
+
+/* arrays initialized with zeroes */
 karl.array1d = function(n) {
   a = Array(n);
   for (var i=0; i<n; i++) {

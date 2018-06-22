@@ -38,7 +38,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     info = hash with keys below
       message = error message
   """
-  x=copy.deepcopy(x0); v=copy.deepcopy(v0)
+  x=CLONE_ARRAY_OF_FLOATS(x0); v=CLONE_ARRAY_OF_FLOATS(v0)
   lambda_max=opt["lambda_max"]; dlambda=opt["dlambda"]; ndebug=opt["ndebug"]
   lambda0=0.0
   if hasattr(opt,"lambda0"):
@@ -74,13 +74,14 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     #         =k in the notation of most authors
     #         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
     debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
-    y0 = [0 for i in range(ndim2)] \
-    #js y0=[]; for (var i = 0; i < order; j++) { y0[i]=0; }
-    for i in range(0,ndim): y0[i]=copy.deepcopy(x[i])
-    for i in range(0,ndim): y0[i+ndim]=copy.deepcopy(v[i])
+    y0 = EMPTY1DIM(ndim2)
+    for i in range(0,ndim):
+      y0[i]=CLONE_FLOAT(x[i])
+    for i in range(0,ndim):
+      y0[i+ndim]=CLONE_FLOAT(v[i])
     for step in range(0,order):
       if step==0:
-        y=copy.deepcopy(y0)
+        y=CLONE_ARRAY_OF_FLOATS(y0)
       if step==1:
         for i in range(0,ndim2):
           y[i] = y0[i]+0.5*est[0][i]

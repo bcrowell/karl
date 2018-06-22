@@ -13,7 +13,7 @@ def renormalize(x):
   Given a point represented by coordinates of the form (...,...,i,j,k),
   return a copy with i, j, and k renormalized to lie on the unit sphere.
   """
-  n = copy.copy(x)
+  n = CLONE_ARRAY_OF_FLOATS(x)
   xi = sqrt(n[2]*n[2]+n[3]*n[3]+n[4]*n[4])
   n[2] = n[2]/xi
   n[3] = n[3]/xi
@@ -29,7 +29,7 @@ def make_tangent(x,v0):
   angular parts of x and v0 are used, it doesn't matter whether they are expressed
   in Schwarzschild or Kruskal, as long as they're 5-dimensional.
   """
-  v = copy.copy(v0)
+  v = CLONE_ARRAY_OF_FLOATS(v0)
   dot = x[2]*v[2]+x[3]*v[3]+x[4]*v[4]
   v[2] -= dot*x[2]
   v[3] -= dot*x[3]
