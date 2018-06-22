@@ -73,7 +73,7 @@ def circular_orbit_period():
   x = [0.0,r,1.0,0.0,0.0]
   v = [1.0,0.0,0.0,v_phi,0.0]
   n = 100
-  period = 2.0*pi/v_phi
+  period = 2.0*MATH_PI/v_phi
   opt = {'lambda_max':period,'dlambda':period/n,'ndebug':0,'norm_final':FALSE}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
   if verbosity>=2:
@@ -102,7 +102,7 @@ def elliptical_orbit_period(r,a,direction,n):
   chart = CH_SCH
   v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
   x = [0.0,r,1.0,0.0,0.0]
-  circular_period = 2.0*pi/v_phi
+  circular_period = 2.0*MATH_PI/v_phi
   # Increase velocity at perihelion to make orbit elliptical:
   v_phi = v_phi*a
   v = [1.0,0.0,0.0,v_phi*cos(direction),v_phi*sin(direction)]

@@ -15,16 +15,16 @@ def test_round_trip_ksk(a,b):
   a2,b2 = transform.schwarzschild_to_kruskal(t,r)
   if verbosity>=3:
     PRINT("ksk: a=",a,", b=",b,", t=",t,", r=",r,", a'=",a2,", b'=",b2)
-  test.assert_rel_equal(a,a2)
-  test.assert_rel_equal(b,b2)
+  test.assert_rel_equal_eps(a,a2,5*EPS)
+  test.assert_rel_equal_eps(b,b2,5*EPS)
 
 def test_round_trip_sks(t,r):
   a,b = transform.schwarzschild_to_kruskal(t,r)
   t2,r2,mu = kruskal.aux(a,b)
   if verbosity>=3:
     PRINT("sks: t=",t,", r=",r,", a=",a,", b=",b,", t2=",t2,", r2=",r2)
-  test.assert_rel_equal(t,t2)  
-  test.assert_rel_equal(r,r2)  
+  test.assert_rel_equal_eps(t,t2,5*EPS)  
+  test.assert_rel_equal_eps(r,r2,5*EPS)  
 
 def test_jacobian_schwarzschild_to_kruskal(t,r):
   # Test analytic Jacobian against numerical differentiation.

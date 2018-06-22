@@ -27,7 +27,7 @@ JS_FILES = \
     $(JS)/vector.js         $(JS)/test_vector.js \
     $(JS)/test_math.js
 
-TESTS = math math_util lambert_w angular schwarzschild runge_kutta kruskal transform vector
+TESTS = math math_util lambert_w angular schwarzschild kruskal transform vector runge_kutta
 
 VPATH = src
 
@@ -36,12 +36,6 @@ test: $(PY)
 	  $(PYTHON3) $(OBJ)/test_$${test}.py; \
 	done
 	@echo "To make this a real test, do: rm obj/*.py ; make test"
-
-test_kruskal: $(PY)
-	$(PYTHON3) $(OBJ)/test_kruskal.py
-
-test_runge_kutta: $(PY)
-	$(PYTHON3) $(OBJ)/test_runge_kutta.py
 
 $(PY): $(OBJ)/%.py: $(SRC)/%.pp
 	filepp -DLANG=python $< -o $@
@@ -54,11 +48,9 @@ clean_js:
 	rm -f js/*.js js/*.jsi
 
 test_js:
-	cd js ; rhino -opt -1 test_math.js ; cd -
-	cd js ; rhino -opt -1 test_math_util.js ; cd -
-	cd js ; rhino -opt -1 test_lambert_w.js ; cd -
-	cd js ; rhino -opt -1 test_schwarzschild.js ; cd -
-	cd js ; rhino -opt -1 test_kruskal.js ; cd -
+	@for test in $(TESTS); do \
+	  cd js ; rhino -opt -1 test_$${test}.js ; cd -; \
+	done
 
 $(JS)/%.js: $(SRC)/%.pp
 	@filepp -DLANG=js $< -o $@i
