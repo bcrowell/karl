@@ -167,7 +167,7 @@ simple_free_fall()
 
 t0 = 0.0
 r0 = 2.0
-theta = math.pi/2.0
+theta = MATH_PI/2.0
 phi = 0.0
 v = [1.0,0.0,0.0,0.0,0.0] # initially at rest; this gets normalized later
 duration = 0.2
@@ -189,7 +189,7 @@ test_motion_kruskal_vs_schwarzschild(t0,r0,FALSE,theta,phi,v,duration)
 # Large r and t, test whether we get any overflows:
 t0 = 0.0
 r0 = 1.0e8
-theta = math.pi/2.0
+theta = MATH_PI/2.0
 phi = 0.0
 q = 1/r0 # scale angular motion down by this amount to keep the motion from being FTL
 #v = [1.0,0.01776,0.01066*q,0.01492*q,0.02001*q] # random initial motion

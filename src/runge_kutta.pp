@@ -68,12 +68,11 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
   ndim2 = ndim*2 # Reduce 2nd-order ODE to ndim2 coupled 1st-order ODEs.
-  if len(x)!=ndim or len(v)!=ndim:
+  if LEN(x)!=ndim or LEN(v)!=ndim:
     return [RK_ERR,x,v,0.0,mess(["x or v has wrong length"])]
   order = 4 # 4th order Runge-Kutta
   for iter in range(0,n):
-    est = [[0 for i in range(ndim2)] for step in range(order)] \
-    #js est=[[]]; for (var i = 0; i < ndim2; i++) { for (var j = 0; j < order; j++) { est[i][j]=0; }}
+    est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors
     #         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
     debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
