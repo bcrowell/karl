@@ -13,7 +13,7 @@ Current features:
 * Schwarzschild coordinates
 * Christoffel symbols
 * test suite
-* implementation in python
+* implementation in both python and javascript
 * computation of geodesics using Runge-Kutta integration
 
 Features I plan to add:
@@ -22,7 +22,6 @@ Features I plan to add:
 * automatic handling of the case where a geodesic is terminating
 * trajectories under the influence of a force (e.g., simulations of rocket ships)
 * Reissner-Nordstrom spacetime
-* implementation in javascript
 
 Documentation for the math is in the file doc.tex, which can be
 compiled to pdf format by doing a "make doc." (Comments in the code do
