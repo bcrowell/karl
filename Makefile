@@ -54,6 +54,7 @@ clean_js:
 
 test_js:
 	cd js ; rhino -opt -1 test_math.js ; cd -
+	cd js ; rhino -opt -1 test_math_util.js ; cd -
 	cd js ; rhino -opt -1 test_lambert_w.js ; cd -
 	cd js ; rhino -opt -1 test_schwarzschild.js ; cd -
 	cd js ; rhino -opt -1 test_kruskal.js ; cd -

@@ -266,6 +266,7 @@ def translate_for_loop(l,current_function_key)
     else
       hi = r
     end
+    hi = translate_expression_common_idioms(hi)
     return "for (var #{var}=#{lo}; #{var}<#{hi}; #{var}++)"
   end
 end
@@ -284,10 +285,23 @@ def translate_assignment(l,current_function_key)
   list_variables_to_declare(lhs,current_function_key)
   if has_math(rhs) then
     rhs = translate_math_with_comment(rhs)
-    l = indentation+lhs + "=" + rhs
+  end
+  if !(lhs=~/,/) then
+    # simple assignment
+    l = lhs + "=" + rhs
+  else
+    # multiple assignment
+    lvalues = lhs.split(/,/)
+    # rhino -e "var p,q; (function(){var temp=7; p=3; q=temp})(); print(p,q); print(temp);"
+    # We need a temporary variable to store the array of values. Hide this inside an anonymous function.
+    assignments = []
+    0.upto(lvalues.length-1) { |i|
+      assignments.push("#{lvalues[i]}=temp[#{i}]")
+    }
+    l = "(function(){var temp=#{rhs}; #{assignments.join(';')}})()"
   end
   l = translate_expression_common_idioms(l)
-  return l
+  return indentation+l
 end
 
 # This is very simpleminded, won't handle nested parens.
