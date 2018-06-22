@@ -19,20 +19,15 @@
 
 #if "LANG" eq "js"
 #define IS_NAN(x) (isNaN(x))
+#define NAN (NaN)
+# ... note that NAN==NAN is false, so use IS_NAN
 #define IS_NONE(x) ((x)==null)
 #define IS_REAL(x) (not (IS_NONE(x) or IS_NAN(x)))
 #define NONE null
-#define NAN (NaN)
-# ... note that NAN==NAN is false
-#define ARRAY_WITH_VAL(size,vvv) ((function() {a=new Array(size); for (var i=0; i<size; i++) {a[i]=vvv}; return a})())
-# ... Surrounding this with parens makes it a function expression, which then gets evaluated on empty args ().
-#     https://stackoverflow.com/a/9091416/1142217
-#define EMPTY1D_BARE(size) ARRAY_WITH_VAL((size),0)
-#define EMPTY2D_BARE(size) ARRAY_WITH_VAL((size),EMPTY1D_BARE((size)))
-#define EMPTY3D_BARE(size) ARRAY_WITH_VAL((size),EMPTY2D_BARE((size)))
-#define EMPTY1DIM(size) EMPTY1D_BARE(size)__NO_TRANSLATION__
-#define EMPTY2DIM(size) EMPTY2D_BARE(size)__NO_TRANSLATION__
-#define EMPTY3DIM(size) EMPTY3D_BARE(size)__NO_TRANSLATION__
+karl.load("lib/array");
+#define EMPTY1DIM(x) karl.array1d((x))
+#define EMPTY2DIM(x) karl.array2d((x),(x))
+#define EMPTY3DIM(x) karl.array3d((x),(x),(x))
 #define PRINT print
 # ... works in rhino and d8
 #define IS_BROWSER (typeof window !== 'undefined')

@@ -60,11 +60,13 @@ def header(module_name,is_main)
          --- module #{module_name} ---
          This was translated from python. Do not edit directly.
       */
+      HEADER
+  end
+  h = h + <<-HEADER
       if (typeof #{module_name} === 'undefined') {
         #{module_name} = {};
       }
-      HEADER
-  end
+  HEADER
   return h
 end
 
