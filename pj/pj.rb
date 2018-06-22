@@ -193,7 +193,7 @@ def preprocess(t)
       indent_stack.pop
       opener = opener_stack.pop
       t2 = t2 + (" "*indent_stack[-1]) + "}"
-      if opener=='def' || opener=='' then t2=t2+"\n\n" else t2=t2+";\n" end
+      if opener=='' then t2=t2+"\n\n" else t2=t2+";\n" end
       if opener=='def' then current_function_key = "vars_placeholder_global" end
     end
     if !done then
@@ -292,8 +292,10 @@ def translate_assignment(l,current_function_key)
   else
     # multiple assignment
     lvalues = lhs.split(/,/)
-    # rhino -e "var p,q; (function(){var temp=7; p=3; q=temp})(); print(p,q); print(temp);"
     # We need a temporary variable to store the array of values. Hide this inside an anonymous function.
+    # The idea is like this:
+    #   rhino -e "var p,q; (function(){var temp=7; p=3; q=temp})(); print(p,q); print(temp);"
+    #   ... shows p and q as having been modified, dies with an error printing temp because temp was local
     assignments = []
     0.upto(lvalues.length-1) { |i|
       assignments.push("#{lvalues[i]}=temp[#{i}]")
