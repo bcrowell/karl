@@ -38,8 +38,11 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     info = hash with keys below
       message = error message
   """
-  x=CLONE_ARRAY_OF_FLOATS(x0); v=CLONE_ARRAY_OF_FLOATS(v0)
-  lambda_max=opt["lambda_max"]; dlambda=opt["dlambda"]; ndebug=opt["ndebug"]
+  x=CLONE_ARRAY_OF_FLOATS(x0)
+  v=CLONE_ARRAY_OF_FLOATS(v0)
+  lambda_max=opt["lambda_max"]
+  dlambda=opt["dlambda"]
+  ndebug=opt["ndebug"]
   lambda0=0.0
   if hasattr(opt,"lambda0"):
     lambda0=opt["lambda0"]

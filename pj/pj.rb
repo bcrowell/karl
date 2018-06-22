@@ -11,13 +11,8 @@ $local_functions = {}
 # ... keys are names of functions inside this module, which in python are referred to without module. as a prefix
 
 def main()
-  module_name = ''
-  if ARGV.length>0 then module_name = extract_file_stem(ARGV[0]) end
+  module_name = handle_argv(ARGV)
   t = gets(nil)
-  if t=~/^((\s*)if\s+(.*): *[^\s#]+)/ then
-    $stderr.print "Error: if statement on a single line: \'#{$1}\'\n"
-    exit(-1)
-  end
   if t.nil? then exit(-1) end
   is_main = false
   if t=~/\A#!/ then is_main=true end # If it has #!/usr/bin/python3 at the top, it's a program, not a module.
@@ -27,12 +22,26 @@ def main()
   print t
 end
 
+# Returns module_name, and also has side effect of setting the global variable $main_program_name.
+def handle_argv(argv)
+  module_name = ''
+  if argv.length<2 then
+    $stderr.print "Error in pj: command line should supply two arguments"
+    exit(-1)
+  end
+  module_name = extract_file_stem(argv[0])
+  $main_program_name = argv[1]
+  return module_name
+end
+
 def extract_file_stem(filename)
   return filename.sub(/\A(.*)\//,'').sub(/\.[a-z]+/,'')
 end
 
 def process(t,module_name,is_main)
+  choke_on_single_line_if_statements(t)
   t = preprocess(t)
+  choke_on_one_line_multiple_assignment_statements(t)
   t = translate_stuff(t,module_name,is_main)
   t = "vars_placeholder_global\n"+t
   t = qualify_local_functions(t,module_name)
@@ -48,8 +57,8 @@ def header(module_name,is_main)
          --- main program #{module_name} ---
          This was translated from python. Do not edit directly.
       */
-      karl = {};
-      karl.modules_loaded = {};
+      var #{$main_program_name} = {};
+      #{$main_program_name}.modules_loaded = {};
       if (!(typeof window !== 'undefined')) { /* IS_BROWSER can't be defined yet. */
         load("lib/loader.js");
       }
@@ -64,7 +73,7 @@ def header(module_name,is_main)
   end
   h = h + <<-HEADER
       if (typeof #{module_name} === 'undefined') {
-        #{module_name} = {};
+        var #{module_name} = {};
       }
   HEADER
   return h
@@ -76,6 +85,22 @@ def qualify_local_functions(t0,module_name)
     t.gsub!(/(?<![\.\w])#{f}/) {module_name+'.'+f} # change f(x) to module.f(x)
   }
   return t
+end
+
+# Call this before {'s are added on the end.
+def choke_on_single_line_if_statements(t)
+  if t=~/^((\s*)if\s+(.*): *[^\s#]+)/ then
+    $stderr.print "Error: if statement on a single line: \'#{$1}\'\n"
+    exit(-1)
+  end
+end
+
+# Call this after string literals have been protected.
+def choke_on_one_line_multiple_assignment_statements(t)
+  if !(t=~/__NO_TRANSLATION__/) and t=~/^(([^#\n]*)=([^#\n]*);([^#\n]*)=([^#\n]*))/ then
+    $stderr.print "Error: two assignment statements on a single line: \'#{$1}\'\n"
+    exit(-1)
+  end
 end
 
 def translate_stuff(t,module_name,is_main)
@@ -108,7 +133,7 @@ def translate_stuff_one_line(t,module_name,is_main)
     indentation,modules = [$1,$2]
     indentation+modules.split(/,/)\
       .select{ |m| !$modules_not_to_load.include?(m)}\
-      .map{ |m| "karl.load(\"#{m}\")"}\
+      .map{ |m| "#{$main_program_name}.load(\"#{m}\")"}\
       .join(";")
   }
   t.gsub!(/^(\s*)from.*/) {''}
@@ -146,7 +171,6 @@ def preprocess(t)
   t.gsub!(/\t/,"        ")
   # Hand-translated lines are marked with #js comments.
   t = hand_translated_lines(t)
-  #$stderr.print "1"*80+"\n"+t # qwe
   # Protect text of comments from munging:
   t.gsub!(/#([^\n]*)$/) {d=digest("comment"+$1); $protected_strings[d]=$1; '#'+d }
   # Protect string literals:
@@ -300,7 +324,7 @@ def translate_assignment(l,current_function_key)
     0.upto(lvalues.length-1) { |i|
       assignments.push("#{lvalues[i]}=temp[#{i}]")
     }
-    l = "(function(){var temp=#{rhs}; #{assignments.join(';')}})()"
+    l = "(function(){var temp=#{rhs}; #{assignments.join(';')}})()__NO_TRANSLATION__"
   end
   l = translate_expression_common_idioms(l)
   return indentation+l
@@ -396,6 +420,11 @@ def translate_math_using_translate_maxima(e0)
 end
 
 def list_variables_to_declare(lhs,current_function_key)
+  if lhs=~/=/ then
+    $stderr.print "multiple assignments on a single line: #{lhs}"
+    exit(-1)
+  end
+  $stderr.print("list_variables_to_declare, lhs=#{lhs}\n") if lhs=~/karl/; # qwe
   lhs.scan(/[a-zA-Z]\w*/) { |var|
     # Make a list of variables inside this function so that we can declare them.
     # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,

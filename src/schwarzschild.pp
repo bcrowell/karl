@@ -91,7 +91,9 @@ def christoffel(p):
     ch[n][1][n] = 1/r
     ch[1][n][n] = 1/r
   # Fictitious centripetal terms:
-  i=p[2] ; j=p[3]; k=p[4]
+  i=p[2]
+  j=p[3]
+  k=p[4]
   xi2 = i*i+j*j+k*k; # should normally be very close to 1
   for m in range(2,5): # upper index
     z = p[m]

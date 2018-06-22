@@ -105,7 +105,8 @@ def christoffel(p):
   return christoffel_massaged_maxima_output(p)
 
 def christoffel_massaged_maxima_output(p):
-  a=p[0]; b=p[1]
+  a=p[0]
+  b=p[1]
   # Based on christoffel_raw_maxima_output(), but simplified and massaged into a form that won't cause overflows.
   ch = EMPTY3DIM(5)
   #------------------------------------------------------
@@ -151,7 +152,8 @@ def christoffel_massaged_maxima_output(p):
   return ch  
 
 def christoffel_raw_maxima_output(p):
-  a=p[0]; b=p[1]
+  a=p[0]
+  b=p[1]
   # output of kruskal5.mac, plus centripetal terms
   ch = EMPTY3DIM(5)
   #------------------------------------------------------
@@ -201,7 +203,8 @@ def christoffel_raw_maxima_output(p):
   return ch
 
 def christoffel_raw_maxima_output_first_try(p):
-  a=p[0]; b=p[1]
+  a=p[0]
+  b=p[1]
   # output of kruskal5.mac, plus centripetal terms
   ch = EMPTY3DIM(5)
   #------------------------------------------------------
@@ -254,7 +257,9 @@ def add_centripetal(ch,p):
   """
   Modifies ch in place by adding the centripetal parts.
   """
-  i=p[2] ; j=p[3]; k=p[4]
+  i=p[2]
+  j=p[3]
+  k=p[4]
   xi2 = i*i+j*j+k*k; # should normally be very close to 1
   for m in range(2,5): # upper index
     z = p[m]
@@ -270,12 +275,16 @@ def christoffel4(p):
      contravariant on final index
   """
   ch = EMPTY3DIM(4)
-  a=p[0] ; b=p[1]
+  a=p[0]
+  b=p[1]
   t,r,mu = aux(a,b)
   ta = math_util.safe_tanh(a)
   tb = math_util.safe_tanh(b)
   # FIXME: In the following, we'll get overflows if a or b is large; massage the equations to avoid this problem.
-  ca=cosh(a); cb=cosh(b); sa=sinh(a); sb=sinh(b)
+  ca=cosh(a)
+  cb=cosh(b)
+  sa=sinh(a)
+  sb=sinh(b)
   q = (1.0/r+1.0/(r*r))
   big_b = (4.0/r)*exp(-r)
   eighth_r = r/8.0

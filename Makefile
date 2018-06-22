@@ -61,7 +61,7 @@ test_js:
 
 $(JS)/%.js: $(SRC)/%.pp
 	@filepp -DLANG=js $< -o $@i
-	pj/pj.rb $@i <$@i >$@
+	pj/pj.rb $@i karl <$@i >$@
 	@-js-beautify --replace -n $@
 
 clean:
