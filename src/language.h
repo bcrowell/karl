@@ -15,6 +15,7 @@
 #define EMPTY3DIM(x) [[[0 for i in range(x)] for j in range(x)] for k in range(x)]
 #define PRINT print
 #define THROW(message) raise RuntimeError(message)
+#define MATH_E math.e
 #endif
 
 #if "LANG" eq "js"
@@ -33,6 +34,7 @@ karl.load("lib/array");
 #define IS_BROWSER (typeof window !== 'undefined')
 # ... https://stackoverflow.com/q/26738943/1142217
 #define THROW(message) throw message;
+#define MATH_E Math.E
 #endif
 
 #endif

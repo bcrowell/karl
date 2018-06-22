@@ -13,7 +13,6 @@ not document the math or the definitions of the variables.)
 #include "precision.h"
 
 import math_util
-from math_util import safe_exp
 import kruskal
 
 def schwarzschild_to_kruskal(t,r):
@@ -52,8 +51,8 @@ def jacobian_schwarzschild_to_kruskal(t,r):
   """
   jacobian = EMPTY2DIM(2)
   log_r_minus_1 = log(abs(r-1))
-  xpi2 = safe_exp(-log_r_minus_1-(r+t)) # x_+^{-2}
-  xmi2 = safe_exp(-log_r_minus_1-(r-t)) # x_-^{-2}
+  xpi2 = math_util.safe_exp(-log_r_minus_1-(r+t)) # x_+^{-2}
+  xmi2 = math_util.safe_exp(-log_r_minus_1-(r-t)) # x_-^{-2}
   if r>1.0:
     s = 1.0 # region I
   else:

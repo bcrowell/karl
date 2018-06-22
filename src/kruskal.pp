@@ -22,7 +22,6 @@ not document the math or the definitions of the variables.)
 from io_util import fl
 
 import math_util
-from math_util import safe_exp
 import lambert_w_stuff
 
 def metric_ks4(p):
@@ -55,8 +54,8 @@ def aux(a,b):
     # Flip to positive a in order to simplify some later computations.
     return aux(-a,-b)
   # From now on, we know a>=0.
-  e2a = safe_exp(-2*a)
-  e2b = safe_exp(-2*abs(b))
+  e2a = math_util.safe_exp(-2*a)
+  e2b = math_util.safe_exp(-2*abs(b))
   # From now on, we know we're in region I or II, a>0.
   f = (1.0-e2a)*(1.0-e2b)
   u = a+abs(b)+log(f/4.0)-1.0
@@ -67,9 +66,9 @@ def aux(a,b):
     # region II
     if u>-1:
       return [NONE,NONE,NONE] # beyond the singularity
-    r = 1.0+lambert_w(-safe_exp(u))
+    r = 1.0+lambert_w(-math_util.safe_exp(u))
   # Compute mu:
-  mu = (1.0+e2a)*(1.0+e2b)*(1/(2*math.e*r))*exp(a+abs(b)-(r-1))
+  mu = (1.0+e2a)*(1.0+e2b)*(1/(2*MATH_E*r))*exp(a+abs(b)-(r-1))
   # Compute t:
   if a!=0 and b!=0 and IS_REAL(r):
     t = a-abs(b)+log((1-e2a)/(1-e2b))
