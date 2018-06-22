@@ -25,9 +25,9 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
                then we print debugging information at every 100th step
     lambda0 = initial affine parameter, defaults to 0
     norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
-                 default=True
+                 default=TRUE
     do_limit_change = boolean, should we do a sanity check by limiting changes in coordinates per step,
-            die if limit is violated?; default=False
+            die if limit is violated?; default=FALSE
     limit_change = this is approximately the maximum fractional change in r or 1/10 the maximum change in i,j,k,
             expressed in units of 1/n; default: 1
   returns
@@ -44,20 +44,20 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   dlambda=opt["dlambda"]
   ndebug=opt["ndebug"]
   lambda0=0.0
-  if hasattr(opt,"lambda0"):
+  if HASATTR(opt,"lambda0"):
     lambda0=opt["lambda0"]
-  norm_final = True
-  if hasattr(opt,"norm_final"):
+  norm_final = TRUE
+  if HASATTR(opt,"norm_final"):
     norm_final=opt["norm_final"]
   n = math.ceil(lambda_max/dlambda)
-  do_limit_change = False
-  if hasattr(opt,"do_limit_change"):
+  do_limit_change = FALSE
+  if HASATTR(opt,"do_limit_change"):
     do_limit_change=opt["do_limit_change"]
   if do_limit_change:
     limit_change = 1.0/n
-    if hasattr(opt,"limit_change"):
+    if HASATTR(opt,"limit_change"):
       do_limit_change=float(opt["do_limit_change"])/n
-  ok = False
+  ok = FALSE
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
   else:
@@ -124,7 +124,7 @@ def check_limit_change(spacetime,chart,x,dx,limit_change):
   """
   Sanity check to flag sudden large changes in coordinates.
   """
-  ok = True
+  ok = TRUE
   if (spacetime|chart)==(SP_SCH|CH_SCH):
     rel_dr=abs(dx[1])/x[1]
   if (spacetime|chart)==(SP_SCH|CH_AKS):
@@ -142,21 +142,21 @@ def mess(stuff):
   return {'message':io_util.strcat(stuff)}
 
 def chart_info(spacetime,chart):
-  recognized = False
+  recognized = FALSE
   if (spacetime|chart)==(SP_SCH|CH_SCH):
-    return [True,5,schwarzschild.christoffel]
+    return [TRUE,5,schwarzschild.christoffel]
   if (spacetime|chart)==(SP_SCH|CH_AKS):
-    return [True,5,kruskal.christoffel]
-  return [False,None,None]
+    return [TRUE,5,kruskal.christoffel]
+  return [FALSE,None,None]
 
 def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
   """
   Prints debugging info and returns the updated debug_count.
   """
-  do_debug = False
+  do_debug = FALSE
   if ndebug!=0 and (debug_count>=steps_between_debugging):
     debug_count = 0
-    do_debug = True
+    do_debug = TRUE
   if do_debug:
     PRINT("i=",iter," lam=",("%4.2e" % lam), \
                       " x=",io_util.vector_to_str_n_decimals(x,1), \

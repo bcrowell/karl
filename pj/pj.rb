@@ -10,6 +10,9 @@ $modules_not_to_load = ['numpy','scipy','math','sys']
 $local_functions = {}
 # ... keys are names of functions inside this module, which in python are referred to without module. as a prefix
 
+$math_functions = "sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w|floor|ceil"
+                       # ... see similar list in fns_to_prepend_with_math in translate_maxima.
+
 def main()
   module_name = handle_argv(ARGV)
   t = gets(nil)
@@ -298,7 +301,7 @@ end
 # Heuristic pattern matching to see whether a line of code has math that needs to be
 # translated.
 def has_math(l)
-  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|lambert_w|floor|\*\*)/) then return true end
+  if (l=~/(sin|cos|tan|exp|log|sqrt|abs|lambert_w|floor|ceil|\*\*)/) then return true end
   return false
 end
 
@@ -376,10 +379,9 @@ def translate_math_expression(e0)
     e.gsub!(/protectme([0-9]+)/) {protect[$1.to_i]}
   else
     # Look for one of these math functions that is not preceded by a word char, and that is followed by a (.
-    e.gsub!(/(?<!\w)(sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w|floor)(?=\()/) {
-      "Math.#{$1}"
-    }
-    #     ... see similar list in fns_to_prepend_with_math in translate_maxima.
+    # If it's already qualified, like math.ceil, don't produce math.Math.ceil.
+    e.gsub!(/(?<!\w)(?<!math\.)(#{$math_functions})(?=\()/) {"Math."+$1}
+    e.gsub!(/math\.(#{$math_functions})(?=\()/) {"Math."+$1}
   end
   return [e,err]
 end

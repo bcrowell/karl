@@ -35,6 +35,7 @@ test: $(PY)
 	@for test in $(TESTS); do \
 	  $(PYTHON3) $(OBJ)/test_$${test}.py; \
 	done
+	@echo "To make this a real test, do: rm obj/*.py ; make test"
 
 test_kruskal: $(PY)
 	$(PYTHON3) $(OBJ)/test_kruskal.py

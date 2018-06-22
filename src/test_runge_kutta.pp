@@ -74,7 +74,7 @@ def circular_orbit_period():
   v = [1.0,0.0,0.0,v_phi,0.0]
   n = 100
   period = 2.0*pi/v_phi
-  opt = {'lambda_max':period,'dlambda':period/n,'ndebug':0,'norm_final':False}
+  opt = {'lambda_max':period,'dlambda':period/n,'ndebug':0,'norm_final':FALSE}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
   if verbosity>=2:
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
@@ -117,7 +117,7 @@ def elliptical_orbit_period(r,a,direction,n):
   ndebug=0
   if verbosity>=3:
     ndebug=n/10
-  opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug,'norm_final':False}
+  opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug,'norm_final':FALSE}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(spacetime,chart,x,v,opt)
   if verbosity>=2:
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))

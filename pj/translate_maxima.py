@@ -18,7 +18,7 @@ operators = {'MTIMES':'*','MPLUS':'+','RAT':'/'}
 constants = {'%e':'Math.E','%pi':'Math.PI'}
 fns_to_prepend_with_math = ['sqrt','abs','sin','cos','tan','sinh','cosh','tanh',
                             'arcsinh','arccosh','arctanh','exp','log',
-                            'pow','lambert_w','floor']
+                            'pow','lambert_w','floor','ceil']
 #                          ... see similar list in translate_math2 in pj.
 fns_to_translate = {'mexpt':'pow','mabs':'abs'}
 ##################################################################################################

@@ -1,5 +1,5 @@
 #if "LANG" eq "python"
-IMPORT_LAMBERT_W
+import lambert_w_stuff
 from lambert_w_stuff import lambert_w,lambert_w_of_exp
 import math_util
 from math_util import asinh_of_exp

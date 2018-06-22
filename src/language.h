@@ -20,6 +20,9 @@
 #define CLONE_ARRAY_OF_FLOATS(x) copy.copy(x)
 #          ... need extra parens in usages like CLONE_ARRAY_OF_FLOATS(([x,y])), otherwise filepp gets 
 #              confused by comma and thinks this is multiple arguments
+#define HASATTR(x,y) hasattr((x),(y))
+#define TRUE (True)
+#define FALSE (False)
 #endif
 
 #if "LANG" eq "js"
@@ -43,6 +46,9 @@ karl.load("lib/array");
 #           ... see notes above about usage with array literals
 #define CLONE_FLOAT(x) (x)
 #           ... in JS, numbers are primitives, not objects, so no need clone them
+#define HASATTR(x,y) ((y) in (x))
+#define TRUE (true)
+#define FALSE (false)
 #endif
 
 #endif

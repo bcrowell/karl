@@ -101,7 +101,7 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
   for i in range(2): # 0 for Schwarzschild, 1 for Kruskal
     n = 100
     ndebug = 0
-    if False and verbosity>=3:
+    if FALSE and verbosity>=3:
       PRINT("----------------------")
       ndebug=n/100
     opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug}
@@ -171,12 +171,12 @@ theta = math.pi/2.0
 phi = 0.0
 v = [1.0,0.0,0.0,0.0,0.0] # initially at rest; this gets normalized later
 duration = 0.2
-test_motion_kruskal_vs_schwarzschild(t0,r0,False,theta,phi,v,duration) # region I
-test_motion_kruskal_vs_schwarzschild(t0,r0,True,theta,phi,v,duration) # region III
+test_motion_kruskal_vs_schwarzschild(t0,r0,FALSE,theta,phi,v,duration) # region I
+test_motion_kruskal_vs_schwarzschild(t0,r0,TRUE,theta,phi,v,duration) # region III
 r0 = 0.5
 v = [0.0,-1.0,0.0,0.0,0.0]
-test_motion_kruskal_vs_schwarzschild(t0,r0,False,theta,phi,v,duration) # region II
-test_motion_kruskal_vs_schwarzschild(t0,r0,True,theta,phi,v,duration) # region IV
+test_motion_kruskal_vs_schwarzschild(t0,r0,FALSE,theta,phi,v,duration) # region II
+test_motion_kruskal_vs_schwarzschild(t0,r0,TRUE,theta,phi,v,duration) # region IV
 
 # A test with random values of everything, to exercise all Christoffel symbols:
 r0 = 2.0
@@ -184,7 +184,7 @@ theta = 1.111
 phi = 2.345
 v = [1.0,0.01776,0.01066,0.01492,0.02001]
 duration = 0.2
-test_motion_kruskal_vs_schwarzschild(t0,r0,False,theta,phi,v,duration)
+test_motion_kruskal_vs_schwarzschild(t0,r0,FALSE,theta,phi,v,duration)
 
 # Large r and t, test whether we get any overflows:
 t0 = 0.0
@@ -196,6 +196,6 @@ q = 1/r0 # scale angular motion down by this amount to keep the motion from bein
 v = [1.0,0,0,0,0] # random initial motion
 duration = 1.0e-10 # Kruskal coordinates are not well adapted to covering the motion of
 #                    a nonrelativistic object for long times.
-test_motion_kruskal_vs_schwarzschild(t0,r0,False,theta,phi,v,duration)
+test_motion_kruskal_vs_schwarzschild(t0,r0,FALSE,theta,phi,v,duration)
 
 test.done(verbosity,"kruskal")
