@@ -20,11 +20,11 @@
           return io_util.vector_to_str_n_decimals(v, 3);
       };
       io_util.vector_to_str_n_decimals = function(v, n) {
-          var s = "";
+          var f = [];
           for (var i = 0; i < v.length; i++) {
-              s = s + v[i].toExponential(n).toString();
+              f.push(v[i].toExponential(n).toString());
           }
-          return s;
+          return f.join(',');
       }
       io_util.fl = function(x) {
           return x.toExponential(3).toString();

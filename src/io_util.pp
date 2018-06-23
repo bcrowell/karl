@@ -26,11 +26,11 @@ def vector_to_str_n_decimals(v,n):
   return ','.join(f)
 #endif
 #js io_util.vector_to_str_n_decimals = function(v,n) {
-#js   var s = "";
+#js   var f = [];
 #js   for (var i=0; i<v.length; i++) {
-#js     s = s+v[i].toExponential(n).toString();
+#js     f.push(v[i].toExponential(n).toString());
 #js   }
-#js   return s;
+#js   return f.join(',');
 #js }
 
 #if "LANG" eq "python"
