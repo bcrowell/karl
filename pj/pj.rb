@@ -27,11 +27,11 @@ end
 
 # Returns module_name, and also has side effect of setting the global variable $main_program_name.
 def handle_argv(argv)
-  module_name = ''
   if argv.length<2 then
     $stderr.print "Error in pj: command line should supply two arguments"
     exit(-1)
   end
+  module_name = ''
   module_name = extract_file_stem(argv[0])
   $main_program_name = argv[1]
   return module_name

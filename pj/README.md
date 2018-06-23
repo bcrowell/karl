@@ -16,8 +16,6 @@ Limitations:
 * is so simple that certain stuff will always have to be translated by hand
 * many common idioms and tasks are implemented as macros in language.h, so the translator doesn't have to handle them
 
-
-
 Hand-translation is handled using active comments that look like this:
 
     x = [0 for i in range(2)] \
@@ -38,7 +36,7 @@ For js code that doesn't have any counterpart in the python code:
     #js foo(bar);
 
 In assignment statements, if certain keywords such as sin, log, **, ... occur in the
-rhs of the source code, run the rhs through translate_maxima.
+rhs of the source code, pj runs the rhs through translate_maxima.
 
 The script should be invoked with a command-line argument that specifies the name of the module, to
 be prepended to all function definitions. Following python's convention, this would normally be the
