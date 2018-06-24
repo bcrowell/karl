@@ -49,7 +49,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   norm_final = TRUE
   if HASATTR(opt,"norm_final"):
     norm_final=opt["norm_final"]
-  n = math.ceil(lambda_max/dlambda)
+  n = math.ceil((lambda_max-lambda0)/dlambda)
   do_limit_change = FALSE
   if HASATTR(opt,"do_limit_change"):
     do_limit_change=opt["do_limit_change"]
