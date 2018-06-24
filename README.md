@@ -32,7 +32,15 @@ not document the math or the definitions of the variables.)
 It's written in python3 and requires the scipy and numpy libraries, and the filepp utility,
 which can be installed on a debian
 system by doing `apt-get install python-scipy3 python-numpy3 filepp`.
-To translate python to javascript:
+If you want to be able to modify the python code and then translate python to javascript:
 
     apt-get install rhino
     pip install jsbeautifier
+
+## In the browser
+
+There is a simple text-based demo in the file browser/sample.html.
+
+The startup scripts in browser/util create the following global variables:
+karl, print, verbosity, and some all-caps constants in constants.js.
+

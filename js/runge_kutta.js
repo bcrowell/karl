@@ -25,6 +25,11 @@
       /* The SP_ labels tell us what spacetime we're in. */
       /* The CH_ labels refer to charts within that particular spacetime. */
       /* These are designed so that we can bitwise or them. */
+      /* The physics code is written in python, and the js version is automatically translated */
+      /* from python, so it has already had these constants substituted in via filepp. But */
+      /* For browser-based user interface code written in js, these constants are also */
+      /* defined in util/constants.js. */
+      /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
       /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
@@ -95,7 +100,7 @@
               steps_between_debugging = ndebug;
           }
           debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
-          lam = 0.0;
+          lam = lambda0;
           (function() {
               var temp = runge_kutta.chart_info(spacetime, chart);
               ok = temp[0];
@@ -230,7 +235,7 @@
               do_debug = (true);
           }
           if (do_debug) {
-              print("i=", iter, " lam=", ("%4.2e" % lam), " x=", io_util.vector_to_str_n_decimals(x, 1), " v=", io_util.vector_to_str_n_decimals(v, 1));
+              print("i=", iter, " lam=", io_util.fl(lam), " x=", io_util.vector_to_str_n_decimals(x, 1), " v=", io_util.vector_to_str_n_decimals(v, 1));
           }
           return debug_count + 1;;
       };

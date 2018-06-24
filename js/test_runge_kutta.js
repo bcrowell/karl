@@ -10,7 +10,7 @@
       if (typeof test_runge_kutta === 'undefined') {
           var test_runge_kutta = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, r, a, direction, n;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, r, a, direction, verbosity, n;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
@@ -37,6 +37,11 @@
       /* The SP_ labels tell us what spacetime we're in. */
       /* The CH_ labels refer to charts within that particular spacetime. */
       /* These are designed so that we can bitwise or them. */
+      /* The physics code is written in python, and the js version is automatically translated */
+      /* from python, so it has already had these constants substituted in via filepp. But */
+      /* For browser-based user interface code written in js, these constants are also */
+      /* defined in util/constants.js. */
+      /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
       /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
@@ -229,7 +234,7 @@
       r = 1.0e8;
       a = 1.1;
       direction = 0.0;
-      /*verbosity=3 */
+      verbosity = 3;
       n = 100;
       test_runge_kutta.elliptical_orbit_period(r, a, direction, n);
       test.done(verbosity, "runge_kutta");

@@ -63,7 +63,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   else:
     steps_between_debugging=ndebug
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
-  lam = 0.0
+  lam = lambda0
   ok,ndim,christoffel_function = chart_info(spacetime,chart)
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
@@ -157,7 +157,7 @@ def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
     debug_count = 0
     do_debug = TRUE
   if do_debug:
-    PRINT("i=",iter," lam=",("%4.2e" % lam), \
+    PRINT("i=",iter," lam=",io_util.fl(lam), \
                       " x=",io_util.vector_to_str_n_decimals(x,1), \
                       " v=",io_util.vector_to_str_n_decimals(v,1))
   return debug_count+1

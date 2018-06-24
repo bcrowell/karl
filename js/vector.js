@@ -25,6 +25,11 @@
       /* The SP_ labels tell us what spacetime we're in. */
       /* The CH_ labels refer to charts within that particular spacetime. */
       /* These are designed so that we can bitwise or them. */
+      /* The physics code is written in python, and the js version is automatically translated */
+      /* from python, so it has already had these constants substituted in via filepp. But */
+      /* For browser-based user interface code written in js, these constants are also */
+      /* defined in util/constants.js. */
+      /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
       /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
       karl.load("schwarzschild");
