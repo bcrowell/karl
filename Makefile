@@ -59,10 +59,11 @@ $(PY): $(OBJ)/%.py: $(SRC)/%.pp $(SRC)/*.h
 	filepp -DLANG=python $< -o $@
 	@chmod +x $@
 
-$(OBJ)/karl.so: src/apply_christoffel.c
-	gcc -c -Wall -Werror -fpic src/apply_christoffel.c -o $(OBJ)/karl.o
-	gcc -shared -o $(OBJ)/karl.so $(OBJ)/karl.o
-	@rm -f $(OBJ)/karl.o
+$(OBJ)/%.o: $(SRC)/%.c $(SRC)/*.h
+	gcc -c -Wall -Werror -fpic $< -o $@
+
+$(OBJ)/karl.so: $(OBJ)/apply_christoffel.o $(OBJ)/lambert_w.o
+	gcc -shared -o $(OBJ)/karl.so $(OBJ)/apply_christoffel.o $(OBJ)/lambert_w.o
 
 $(BROWSER_PHYSICS_FILES): $(BROWSER_PHYSICS)/%.js: $(JS)/%.js
 	@mkdir -p $(BROWSER_PHYSICS)
