@@ -9,11 +9,11 @@ black holes.
 Current features:
 
 * the Schwarzschild spacetime
-* Kruskal-Szekeres coordinates 
 * Schwarzschild coordinates
+* Kruskal-Szekeres coordinates 
 * Christoffel symbols
 * test suite
-* implementation in both python and javascript
+* implementation in both python and javascript, with time-critical code written in C for speed
 * computation of geodesics using Runge-Kutta integration
 
 Features I plan to add:
@@ -46,3 +46,45 @@ karl, print, verbosity, and some all-caps constants in constants.js.
 
 Surprisingly, the javascript version runs about 30 times faster than the
 python version.
+
+## Notes on performance
+
+Surprisingly (for me), the javascript implementation is an order of magnitude faster than
+the python version, even after the time-critical python code was rewritten in C for speed.
+
+Typical users of the js version will probably be using it in a browser, but if using it
+on the command line through rhino, an extra speed boost can be achieved by running
+rhino with the option -opt 9. This is not done by the tests by default, because it
+prevents debugging information from being printed.
+
+## Bugs
+
+In test_kruskal, the test test_motion_kruskal_vs_schwarzschild fails due to poor
+precision if we replace n=100 with n=1000. Is this 4th-order behavior with a larger
+constant of proportionality than I'd imagined, or is it a bug or a sign of numerical
+instability in Kruskal coordinates?
+
+## To do
+
+In the Runge-Kutta code, allow a trigger to be set when a coordinate or its derivative
+passes a certain threshold, either in the positive direction or in the negative
+direction. This allows us to, e.g., stop when we reach perihelion (r' crosses zero,
+going from negative to positive), or when the geodesic is incomplete
+(r crosses zero).
+
+Wrap the simple Runge-Kutta routine in a fancier one that is adaptive, so that we can,
+e.g., accurately determine the affine parameter at which we hit the singularity.
+Also, the adaptive routine should automatically switch coordinate systems when
+appropriate. Kruskal coordinates should be used only near the horizon.
+(Disadvantages of Kruskal coordinates: computationally expensive, computationally
+expensive in arcsinh-Kruskal to determine when we've hit the singularity.)
+
+## Ideas for samples and educational apps
+
+Animation of a cloud of test particles undergoing tidal distortions.
+
+Animation on a Penrose diagram.
+Show a spacelike geodesic crossing from region I to region III, or timelike geodesics
+from I and III meeting in II.
+
+Make a 2-d spacewars-style game.
