@@ -11,8 +11,6 @@ import lambert_w_stuff
 #if "LANG" eq "python"
 import ctypes
 import c_libs
-#...don't import karl_c_lib this way, because you get a copy of it in whatever state it was in?
-#    https://stackoverflow.com/a/142601/1142217 -- comment by Paul Whipp
 #endif
 
 z = 0.1492

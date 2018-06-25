@@ -12,6 +12,11 @@
 
 import kruskal,transform,runge_kutta,angular,vector,lambert_w_stuff
 
+#if "LANG" eq "python"
+import ctypes
+import c_libs
+#endif
+
 def test_round_trip_ksk(a,b):
   # We don't expect this to work if we're in regions III or IV, which can't be represented in S coords.
   t,r,mu = kruskal.aux(a,b)
@@ -99,7 +104,7 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
     PRINT("v0k=",io_util.vector_to_str_n_decimals(v0k,8))
   # ---
   for i in range(2): # 0 for Schwarzschild, 1 for Kruskal
-    n = 100
+    n = 100 # fails with n=1000, why?
     ndebug = 0
     if FALSE and verbosity>=3:
       PRINT("----------------------")
@@ -130,9 +135,56 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
   eps = 1000.0/n**4
   test.assert_rel_equal_eps_vector(xfs,xfk,eps)
 
+def test_aux_python_vs_c(a,b):
+  t,r,mu = kruskal.aux(a,b)
+  t2 = ctypes.c_double(0.0)
+  r2 = ctypes.c_double(0.0)
+  mu2 = ctypes.c_double(0.0)
+  c_libs.karl_c_lib.aux(ctypes.byref(t2),ctypes.byref(r2),ctypes.byref(mu2),ctypes.c_double(a),ctypes.c_double(b))
+  if verbosity>=3:
+    print("t=",t,", r=",r,", mu=",mu)
+    print("t2=",t2,", r2=",r2,", mu2=",mu2)
+  # The results are exactly equal, which is a little surprising, since the implementations of W are different.
+  # But I tested by intentionally altering one function, and the test did catch it.
+  test.assert_rel_equal_eps(t,t2.value,EPS)
+  test.assert_rel_equal_eps(r,r2.value,EPS)
+  test.assert_rel_equal_eps(mu,mu2.value,EPS)
+
+# The following only works if j==k, for the reasons explained in two comments below.
+def test_christoffel_python_vs_c(a,b,j,k,i):
+  if j!=k: THROW('j!=k')
+  p = numpy.asarray([a,b,0.8,0.6,0.0,  0.0,0.0,0.0,0.0,0.0])
+  p[5+j] = 1.0
+  p[5+k] = 1.0
+  ch = kruskal.christoffel(p)
+  ch1=ch[j][k][i] # if j!=k, then there are two such terms, and the effect is double this
+  a = numpy.asarray([0.0,0.0,0.0,0.0,0.0])
+  p = p.astype(numpy.float64)
+  a = a.astype(numpy.float64)
+  c_double_p = ctypes.POINTER(ctypes.c_double)
+  c_libs.karl_c_lib.sum_christoffel_sch_aks(p.ctypes.data_as(c_double_p),a.ctypes.data_as(c_double_p))
+  ch2 = -a[i] # if j!=k, then we have terms Gamma^i_jj and Gamma^i_kk contributing
+  test.assert_rel_equal_eps(ch1,ch2,5*EPS)
+
 #--------------------------------------------------------------------------
 # run tests
 #--------------------------------------------------------------------------
+
+a=0.1
+b=0.234
+test_aux_python_vs_c(a,b)
+test_christoffel_python_vs_c(a,b,0,0,0)
+test_christoffel_python_vs_c(a,b,1,1,0)
+test_christoffel_python_vs_c(a,b,0,0,1)
+test_christoffel_python_vs_c(a,b,1,1,1)
+
+a=0.1
+b=-0.234
+test_aux_python_vs_c(a,b)
+test_christoffel_python_vs_c(a,b,0,0,0)
+test_christoffel_python_vs_c(a,b,1,1,0)
+test_christoffel_python_vs_c(a,b,0,0,1)
+test_christoffel_python_vs_c(a,b,1,1,1)
 
 def test_christoffel_symmetry(ch):
   l = len(ch)

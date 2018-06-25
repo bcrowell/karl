@@ -77,7 +77,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   use_c = false; __NO_TRANSLATION__
 #endif
 #if "LANG" eq "python"
-  use_c = ((spacetime|chart)==(SP_SCH|CH_SCH))
+  use_c = ((spacetime|chart)==(SP_SCH|CH_SCH)) or ((spacetime|chart)==(SP_SCH|CH_AKS))
 #endif
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]

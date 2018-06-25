@@ -49,6 +49,7 @@ def aux(a,b):
   The quantity mu is the coefficient in the line element, ds^2 = 2 mu da db -...,
   i.e., it's the matrix element g_ab of the metric. Returns t=None for points on a horizon.
   Returns None for all three variables if a and b lie beyond the singularity.
+  There is also a C implementation of this function.
   """
   if a<0:
     # Flip to positive a in order to simplify some later computations.
@@ -111,8 +112,6 @@ def christoffel_massaged_maxima_output(p):
   ch = EMPTY3DIM(5)
   #------------------------------------------------------
   t,r,mu = aux(a,b)
-  r2 = r*r
-  r2e = (1/r2)*exp(-r)
   tanha = math_util.safe_tanh(a)
   tanhb = math_util.safe_tanh(b)
   q = (mu/2)*(1.0+1.0/r)

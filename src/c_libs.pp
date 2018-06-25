@@ -14,6 +14,7 @@ karl_c_lib.veberic_lambert_w.restype = ctypes.c_double
 karl_c_lib.veberic_lambert_w.argtypes = [ctypes.c_double]
 karl_c_lib.lambert_w_of_exp.restype = ctypes.c_double
 karl_c_lib.lambert_w_of_exp.argtypes = [ctypes.c_double]
+karl_c_lib.aux.argtypes = [c_double_p,c_double_p,c_double_p,ctypes.c_double,ctypes.c_double]
 #endif
 
 
