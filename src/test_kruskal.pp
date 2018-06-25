@@ -47,7 +47,7 @@ def simple_free_fall():
     THROW('error: '+info['message'])
   tf,rf = transform.kruskal_to_schwarzschild(final_x[0],final_x[1])
   delta_r = r0-rf
-  m=1/2 # coordinates are such that mass=1/2
+  m=0.5 # coordinates are such that mass=1/2
   g=m/r0**2 # approximate as constant accel
   delta_r_newtonian = 0.5*g*lambda_max**2
   test.assert_rel_equal_eps(delta_r,delta_r_newtonian,0.02)
