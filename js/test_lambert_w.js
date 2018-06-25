@@ -5,10 +5,10 @@
       var karl = {};
       karl.modules_loaded = {};
       if (!(typeof window !== 'undefined')) { /* IS_BROWSER can't be defined yet. */
-          load("lib/loader.js");
+        load("lib/loader.js");
       }
       if (typeof test_lambert_w === 'undefined') {
-          var test_lambert_w = {};
+        var test_lambert_w = {};
       }
       var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, z, u, w;
 
@@ -20,13 +20,13 @@
       /*           ... see notes above about usage with array literals */
       /*           ... in JS, numbers are primitives, not objects, so no need clone them */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
-          /* load() works in rhino,  !  sure about other engines */
-          load("lib/math.js");
-          if (typeof one_over_E === 'undefined') {
-              load("lib/lambertw.js")
-          }
-          load("lambert_w_stuff.js");
-          Math.karl = 1;
+        /* load() works in rhino,  !  sure about other engines */
+        load("lib/math.js");
+        if (typeof one_over_E === 'undefined') {
+          load("lib/lambertw.js")
+        }
+        load("lambert_w_stuff.js");
+        Math.karl = 1;
       }
       /* ... relative precision for arithmetic */
       /* ... ln of (1.0e-16) */
@@ -42,11 +42,11 @@
       test.assert_rel_equal_eps(z, Math.lambert_w(z * Math.exp(z)), 5 * (1.0e-16));
       u = 1.0;
       for (var i = 0; i < 90; i++) {
-          w = lambert_w_stuff.lambert_w_of_exp(u);
-          if (verbosity >= 3) {
-              print("====== In test_lambert_w, u=", u, ", w=", w);
-          }
-          assert_rel_equal(u, Math.log(w) + w);
-          u = u * 2.5; /* a little less than e, to try to work out all possible whole-number parts of ln(u) */
+        w = lambert_w_stuff.lambert_w_of_exp(u);
+        if (verbosity >= 3) {
+          print("====== In test_lambert_w, u=", u, ", w=", w);
+        }
+        assert_rel_equal(u, Math.log(w) + w);
+        u = u * 2.5; /* a little less than e, to try to work out all possible whole-number parts of ln(u) */
       };
       test.done(verbosity, "lambert_w");

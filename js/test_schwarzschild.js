@@ -5,10 +5,10 @@
       var karl = {};
       karl.modules_loaded = {};
       if (!(typeof window !== 'undefined')) { /* IS_BROWSER can't be defined yet. */
-          load("lib/loader.js");
+        load("lib/loader.js");
       }
       if (typeof test_schwarzschild === 'undefined') {
-          var test_schwarzschild = {};
+        var test_schwarzschild = {};
       }
       var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, t, r, sin_theta, cos_theta, i, j, k, ch4, ch5;
 
@@ -20,13 +20,13 @@
       /*           ... see notes above about usage with array literals */
       /*           ... in JS, numbers are primitives, not objects, so no need clone them */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
-          /* load() works in rhino,  !  sure about other engines */
-          load("lib/math.js");
-          if (typeof one_over_E === 'undefined') {
-              load("lib/lambertw.js")
-          }
-          load("lambert_w_stuff.js");
-          Math.karl = 1;
+        /* load() works in rhino,  !  sure about other engines */
+        load("lib/math.js");
+        if (typeof one_over_E === 'undefined') {
+          load("lib/lambertw.js")
+        }
+        load("lambert_w_stuff.js");
+        Math.karl = 1;
       }
       /* This should only be included (and executed) once, by the main program. */
       load("test.js");;
@@ -36,16 +36,16 @@
       assert_equal_eps = test.assert_equal_eps;;
       karl.load("schwarzschild");
       test_schwarzschild.test_christoffel_symmetry = function(ch) {
-          var l;
+        var l;
 
-          l = ch.length;
-          for (var i = 0; i < l; i++) {
-              for (var j = 0; j < l; j++) {
-                  for (var k = 0; k < l; k++) {
-                      test.assert_equal(ch[i][j][k], ch[j][i][k]);
-                  }
-              }
+        l = ch.length;
+        for (var i = 0; i < l; i++) {
+          for (var j = 0; j < l; j++) {
+            for (var k = 0; k < l; k++) {
+              test.assert_equal(ch[i][j][k], ch[j][i][k]);
+            }
           }
+        }
       };
       /* Exercise as many lines of code as possible, using random coordinates. */
       t = 3.3;

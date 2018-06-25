@@ -4,6 +4,14 @@
 #include "io_util.h"
 #include "spacetimes.h"
 #include "runge_kutta.h"
+#if "LANG" eq "python"
+import ctypes,numpy
+import c_libs
+from c_libs import c_double_p
+#...don't import karl_c_lib this way, because you get a copy of it in whatever state it was in?
+#    https://stackoverflow.com/a/142601/1142217 -- comment by Paul Whipp
+#endif
+
 
 from io_util import fl
 
@@ -65,6 +73,13 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = lambda0
   ok,ndim,christoffel_function = chart_info(spacetime,chart)
+#if "LANG" eq "js"
+  use_c = false; __NO_TRANSLATION__
+#endif
+#if "LANG" eq "python"
+  use_c = ((spacetime|chart)==(SP_SCH|CH_SCH))
+  use_c = False # doesn't work yet
+#endif
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
   ndim2 = ndim*2 # Reduce 2nd-order ODE to ndim2 coupled 1st-order ODEs.
@@ -93,14 +108,31 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
       if step==3:
         for i in range(0,ndim2):
           y[i] = y0[i]+est[2][i]
-      ch = christoffel_function(y)
       for i in range(0,ndim2): est[step][i]=0.0
-      for i in range(0, ndim):
-        a = 0.0 # is essentially the acceleration
-        for j in range(0, ndim):
-          for k in range(0, ndim):
-            a -= ch[j][k][i]*y[ndim+j]*y[ndim+k]
-        est[step][ndim+i] = a*dlambda
+      if use_c:
+        # use faster C implementation:
+#if "LANG" eq "python"
+        a = numpy.zeros((ndim,)) # fixme -- allocate this only once
+        a = a.astype(numpy.float64) # fixme ...
+        p = numpy.zeros((ndim,))
+        p = p.astype(numpy.float64) # fixme ...
+        for i in range(0, ndim):
+          p[i]=y[i]
+        c_libs.karl_c_lib.apply_christoffel(spacetime,chart,
+                p.ctypes.data_as(c_double_p),
+                a.ctypes.data_as(c_double_p),
+                ctypes.c_double(dlambda))
+        for i in range(0, ndim):
+          est[step][ndim+i] = a[i] # C routine takes care of multiplying a by dlambda
+#endif
+      else:
+        ch = christoffel_function(y)
+        for i in range(0, ndim):
+          a = 0.0 # is essentially the acceleration
+          for j in range(0, ndim):
+            for k in range(0, ndim):
+              a -= ch[j][k][i]*y[ndim+j]*y[ndim+k]
+          est[step][ndim+i] = a*dlambda
       for i in range(0, ndim):
         est[step][i] = y[ndim+i]*dlambda
     lam= lam+dlambda

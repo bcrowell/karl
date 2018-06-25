@@ -29,6 +29,7 @@
       /* from python, so it has already had these constants substituted in via filepp. But */
       /* For browser-based user interface code written in js, these constants are also */
       /* defined in util/constants.js. */
+      /* There is also a spacetimes_c.h version of this file for C sources. */
       /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
       /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
@@ -107,6 +108,7 @@
           ndim = temp[1];
           christoffel_function = temp[2]
         })();
+        use_c = false;
         if (!ok) {
           return [1, x, v, 0.0, runge_kutta.mess(["unrecognized spacetime or chart: ", spacetime, " ", chart])];
         }
@@ -145,16 +147,20 @@
                 y[i] = y0[i] + est[2][i];
               }
             }
-            ch = christoffel_function(y);
             for (var i = 0; i < ndim2; i++);
-            for (var i = 0; i < ndim; i++) {
-              a = 0.0; /* is essentially the acceleration */
-              for (var j = 0; j < ndim; j++) {
-                for (var k = 0; k < ndim; k++) {
-                  a -= ch[j][k][i] * y[ndim + j] * y[ndim + k];
+            if (use_c) {
+              /* use faster C implementation: */
+            } else {
+              ch = christoffel_function(y);
+              for (var i = 0; i < ndim; i++) {
+                a = 0.0; /* is essentially the acceleration */
+                for (var j = 0; j < ndim; j++) {
+                  for (var k = 0; k < ndim; k++) {
+                    a -= ch[j][k][i] * y[ndim + j] * y[ndim + k];
+                  }
                 }
+                est[step][ndim + i] = a * dlambda;
               }
-              est[step][ndim + i] = a * dlambda;
             }
             for (var i = 0; i < ndim; i++) {
               est[step][i] = y[ndim + i] * dlambda;

@@ -14,7 +14,7 @@ PY = \
     $(OBJ)/angular.py        $(OBJ)/test_angular.py \
     $(OBJ)/math_util.py      $(OBJ)/test_math_util.py \
     $(OBJ)/vector.py         $(OBJ)/test_vector.py \
-    $(OBJ)/test_math.py
+    $(OBJ)/test_math.py      $(OBJ)/c_libs.py
 
 JS_FILES = \
     $(JS)/io_util.js          $(JS)/test.js \
@@ -47,11 +47,15 @@ test: $(PY)
 	@for test in $(TESTS); do \
 	  $(PYTHON3) $(OBJ)/test_$${test}.py; \
 	done
-	@echo "To make this a real test, do: rm obj/*.py ; make test . Otherwise is doesn't test for regressions in PJ."
 
 $(PY): $(OBJ)/%.py: $(SRC)/%.pp $(SRC)/*.h
 	filepp -DLANG=python $< -o $@
 	@chmod +x $@
+
+$(OBJ)/karl.so: src/apply_christoffel.c
+	gcc -c -Wall -Werror -fpic src/apply_christoffel.c -o $(OBJ)/karl.o
+	gcc -shared -o $(OBJ)/karl.so $(OBJ)/karl.o
+	@rm -f $(OBJ)/karl.o
 
 $(BROWSER_PHYSICS_FILES): $(BROWSER_PHYSICS)/%.js: $(JS)/%.js
 	@mkdir -p $(BROWSER_PHYSICS)

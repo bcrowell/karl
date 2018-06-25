@@ -5,10 +5,10 @@
       var karl = {};
       karl.modules_loaded = {};
       if (!(typeof window !== 'undefined')) { /* IS_BROWSER can't be defined yet. */
-          load("lib/loader.js");
+        load("lib/loader.js");
       }
       if (typeof test_angular === 'undefined') {
-          var test_angular = {};
+        var test_angular = {};
       }
       var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, x, n, v;
 
@@ -20,13 +20,13 @@
       /*           ... see notes above about usage with array literals */
       /*           ... in JS, numbers are primitives, not objects, so no need clone them */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
-          /* load() works in rhino,  !  sure about other engines */
-          load("lib/math.js");
-          if (typeof one_over_E === 'undefined') {
-              load("lib/lambertw.js")
-          }
-          load("lambert_w_stuff.js");
-          Math.karl = 1;
+        /* load() works in rhino,  !  sure about other engines */
+        load("lib/math.js");
+        if (typeof one_over_E === 'undefined') {
+          load("lib/lambertw.js")
+        }
+        load("lambert_w_stuff.js");
+        Math.karl = 1;
       }
       /* This should only be included (and executed) once, by the main program. */
       load("test.js");;

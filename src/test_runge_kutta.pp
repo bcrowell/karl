@@ -138,7 +138,7 @@ circular_orbit_period()
 r = 1.0e8
 a = 1.1
 direction = 0.0
-verbosity=3
+#verbosity=3
 n = 100
 elliptical_orbit_period(r,a,direction,n)
 

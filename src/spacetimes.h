@@ -5,6 +5,7 @@
 # from python, so it has already had these constants substituted in via filepp. But
 # For browser-based user interface code written in js, these constants are also
 # defined in util/constants.js.
+# There is also a spacetimes_c.h version of this file for C sources.
 
 #define SP_SCH 256
 # ... Schwarzschild spacetime

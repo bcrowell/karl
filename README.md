@@ -44,3 +44,5 @@ There is a simple text-based demo in the file browser/sample.html.
 The startup scripts in browser/util create the following global variables:
 karl, print, verbosity, and some all-caps constants in constants.js.
 
+Surprisingly, the javascript version runs about 30 times faster than the
+python version.
