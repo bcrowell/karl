@@ -15,11 +15,14 @@ import runge_kutta,angular,vector
 #--------------------------------------------------------------------------------------------------
 
 def smoke_test():
-  # Free fall from rest, from 10 Schwarzschild radii. 
+  # Free fall from rest, from 3 Schwarzschild radii. 
   # Affine param is approximately but not exactly equal to proper time.
   x = [0.0,10.0,1.0,0.0,0.0]
   v = [1.0,0.0,0.0,0.0,0.0]
-  opt = {'lambda_max':3.0,'dlambda':0.1,'ndebug':0}
+  ndebug=0
+  if verbosity>=3:
+    ndebug=1
+  opt = {'lambda_max':100.0,'dlambda':10.0,'ndebug':ndebug}
   err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_SCH,x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
@@ -131,6 +134,7 @@ def elliptical_orbit_period(r,a,direction,n):
 
 #--------------------------------------------------------------------------------------------------
 
+#verbosity=3
 smoke_test()
 simple_newtonian_free_fall()
 circular_orbit_period()

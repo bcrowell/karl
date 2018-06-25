@@ -86,6 +86,13 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   if LEN(x)!=ndim or LEN(v)!=ndim:
     return [RK_ERR,x,v,0.0,mess(["x or v has wrong length"])]
   order = 4 # 4th order Runge-Kutta
+#if "LANG" eq "python"
+  # Allocate some arrays that are later repeatedly reused.
+  acc = numpy.zeros((ndim,))
+  acc = acc.astype(numpy.float64)
+  pt = numpy.zeros((ndim2,))
+  pt = pt.astype(numpy.float64)
+#endif
   for iter in range(0,n):
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors
@@ -109,21 +116,18 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
         for i in range(0,ndim2):
           y[i] = y0[i]+est[2][i]
       for i in range(0,ndim2): est[step][i]=0.0
+      #use_c = False
       if use_c:
         # use faster C implementation:
 #if "LANG" eq "python"
-        a = numpy.zeros((ndim,)) # fixme -- allocate this only once
-        a = a.astype(numpy.float64) # fixme ...
-        p = numpy.zeros((ndim,))
-        p = p.astype(numpy.float64) # fixme ...
-        for i in range(0, ndim):
+        for i in range(0, ndim2):
           p[i]=y[i]
         c_libs.karl_c_lib.apply_christoffel(spacetime,chart,
-                p.ctypes.data_as(c_double_p),
-                a.ctypes.data_as(c_double_p),
+                pt.ctypes.data_as(c_double_p),
+                acc.ctypes.data_as(c_double_p),
                 ctypes.c_double(dlambda))
         for i in range(0, ndim):
-          est[step][ndim+i] = a[i] # C routine takes care of multiplying a by dlambda
+          est[step][ndim+i] = acc[i] # C routine takes care of multiplying a by dlambda
 #endif
       else:
         ch = christoffel_function(y)

@@ -148,6 +148,7 @@
               }
             }
             for (var i = 0; i < ndim2; i++);
+            /*use_c = False */
             if (use_c) {
               /* use faster C implementation: */
             } else {

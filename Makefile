@@ -43,10 +43,17 @@ TESTS = math math_util lambert_w angular schwarzschild kruskal transform vector 
 
 VPATH = src
 
-test: $(PY)
+test:
+	make test_py
+	make test_js
+
+test_py: $(PY) $(OBJ)/karl.so
 	@for test in $(TESTS); do \
 	  $(PYTHON3) $(OBJ)/test_$${test}.py; \
 	done
+
+test_runge_kutta: $(PY) $(OBJ)/karl.so
+	$(OBJ)/test_runge_kutta.py
 
 $(PY): $(OBJ)/%.py: $(SRC)/%.pp $(SRC)/*.h
 	filepp -DLANG=python $< -o $@

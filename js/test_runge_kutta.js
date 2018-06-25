@@ -54,16 +54,20 @@
       /*verbosity=2 */
       /*-------------------------------------------------------------------------------------------------- */
       test_runge_kutta.smoke_test = function() {
-        var x, v, opt, err, final_x, final_v, final_lambda, info;
+        var x, v, ndebug, opt, err, final_x, final_v, final_lambda, info;
 
-        /* Free fall from rest, from 10 Schwarzschild radii.  */
+        /* Free fall from rest, from 3 Schwarzschild radii.  */
         /* Affine param is approximately but not exactly equal to proper time. */
         x = [0.0, 10.0, 1.0, 0.0, 0.0];
         v = [1.0, 0.0, 0.0, 0.0, 0.0];
+        ndebug = 0;
+        if (verbosity >= 3) {
+          ndebug = 1;
+        }
         opt = {
-          'lambda_max': 3.0,
-          'dlambda': 0.1,
-          'ndebug': 0
+          'lambda_max': 100.0,
+          'dlambda': 10.0,
+          'ndebug': ndebug
         };
         (function() {
           var temp = runge_kutta.geodesic_simple(256, 1, x, v, opt);
@@ -229,6 +233,7 @@
         test.assert_equal_eps(x[4], final_x[4], eps);
       };
       /*-------------------------------------------------------------------------------------------------- */
+      /*verbosity=3 */
       test_runge_kutta.smoke_test();
       test_runge_kutta.simple_newtonian_free_fall();
       test_runge_kutta.circular_orbit_period();
