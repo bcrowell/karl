@@ -46,7 +46,7 @@ def simple_newtonian_free_fall():
     THROW('error: '+info['message'])
   rf = final_x[1]
   delta_r = r0-rf
-  m=1/2 # coordinates are such that mass=1/2
+  m=0.5 # coordinates are such that mass=1/2
   g=m/r0**2 # approximate as constant accel
   delta_r_newtonian = 0.5*g*lambda_max**2
   rel_err = (delta_r-delta_r_newtonian)/delta_r_newtonian
@@ -143,7 +143,8 @@ r = 1.0e8
 a = 1.1
 direction = 0.0
 #verbosity=3
-n = 100
+#n = 100 # qwe
+n = 10000 # qwe
 elliptical_orbit_period(r,a,direction,n)
 
 

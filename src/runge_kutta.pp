@@ -78,7 +78,6 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
 #endif
 #if "LANG" eq "python"
   use_c = ((spacetime|chart)==(SP_SCH|CH_SCH))
-  use_c = False # doesn't work yet
 #endif
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
@@ -116,12 +115,11 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
         for i in range(0,ndim2):
           y[i] = y0[i]+est[2][i]
       for i in range(0,ndim2): est[step][i]=0.0
-      #use_c = False
       if use_c:
         # use faster C implementation:
 #if "LANG" eq "python"
         for i in range(0, ndim2):
-          p[i]=y[i]
+          pt[i]=y[i]
         c_libs.karl_c_lib.apply_christoffel(spacetime,chart,
                 pt.ctypes.data_as(c_double_p),
                 acc.ctypes.data_as(c_double_p),
