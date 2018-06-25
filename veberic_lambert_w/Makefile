@@ -18,7 +18,8 @@
 
 CPPFLAGS := -I.
 #CXXFLAGS := -Wall -Wextra -ggdb3 -O0 -fno-inline -pipe
-CXXFLAGS := -O2
+CXXFLAGS := -O2 -fpic
+# ... modified jun 2018 by B. Crowell, added -fpic to allow making shared lib.
 #CXXFLAGS := -Wall -Wextra -ggdb3 -O2 -pipe
 #CXXFLAGS := -Wall -Wextra -ggdb3 -march=native -Ofast -pipe
 LDFLAGS := $(CXXFLAGS)

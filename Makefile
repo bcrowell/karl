@@ -62,8 +62,15 @@ $(PY): $(OBJ)/%.py: $(SRC)/%.pp $(SRC)/*.h
 $(OBJ)/%.o: $(SRC)/%.c $(SRC)/*.h
 	gcc -c -Wall -Werror -fpic $< -o $@
 
-$(OBJ)/karl.so: $(OBJ)/apply_christoffel.o $(OBJ)/lambert_w.o
-	gcc -shared -o $(OBJ)/karl.so $(OBJ)/apply_christoffel.o $(OBJ)/lambert_w.o
+$(OBJ)/lambert_w.o: $(SRC)/lambert_w.cpp
+	gcc -c -Wall -Werror -fpic $< -o $@
+
+veberic_lambert_w/LambertW.o: veberic_lambert_w/LambertW.cc
+	cd veberic_lambert_w ; make ; cd -
+
+$(OBJ)/karl.so: $(OBJ)/apply_christoffel.o $(OBJ)/lambert_w.o veberic_lambert_w/LambertW.o
+	gcc -shared -o $(OBJ)/karl.so $(OBJ)/apply_christoffel.o $(OBJ)/lambert_w.o \
+              veberic_lambert_w/LambertW.o -lm
 
 $(BROWSER_PHYSICS_FILES): $(BROWSER_PHYSICS)/%.js: $(JS)/%.js
 	@mkdir -p $(BROWSER_PHYSICS)

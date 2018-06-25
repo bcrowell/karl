@@ -10,6 +10,10 @@ karl_c_lib = ctypes.cdll.LoadLibrary(mydir+'/karl.so')
 
 c_double_p = ctypes.POINTER(ctypes.c_double)
 
+karl_c_lib.veberic_lambert_w.restype = ctypes.c_double
+karl_c_lib.veberic_lambert_w.argtypes = [ctypes.c_double]
+karl_c_lib.lambert_w_of_exp.restype = ctypes.c_double
+karl_c_lib.lambert_w_of_exp.argtypes = [ctypes.c_double]
 #endif
 
 
