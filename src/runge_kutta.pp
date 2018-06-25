@@ -57,7 +57,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   norm_final = TRUE
   if HASATTR(opt,"norm_final"):
     norm_final=opt["norm_final"]
-  n = math.ceil((lambda_max-lambda0)/dlambda)
+  n = int(math.ceil((lambda_max-lambda0)/dlambda))
   do_limit_change = FALSE
   if HASATTR(opt,"do_limit_change"):
     do_limit_change=opt["do_limit_change"]
@@ -91,6 +91,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   acc = acc.astype(numpy.float64)
   pt = numpy.zeros((ndim2,))
   pt = pt.astype(numpy.float64)
+  acc_p = acc.ctypes.data_as(c_double_p)
+  pt_p = pt.ctypes.data_as(c_double_p)
 #endif
   for iter in range(0,n):
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
@@ -120,10 +122,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
 #if "LANG" eq "python"
         for i in range(0, ndim2):
           pt[i]=y[i]
-        c_libs.karl_c_lib.apply_christoffel(spacetime,chart,
-                pt.ctypes.data_as(c_double_p),
-                acc.ctypes.data_as(c_double_p),
-                ctypes.c_double(dlambda))
+        c_libs.karl_c_lib.apply_christoffel(spacetime,chart,pt_p,acc_p,ctypes.c_double(dlambda))
         for i in range(0, ndim):
           est[step][ndim+i] = acc[i] # C routine takes care of multiplying a by dlambda
 #endif
