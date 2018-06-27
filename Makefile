@@ -45,6 +45,8 @@ VPATH = src
 
 test:
 	make test_py
+	make clean_js
+	make js
 	make test_js
 
 test_py: $(PY) $(OBJ)/karl.so

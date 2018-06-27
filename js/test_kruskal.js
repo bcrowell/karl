@@ -99,7 +99,7 @@
         test.assert_rel_equal_eps(r, r2, 10 * (1.0e-16));
       };
       test_kruskal.simple_free_fall = function() {
-        var t0, r0, lambda_max, a, b, x, jac, tdot, v, n, opt, err, final_x, final_v, final_lambda, info, tf, rf, delta_r, m, g, delta_r_newtonian;
+        var t0, r0, lambda_max, a, b, x, jac, tdot, v, n, opt, err, final_x, final_v, final_a, final_lambda, info, tf, rf, delta_r, m, g, delta_r_newtonian;
 
         /* Free fall from rest in a semi-newtonian region, where all the math can be evaluated without */
         /* special massaging to avoid overflows. */
@@ -126,8 +126,9 @@
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
-          final_lambda = temp[3];
-          info = temp[4]
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
         })();
         if (err & 1) {
           throw 'error: ' + info['message'];;
@@ -138,7 +139,7 @@
           rf = temp[1]
         })();
         delta_r = r0 - rf;
-        m = 1 / 2; /* coordinates are such that mass=1/2 */
+        m = 0.5; /* coordinates are such that mass=1/2 */
         g = ((m) * (Math.pow((r0), (-2.0)))); /* approximate as constant accel */
         delta_r_newtonian = ((0.5) * (g) * (Math.pow((lambda_max), (2.0))));
         test.assert_rel_equal_eps(delta_r, delta_r_newtonian, 0.02);
@@ -159,7 +160,7 @@
         }
       };
       test_kruskal.test_motion_kruskal_vs_schwarzschild = function(t0, r0, flip, theta, phi, v, duration) {
-        var i, j, k, lambda_max, a0, b0, x0s, x0k, v0s, jac, v0k, n, ndebug, opt, x, v, chart, err, final_x, final_v, final_lambda, info, xfs, xfk, tf, rf, eps;
+        var i, j, k, lambda_max, a0, b0, x0s, x0k, v0s, jac, v0k, n, ndebug, opt, x, v, chart, err, final_x, final_v, final_a, final_lambda, info, xfs, xfk, tf, rf, eps;
 
         /* initial point = t0,r0,theta,phi */
         /* initial velocity = v, expressed in (t,r,i,j,k) component form */
@@ -209,7 +210,7 @@
         }
         /* --- */
         for (var i = 0; i < 2; i++) {
-          n = 100;
+          n = 100; /* fails with n=1000, why? */
           ndebug = 0;
           if ((false) && verbosity >= 3) {
             print("----------------------");
@@ -234,8 +235,9 @@
             err = temp[0];
             final_x = temp[1];
             final_v = temp[2];
-            final_lambda = temp[3];
-            info = temp[4]
+            final_a = temp[3];
+            final_lambda = temp[4];
+            info = temp[5]
           })();
           if (err & 1) {
             throw 'error: ' + info['message'];;

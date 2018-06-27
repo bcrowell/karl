@@ -10,7 +10,7 @@
       if (typeof test_lambert_w === 'undefined') {
         var test_lambert_w = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, z, u, w;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, z, n_implementations, u, w;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
@@ -40,13 +40,18 @@
       karl.load("lambert_w_stuff");
       z = 0.1492;
       test.assert_rel_equal_eps(z, Math.lambert_w(z * Math.exp(z)), 5 * (1.0e-16));
-      u = 1.0;
-      for (var i = 0; i < 90; i++) {
-        w = lambert_w_stuff.lambert_w_of_exp(u);
-        if (verbosity >= 3) {
-          print("====== In test_lambert_w, u=", u, ", w=", w);
+      n_implementations = 1;
+      for (var implementation = 0; implementation < n_implementations; implementation++) {
+        u = 1.0;
+        for (var i = 0; i < 90; i++) {
+          if (implementation == 0) {
+            w = lambert_w_stuff.lambert_w_of_exp(u);
+          }
+          if (verbosity >= 3) {
+            print("====== In test_lambert_w, implementation=", implementation, " u=", u, ", w=", w);
+          }
+          assert_rel_equal(u, Math.log(w) + w);
+          u = u * 2.5; /* a little less than e, to try to work out all possible whole-number parts of ln(u) */
         }
-        assert_rel_equal(u, Math.log(w) + w);
-        u = u * 2.5; /* a little less than e, to try to work out all possible whole-number parts of ln(u) */
       };
       test.done(verbosity, "lambert_w");

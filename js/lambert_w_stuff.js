@@ -28,7 +28,7 @@
         to allow x=e^u to be stored in floating point. The method used is the
         iterative scheme described in Veberic, https://arxiv.org/abs/1003.1628 , 
         sec. 2.3. The output W of the function satisfies u=ln W+W to within a
-        relative error of 10^-16.
+        relative error of 10^-16. A C version of this code is in lambert.cpp.
         */
         if (u < 100) {
           return Math.lambert_w(Math.exp(u));

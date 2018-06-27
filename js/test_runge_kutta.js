@@ -54,7 +54,7 @@
       /*verbosity=2 */
       /*-------------------------------------------------------------------------------------------------- */
       test_runge_kutta.smoke_test = function() {
-        var x, v, ndebug, opt, err, final_x, final_v, final_lambda, info;
+        var x, v, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info;
 
         /* Free fall from rest, from 3 Schwarzschild radii.  */
         /* Affine param is approximately but not exactly equal to proper time. */
@@ -74,8 +74,9 @@
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
-          final_lambda = temp[3];
-          info = temp[4]
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
         })();
         if (err & 1) {
           throw 'error: ' + info['message'];;
@@ -87,7 +88,7 @@
       };
       /*-------------------------------------------------------------------------------------------------- */
       test_runge_kutta.simple_newtonian_free_fall = function() {
-        var r0, lambda_max, x, v, n, opt, err, final_x, final_v, final_lambda, info, rf, delta_r, m, g, delta_r_newtonian, rel_err, expect_err, v_newtonian, vf, rel_err_v;
+        var r0, lambda_max, x, v, n, opt, err, final_x, final_v, final_a, final_lambda, info, rf, delta_r, m, g, delta_r_newtonian, rel_err, expect_err, v_newtonian, vf, rel_err_v;
 
         /* Newtonian limit. Free fall from ~1 a.u. */
         r0 = 1.0e8;
@@ -105,15 +106,16 @@
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
-          final_lambda = temp[3];
-          info = temp[4]
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
         })();
         if (err & 1) {
           throw 'error: ' + info['message'];;
         }
         rf = final_x[1];
         delta_r = r0 - rf;
-        m = 1 / 2; /* coordinates are such that mass=1/2 */
+        m = 0.5; /* coordinates are such that mass=1/2 */
         g = ((m) * (Math.pow((r0), (-2.0)))); /* approximate as constant accel */
         delta_r_newtonian = ((0.5) * (g) * (Math.pow((lambda_max), (2.0))));
         rel_err = (delta_r - delta_r_newtonian) / delta_r_newtonian;
@@ -138,7 +140,7 @@
       };
       /*-------------------------------------------------------------------------------------------------- */
       test_runge_kutta.circular_orbit_period = function() {
-        var r, v_phi, x, v, n, period, opt, err, final_x, final_v, final_lambda, info, eps;
+        var r, v_phi, x, v, n, period, opt, err, final_x, final_v, final_a, final_lambda, info, eps;
 
         /*
         Period of a circular orbit, Schwarzschild coordinates.
@@ -160,8 +162,9 @@
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
-          final_lambda = temp[3];
-          info = temp[4]
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
         })();
         if (verbosity >= 2) {
           print("final x=", io_util.vector_to_str_n_decimals(final_x, 16));
@@ -176,7 +179,7 @@
       };
       /*-------------------------------------------------------------------------------------------------- */
       test_runge_kutta.elliptical_orbit_period = function(r, a, direction, n) {
-        var spacetime, chart, v_phi, x, circular_period, v, q, r_max, period, lambda_max, ndebug, opt, err, final_x, final_v, final_lambda, info, eps;
+        var spacetime, chart, v_phi, x, circular_period, v, q, r_max, period, lambda_max, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info, eps;
 
         /*
         Period of an elliptical orbit, Schwarzschild coordinates.
@@ -218,8 +221,9 @@
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
-          final_lambda = temp[3];
-          info = temp[4]
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
         })();
         if (verbosity >= 2) {
           print("final x=", io_util.vector_to_str_n_decimals(final_x, 16));

@@ -25,6 +25,7 @@
 #define TRUE (True)
 #define FALSE (False)
 #define LEN(x) len(x)
+#define CEIL(x) int(math.ceil(x))
 #endif
 
 #if "LANG" eq "js"
@@ -53,6 +54,7 @@ karl.load("lib/array");
 #define TRUE (true)
 #define FALSE (false)
 #define LEN(x) ((x).length)
+#define CEIL(x) math.ceil(x)
 #endif
 
 #endif

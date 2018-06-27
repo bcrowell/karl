@@ -325,6 +325,27 @@ several problems for this application: (1) I think he assumes the function is li
 which isn't true at the singularity; (2) he's discussing error bounds on coordinates,
 but I want error bound on the proper time when the coordinate reaches a certain value.
 
+Suhartanto and Enright describe numerical methods for ODEs near a singularity:
+``Typically
+the stepsize is slowly decreased in size as the singularity is
+approached with a high percentage of the attempted steps rejected.
+The integration is usually terminated when the stepsize finally
+reaches its minimum permitted value.''
+
+WP
+\url{https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Orbits_of_test_particles}
+has closed-form expressions for $t(\tau)$ and $r(\tau)$ for a radially infalling
+massive test particle. Taking the limit near the singularity gives
+$t\approx(3/2)\tau$ and $r\approx -[(3/2)\tau]^{2/3}$ (where I've assumed it hits
+the singularity at $t=0$, $\tau=0$).
+
+Or using MTW's expressions in Schwarzschild coordinates, I get
+$r=12^{2/3}(-\tau)^{2/3}$ (or throw in a factor of $(2m)^{1/3}$ for
+standard units). This makes sense because the 2/3 is the same exponent
+as in Kepler's laws, should be universal based on units. This is for free-falling
+from rest at an initial position $r_\text{max}$, and it ends up not depending
+on $r_\text{max}$.
+
 In Kruskal coordinates, the Christoffel symbols end up being dominated by
 $\ddot{V}\approx -r^{-2}\dot{W}$ and $\ddot{W}\approx -r^{-2}\dot{V}$.
 
@@ -336,21 +357,22 @@ maybe we expect errors of order $f^{(3)}$, or $r^{-6}$. Errors in proper
 time might then be of the same order, since proper time and r are related
 by a power law?
 
-For a massive particle infalling along the Kruskal T axis, the solution to the
-approximate equations of motion, using small-r approx for $r(V,W)$ (see above),
-is $V=W=1-(-\lambda)^{5/4}$ (check this).
-(Is this right? Seems like it doesn't allow rescaling of affine parameter, which doesn't
-seem possible.) This gives $r=2(-\lambda)^{5/8}$. Exponent also seems wrong, see below.
-Note that this was based on the ansatz $V=W=1-(-\lambda)^p$, which is not necessarily the same
-as free-falling from rest at some initial $r_\text{max}>1$ as in MTW below, so the two
-results may or may not be comparable.
+The error in 4th-order Runge-Kutta with step size $h$ goes like $h^4r^{-6}$.
+To keep this constant, we would need $h\propto r^{3/2}$. But for a massive
+test particle infalling radially, this is simply $h\propto \tau$. Since the
+step size is expressed in terms of an affine parameter, this simply means
+keeping a constant step size!
 
-Or using MTW's expressions in Schwarzschild coordinates, I get
-$r=12^{2/3}(-\tau)^{2/3}$ (or throw in a factor of $(2m)^{1/3}$ for
-standard units). This makes sense because the 2/3 is the same exponent
-as in Kepler's laws, should be universal based on units. This is for free-falling
-from rest at an initial position $r_\text{max}$, and it ends up not depending
-on $r_\text{max}$.
+Under the same assumption of $r\propto\lambda^{2/3}$, it probably makes sense
+to extrapolate $r^{3/2}$ as a function of $\lambda$ to find when we expect
+to hit the singularity. Or, with less computational effort, simply estimate
+$\lambda_0=\lambda+(2/3)r/\dot{r}$. Let this factor of 2/3 be adjustable, and
+call it $\alpha$.
+
+The lowest-level Runge-Kutta routine can be given a trigger telling it to
+return when r is projected to drop below 0, and then we can use the returned
+coordinates and velocities to extrapolate to find the $\lambda$, $t$, and $r$
+at which the geodesic terminates.
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 

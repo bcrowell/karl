@@ -47,7 +47,7 @@ def simple_free_fall():
   v = [jac[0][0]*tdot,jac[1][0]*tdot,0.0,0.0,0.0]
   n = 100
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':0}
-  err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_AKS,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_AKS,x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   tf,rf = transform.kruskal_to_schwarzschild(final_x[0],final_x[1])
@@ -118,7 +118,7 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
       x=x0k
       v=v0k
       chart = CH_AKS
-    err,final_x,final_v,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,chart,x,v,opt)
+    err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,chart,x,v,opt)
     if err & RK_ERR:
       THROW('error: '+info['message'])
     if i==0:
@@ -134,6 +134,8 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
     PRINT("xfk=",io_util.vector_to_str_n_decimals(xfk,8))
   eps = 1000.0/n**4
   test.assert_rel_equal_eps_vector(xfs,xfk,eps)
+
+#if "LANG" eq "python"
 
 def test_aux_python_vs_c(a,b):
   t,r,mu = kruskal.aux(a,b)
@@ -152,7 +154,8 @@ def test_aux_python_vs_c(a,b):
 
 # The following only works if j==k, for the reasons explained in two comments below.
 def test_christoffel_python_vs_c(a,b,j,k,i):
-  if j!=k: THROW('j!=k')
+  if j!=k:
+    THROW('j!=k')
   p = numpy.asarray([a,b,0.8,0.6,0.0,  0.0,0.0,0.0,0.0,0.0])
   p[5+j] = 1.0
   p[5+k] = 1.0
@@ -166,9 +169,13 @@ def test_christoffel_python_vs_c(a,b,j,k,i):
   ch2 = -a[i] # if j!=k, then we have terms Gamma^i_jj and Gamma^i_kk contributing
   test.assert_rel_equal_eps(ch1,ch2,5*EPS)
 
+#endif
+
 #--------------------------------------------------------------------------
 # run tests
 #--------------------------------------------------------------------------
+
+#if "LANG" eq "python"
 
 a=0.1
 b=0.234
@@ -185,6 +192,8 @@ test_christoffel_python_vs_c(a,b,0,0,0)
 test_christoffel_python_vs_c(a,b,1,1,0)
 test_christoffel_python_vs_c(a,b,0,0,1)
 test_christoffel_python_vs_c(a,b,1,1,1)
+
+#endif
 
 def test_christoffel_symmetry(ch):
   l = len(ch)

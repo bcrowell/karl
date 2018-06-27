@@ -41,7 +41,7 @@
       karl.load("kruskal");
       karl.load("angular");
       runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, do_limit_change, limit_change, ok, steps_between_debugging, debug_count, lam, ndim, christoffel_function, ndim2, order, y0, i, y, ch, a, est, step, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, i, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, y, ch, a, est, step, s, m, thr, alpha, dx, x_dot, tot_est;
 
         /*
         Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
@@ -58,15 +58,19 @@
           lambda0 = initial affine parameter, defaults to 0
           norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                        default=(true)
-          do_limit_change = boolean, should we do a sanity check by limiting changes in coordinates per step,
-                  die if limit is violated?; default=(false)
-          limit_change = this is approximately the maximum fractional change in r or 1/10 the maximum change in i,j,k,
-                  expressed in units of 1/n; default: 1
+          triggers = array of 4-element arrays, each describing a trigger (see below)
+        triggers
+          These allow the integration to be halted when it appears that in the next iteration,
+          a certain coordinate or velocity would cross a certain threshold.
+          [0] = sense, +1 or -1 for triggering in a rising or falling direction
+          [1] = index of coordinate (0-4) or velocity (5-9) on which to trigger
+          [2] = threshold value
+          [3] = fudge factor alpha, which can should typically be less than 1; see docs
         returns
-          [err,final_x,final_v,final_lambda,info]
+          [err,final_x,final_v,final_a,final_lambda,info]
         where
           err = 0 if normal, or bitwise or of codes such as 1, 2, defined in runge_kutta.h
-          final_x,final_v,final_lambda = final values from integration
+          final_x,final_v,final_a,final_lambda = final values of position, velocity, acceleration, and affine param
           info = hash with keys below
             message = error message
         */
@@ -84,21 +88,26 @@
           norm_final = opt["norm_final"];
         }
         n = Math.ceil((lambda_max - lambda0) / dlambda);
-        do_limit_change = (false);
-        if ((("do_limit_change") in (opt))) {
-          do_limit_change = opt["do_limit_change"];
-        }
-        if (do_limit_change) {
-          limit_change = 1.0 / n;
-          if ((("limit_change") in (opt))) {
-            do_limit_change = float(opt["do_limit_change"]) / n;
-          }
-        }
         ok = (false);
         if (ndebug == 0) {
           steps_between_debugging = n * 2; /* debugging will never happen */
         } else {
           steps_between_debugging = ndebug;
+        }
+        n_triggers = 0;
+        if ((("triggers") in (opt))) {
+          n_triggers = ((opt["triggers"]).length);
+          trigger_s = [];
+          trigger_on = [];
+          trigger_threshold = [];
+          trigger_alpha = [];
+          for (var i = 0; i < n_triggers; i++) {
+            trigger = opt["triggers"][i];
+            trigger_s[i] = [0];
+            trigger_on[i] = [1];
+            trigger_threshold[i] = [2];
+            trigger_alpha[i] = [3];
+          }
         }
         debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
         lam = lambda0;
@@ -117,6 +126,7 @@
           return [1, x, v, 0.0, runge_kutta.mess(["x or v has wrong length"])];
         }
         order = 4; /* 4th order Runge-Kutta */
+        acc = karl.array1d((ndim));
         for (var iter = 0; iter < n; iter++) {
           est = karl.array2d(ndim2, order);; /*         =k in the notation of most authors */
           /*         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta. */
@@ -148,7 +158,6 @@
               }
             }
             for (var i = 0; i < ndim2; i++);
-            /*use_c = False */
             if (use_c) {
               /* use faster C implementation: */
             } else {
@@ -161,12 +170,38 @@
                   }
                 }
                 est[step][ndim + i] = a * dlambda;
+                acc[i] = a; /* may be needed for trigger detection */
               }
             }
             for (var i = 0; i < ndim; i++) {
               est[step][i] = y[ndim + i] * dlambda;
             }
           }
+          /*-- Check triggers: */
+          /* We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity */
+          /* we're triggering differs from the trigger value by dx, and it's currently changing at */
+          /* a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below */
+          /* handles all the cases properly. */
+          for (var i = 0; i < n_triggers; i++) {
+            s = trigger_s[i]; /* sense of the trigger (see above) */
+            m = trigger_on[i]; /* index of coordinate or velocity on which to trigger */
+            thr = trigger_threshold[i]; /* threshold value */
+            alpha = trigger_alpha[i]; /* fudge factor, can typically be 1; see docs */
+            if (m < ndim) {
+              /* triggering on a coordinate */
+              dx = thr - x[m];
+              x_dot = v[m];
+            } else {
+              /* triggering on a velocity */
+              dx = thr - v[m - ndim];
+              x_dot = acc[m - ndim]; /* left over from step==3, good enough for an estimate */
+            }
+            if (s * dx > 0 && x_dot * dlambda * s > alpha * dx * s) { /* Note that we can't cancel the s, which may be negative. */
+              /* We extrapolate that if we were to complete this iteration, we would cross the threshold. */
+              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+            }
+          }
+          /*-- Update everything: */
           lam = lam + dlambda;
           tot_est = karl.array1d((ndim2));
           for (var i = 0; i < ndim2; i++) {
@@ -176,41 +211,21 @@
             v[i] += tot_est[ndim + i];
           }
           for (var i = 0; i < ndim; i++) {
-            if (do_limit_change) {
-              runge_kutta.check_limit_change(spacetime, chart, x, tot_est, limit_change);
-            }
             x[i] += tot_est[i];
           }
         }
+        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+      };
+      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final) {
+        var x, v;
+
         runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v);
+        /* ... always do a printout for the final iteratation */
         if (norm_final) {
           x = angular.renormalize(x);
           v = angular.make_tangent(x, v);
         }
-        return [0, x, v, lam, {}];
-      };
-      runge_kutta.check_limit_change = function(spacetime, chart, x, dx, limit_change) {
-        var ok, rel_dr;
-
-        /*
-        Sanity check to flag sudden large changes in coordinates.
-        */
-        ok = (true);
-        if ((spacetime | chart) == (256 | 1)) {
-          rel_dr = Math.abs(dx[1]) / x[1];
-        }
-        if ((spacetime | chart) == (256 | 2)) {
-          rel_dr = (Math.abs(dx[0]) + Math.abs(dx[1])) / (1 + Math.abs(x[0] - x[1]));
-          /* ... quick and dirty estimate using r=a-b+1, not really appropriate for small distances */
-        }
-        if (rel_dr > limit_change) {
-          throw io_util.strcat(['r changed by too much , rel_dr=', rel_dr, ', x=', io_util.vector_to_str(x), ', dx=', io_util.vector_to_str(dx)]);;
-        }
-        for (var i = 2; i < 5; i++) {
-          if (Math.abs(dx[i]) > 10.0 * limit_change) {
-            throw 'angular coord. changed by too much';;
-          }
-        }
+        return [0, x, v, acc, lam, {}];
       };
       runge_kutta.mess = function(stuff) {
 

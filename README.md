@@ -79,6 +79,11 @@ appropriate. Kruskal coordinates should be used only near the horizon.
 (Disadvantages of Kruskal coordinates: computationally expensive, computationally
 expensive in arcsinh-Kruskal to determine when we've hit the singularity.)
 
+Allow sanity tests for whether the geodesic maintains its timelike, null, or
+spacelike character, and in the timelike case for whether it stays in the future
+or past light cone. A common numerical behavior when hitting the singularity is to get a
+bounce.
+
 ## Ideas for samples and educational apps
 
 Animation of a cloud of test particles undergoing tidal distortions.
