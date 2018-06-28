@@ -109,16 +109,20 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
 #else
   acc = EMPTY1DIM(ndim)
 #endif
+  y0 = EMPTY1DIM(ndim2)
   for iter in range(0,n):
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors
     #         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
     debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
-    y0 = EMPTY1DIM(ndim2)
     for i in range(0,ndim):
-      y0[i]=CLONE_FLOAT(x[i])
+      y0[i]=x[i]
     for i in range(0,ndim):
-      y0[i+ndim]=CLONE_FLOAT(v[i])
+      y0[i+ndim]=v[i]
+    y0 = CLONE_ARRAY_OF_FLOATS(y0)
+    # ...Disentangle it from x and v so that in python, changing x or v can't change it. This is actually
+    #    not necessary, because x and v don't change until the next iteration, when y0 is built again,
+    #    but I find it too hard to reason about the code without this.
     for step in range(0,order):
       if step==0:
         y=CLONE_ARRAY_OF_FLOATS(y0)
@@ -144,28 +148,9 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
       for i in range(0, ndim):
         est[step][ndim+i] = acc[i]
         est[step][i] = y[ndim+i]*dlambda
-    #-- Check triggers:
-    # We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity
-    # we're triggering on differs from the trigger value by dx, and it's currently changing at
-    # a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below
-    # handles all the cases properly.
-    for i in range(n_triggers):
-      s = trigger_s[i] # sense of the trigger (see above)
-      m = trigger_on[i] # index of coordinate or velocity on which to trigger
-      thr = trigger_threshold[i] # threshold value
-      alpha = trigger_alpha[i] # fudge factor, can typically be 1; see docs
-      if m<ndim:
-        # triggering on a coordinate
-        dx = thr-x[m]
-        x_dot = v[m]
-      else:
-        # triggering on a velocity
-        dx = thr-v[m-ndim]
-        x_dot = acc[m-ndim]/dlambda # left over from step==3, good enough for an estimate
-      #PRINT("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s)
-      if s*dx>0 and x_dot*dlambda*s>alpha*dx*s: # Note that we can't cancel the s, which may be negative.
-        # We extrapolate that if we were to complete this iteration, we would cross the threshold.
-        return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v,acc,norm_final)
+    if n_triggers>0 and \
+            trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
+      return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v,acc,norm_final)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)
@@ -176,6 +161,33 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     for i in range(0, ndim):
       x[i] += tot_est[i]
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final)
+
+def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
+  """
+  Check triggers:
+  We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity
+  we're triggering on differs from the trigger value by dx, and it's currently changing at
+  a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below
+  handles all the cases properly. The input variable acc is actually the acceleration times dlambda.
+  """
+  for i in range(n_triggers):
+    s = trigger_s[i] # sense of the trigger (see above)
+    m = trigger_on[i] # index of coordinate or velocity on which to trigger
+    thr = trigger_threshold[i] # threshold value
+    alpha = trigger_alpha[i] # fudge factor, can typically be 1; see docs
+    if m<ndim:
+      # triggering on a coordinate
+      dx = thr-x[m]
+      x_dot = v[m]
+    else:
+      # triggering on a velocity
+      dx = thr-v[m-ndim]
+      x_dot = acc[m-ndim]/dlambda # left over from step==3, good enough for an estimate
+    #PRINT("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s)
+    if s*dx>0 and x_dot*dlambda*s>alpha*dx*s: # Note that we can't cancel the s, which may be negative.
+      # We extrapolate that if we were to complete this iteration, we would cross the threshold.
+      return TRUE
+  return FALSE
 
 def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final):
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v)

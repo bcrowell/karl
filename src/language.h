@@ -18,7 +18,6 @@
 #define THROW(message) raise RuntimeError(message)
 #define MATH_E math.e
 #define MATH_PI math.pi
-#define CLONE_FLOAT(x) copy.copy(x)
 #define CLONE_ARRAY_OF_FLOATS(x) copy.copy(x)
 #          ... need extra parens in usages like CLONE_ARRAY_OF_FLOATS(([x,y])), otherwise filepp gets 
 #              confused by comma and thinks this is multiple arguments
@@ -50,8 +49,6 @@ karl.load("lib/array");
 #define MATH_PI Math.PI
 #define CLONE_ARRAY_OF_FLOATS(x) (karl.clone_array1d(x))
 #           ... see notes above about usage with array literals
-#define CLONE_FLOAT(x) (x)
-#           ... in JS, numbers are primitives, not objects, so no need clone them
 #define HAS_KEY(x,y) ((y) in (x))
 #define TRUE (true)
 #define FALSE (false)

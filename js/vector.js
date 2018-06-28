@@ -12,7 +12,6 @@
       /* ... works in rhino and d8 */
       /* ... https://stackoverflow.com/q/26738943/1142217 */
       /*           ... see notes above about usage with array literals */
-      /*           ... in JS, numbers are primitives, not objects, so no need clone them */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
         load("lib/math.js");

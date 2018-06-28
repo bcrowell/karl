@@ -12,7 +12,6 @@
       /* ... works in rhino and d8 */
       /* ... https://stackoverflow.com/q/26738943/1142217 */
       /*           ... see notes above about usage with array literals */
-      /*           ... in JS, numbers are primitives, not objects, so no need clone them */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
         load("lib/math.js");
@@ -41,7 +40,7 @@
       karl.load("kruskal");
       karl.load("angular");
       runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, s, m, thr, alpha, dx, x_dot, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
         /*
         Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
@@ -131,17 +130,21 @@
         }
         order = 4; /* 4th order Runge-Kutta */
         acc = karl.array1d((ndim));
+        y0 = karl.array1d((ndim2));
         for (var iter = 0; iter < n; iter++) {
           est = karl.array2d(ndim2, order);; /*         =k in the notation of most authors */
           /*         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta. */
           debug_count = runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, iter, lam, x, v);
-          y0 = karl.array1d((ndim2));
           for (var i = 0; i < ndim; i++) {
-            y0[i] = (x[i]);
+            y0[i] = x[i];
           }
           for (var i = 0; i < ndim; i++) {
-            y0[i + ndim] = (v[i]);
+            y0[i + ndim] = v[i];
           }
+          y0 = (karl.clone_array1d(y0));
+          /* ...Disentangle it from x and v so that in python, changing x or v can't change it. This is actually */
+          /*    not necessary, because x and v don't change until the next iteration, when y0 is built again, */
+          /*    but I find it too hard to reason about the code without this. */
           for (var step = 0; step < order; step++) {
             if (step == 0) {
               y = (karl.clone_array1d(y0));
@@ -172,30 +175,8 @@
               est[step][i] = y[ndim + i] * dlambda;
             }
           }
-          /*-- Check triggers: */
-          /* We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity */
-          /* we're triggering on differs from the trigger value by dx, and it's currently changing at */
-          /* a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below */
-          /* handles all the cases properly. */
-          for (var i = 0; i < n_triggers; i++) {
-            s = trigger_s[i]; /* sense of the trigger (see above) */
-            m = trigger_on[i]; /* index of coordinate or velocity on which to trigger */
-            thr = trigger_threshold[i]; /* threshold value */
-            alpha = trigger_alpha[i]; /* fudge factor, can typically be 1; see docs */
-            if (m < ndim) {
-              /* triggering on a coordinate */
-              dx = thr - x[m];
-              x_dot = v[m];
-            } else {
-              /* triggering on a velocity */
-              dx = thr - v[m - ndim];
-              x_dot = acc[m - ndim] / dlambda; /* left over from step==3, good enough for an estimate */
-            }
-            /*print("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s) */
-            if (s * dx > 0 && x_dot * dlambda * s > alpha * dx * s) { /* Note that we can't cancel the s, which may be negative. */
-              /* We extrapolate that if we were to complete this iteration, we would cross the threshold. */
-              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, x, v, acc, norm_final);
-            }
+          if (n_triggers > 0 && runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim)) {
+            return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, x, v, acc, norm_final);
           }
           /*-- Update everything: */
           lam = lam + dlambda;
@@ -211,6 +192,38 @@
           }
         }
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+      };
+      runge_kutta.trigger_helper = function(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim) {
+        var s, m, thr, alpha, dx, x_dot;
+
+        /*
+        Check triggers:
+        We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity
+        we're triggering on differs from the trigger value by dx, and it's currently changing at
+        a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below
+        handles all the cases properly. The input variable acc is actually the acceleration times dlambda.
+        */
+        for (var i = 0; i < n_triggers; i++) {
+          s = trigger_s[i]; /* sense of the trigger (see above) */
+          m = trigger_on[i]; /* index of coordinate or velocity on which to trigger */
+          thr = trigger_threshold[i]; /* threshold value */
+          alpha = trigger_alpha[i]; /* fudge factor, can typically be 1; see docs */
+          if (m < ndim) {
+            /* triggering on a coordinate */
+            dx = thr - x[m];
+            x_dot = v[m];
+          } else {
+            /* triggering on a velocity */
+            dx = thr - v[m - ndim];
+            x_dot = acc[m - ndim] / dlambda; /* left over from step==3, good enough for an estimate */
+          }
+          /*print("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s) */
+          if (s * dx > 0 && x_dot * dlambda * s > alpha * dx * s) { /* Note that we can't cancel the s, which may be negative. */
+            /* We extrapolate that if we were to complete this iteration, we would cross the threshold. */
+            return (true);
+          }
+        }
+        return (false);
       };
       runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final) {
         var x, v;
