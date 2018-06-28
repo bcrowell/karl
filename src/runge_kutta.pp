@@ -53,17 +53,11 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   """
   x=CLONE_ARRAY_OF_FLOATS(x0)
   v=CLONE_ARRAY_OF_FLOATS(v0)
-  lambda_max=opt["lambda_max"]
-  dlambda=opt["dlambda"]
-  ndebug = 0
-  if HAS_KEY(opt,"ndebug"):
-    ndebug=opt["ndebug"]
-  lambda0=0.0
-  if HAS_KEY(opt,"lambda0"):
-    lambda0=opt["lambda0"]
-  norm_final = TRUE
-  if HAS_KEY(opt,"norm_final"):
-    norm_final=opt["norm_final"]
+  lambda_max  =runge_kutta_get_par_helper(opt,"lambda_max",NONE)
+  dlambda     =runge_kutta_get_par_helper(opt,"dlambda",NONE)
+  ndebug      =runge_kutta_get_par_helper(opt,"ndebug",0)
+  lambda0     =runge_kutta_get_par_helper(opt,"lambda0",0.0)
+  norm_final  =runge_kutta_get_par_helper(opt,"norm_final",TRUE)
   n = CEIL((lambda_max-lambda0)/dlambda)
   ok = FALSE
   if ndebug==0:
@@ -196,6 +190,14 @@ def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,
     x = angular.renormalize(x)
     v = angular.make_tangent(x,v)
   return [0,x,v,acc,lam,{}]
+
+def runge_kutta_get_par_helper(opt,name,default_val):
+  val = default_val
+  if HAS_KEY(opt,name):
+    val = opt[name]
+  if IS_NONE(val):
+    THROW('required option '+name+' not supplied')
+  return val
 
 def apply_christoffel(christoffel_function,y,acc,dlambda,ndim):
   # A similar routine, written in C for speed, is in apply_christoffel.c. This version exists

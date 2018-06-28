@@ -76,20 +76,11 @@
         */
         x = (karl.clone_array1d(x0));
         v = (karl.clone_array1d(v0));
-        lambda_max = opt["lambda_max"];
-        dlambda = opt["dlambda"];
-        ndebug = 0;
-        if ((("ndebug") in (opt))) {
-          ndebug = opt["ndebug"];
-        }
-        lambda0 = 0.0;
-        if ((("lambda0") in (opt))) {
-          lambda0 = opt["lambda0"];
-        }
-        norm_final = (true);
-        if ((("norm_final") in (opt))) {
-          norm_final = opt["norm_final"];
-        }
+        lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
+        dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
+        ndebug = runge_kutta.runge_kutta_get_par_helper(opt, "ndebug", 0);
+        lambda0 = runge_kutta.runge_kutta_get_par_helper(opt, "lambda0", 0.0);
+        norm_final = runge_kutta.runge_kutta_get_par_helper(opt, "norm_final", (true));
         n = Math.ceil((lambda_max - lambda0) / dlambda);
         ok = (false);
         if (ndebug == 0) {
@@ -235,6 +226,18 @@
           v = angular.make_tangent(x, v);
         }
         return [0, x, v, acc, lam, {}];
+      };
+      runge_kutta.runge_kutta_get_par_helper = function(opt, name, default_val) {
+        var val;
+
+        val = default_val;
+        if (((name) in (opt))) {
+          val = opt[name];
+        }
+        if (((val) == null)) {
+          throw 'required option ' + name + '  !  supplied';;
+        }
+        return val;
       };
       runge_kutta.apply_christoffel = function(christoffel_function, y, acc, dlambda, ndim) {
         var ch, a, acc, i;
