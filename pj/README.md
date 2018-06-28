@@ -16,6 +16,10 @@ Limitations:
 * is so simple that certain stuff will always have to be translated by hand
 * many common idioms and tasks are implemented as macros in language.h, so the translator doesn't have to handle them
 
+Features:
+
+* Allows multiple assignment like x,y,z=[1,2,3]. (Fakes it in js, which doesn't normally support this syntax.)
+
 Hand-translation is handled using active comments that look like this:
 
     x = [0 for i in range(2)] \
@@ -23,7 +27,7 @@ Hand-translation is handled using active comments that look like this:
 
 (The active comment does not have to be on a continuation line if you'd rather have it on the same line.)
 
-Can also prevent translation on a line-by-line basis by putting __NO_TRANSLATION__ somewhere
+You can also prevent translation on a line-by-line basis by putting __NO_TRANSLATION__ somewhere
 in the line. In python, this is a null string defined in language.h.
 In js, this is a signal to the translator to leave the line alone.
 We need this sometimes when writing a macro that evaluates to different things in python and js.
@@ -38,12 +42,17 @@ For js code that doesn't have any counterpart in the python code:
 In assignment statements, if certain keywords such as sin, log, **, ... occur in the
 rhs of the source code, pj runs the rhs through translate_maxima.
 
-The script should be invoked with a command-line argument that specifies the name of the module, to
-be prepended to all function definitions. Following python's convention, this would normally be the
+The script should be invoked with two command-line arguments.
+The first of these specifies the name of the module, to
+be prepended to all function definitions. 
+Following python's convention, this would normally be the
 same as the name of the file. As a convenience, this command-line argument can be the full filename,
-of which only the stem of the filename will be used. So a typical invocation of the script would be:
+of which only the stem of the filename will be used.
+The second command-line argument gives the name of the main program.
 
-    pj.rb foo.py <foo.py >foo.js
+So a typical invocation of the script would be:
+
+    pj.rb foo.py karl <foo.py >foo.js
 
 ### Handling of modules and loading
 
@@ -66,14 +75,6 @@ Thus python syntax like foo.bar(x,y) is also valid in javascript.
 
 The module-loading stuff is not used for the modules test.js, lib/math.js, and lib/lambertw.js.
 It should be, but I coded it after I set up those modules.
-
-### Not yet implemented, may not need
-
-To control the behavior of the translator, can do active comments like this:
-
-    #js:{"foo":2}
-
-The stuff after the : is a JSON hash. In this example, the foo parameter is set to 2.
 
 ## translate_maxima
 

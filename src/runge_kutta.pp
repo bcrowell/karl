@@ -53,27 +53,19 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   """
   x=CLONE_ARRAY_OF_FLOATS(x0)
   v=CLONE_ARRAY_OF_FLOATS(v0)
+  #-- process input options
   lambda_max  =runge_kutta_get_par_helper(opt,"lambda_max",NONE)
   dlambda     =runge_kutta_get_par_helper(opt,"dlambda",NONE)
   ndebug      =runge_kutta_get_par_helper(opt,"ndebug",0)
   lambda0     =runge_kutta_get_par_helper(opt,"lambda0",0.0)
   norm_final  =runge_kutta_get_par_helper(opt,"norm_final",TRUE)
-  n = CEIL((lambda_max-lambda0)/dlambda)
-  ok = FALSE
-  if ndebug==0:
-    steps_between_debugging=n*2 # debugging will never happen
-  else:
-    steps_between_debugging=ndebug
   n_triggers = 0
-  trigger_s = []
-  trigger_on = []
-  trigger_threshold = []
-  trigger_alpha = []
+  trigger_s,trigger_on,trigger_threshold,trigger_alpha = [[],[],[],[]]
   if HAS_KEY(opt,"triggers"):
     n_triggers = runge_kutta_get_trigger_options_helper(opt,trigger_s,trigger_on,trigger_threshold,trigger_alpha)
-  debug_count = steps_between_debugging+1 # trigger it on the first iteration
-  lam = lambda0
-  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  #-- initial setup
+  n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function = \
+           runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart)
 #if "LANG" eq "js"
   use_c = false; __NO_TRANSLATION__
 #endif
@@ -149,6 +141,17 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     for i in range(0, ndim):
       x[i] += tot_est[i]
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final)
+
+def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart):
+  n = CEIL((lambda_max-lambda0)/dlambda)
+  if ndebug==0:
+    steps_between_debugging=n*2 # debugging will never happen
+  else:
+    steps_between_debugging=ndebug
+  debug_count = steps_between_debugging+1 # trigger it on the first iteration
+  lam = lambda0
+  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  return [n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function]
 
 def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
   """

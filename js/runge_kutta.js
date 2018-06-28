@@ -40,7 +40,7 @@
       karl.load("kruskal");
       karl.load("angular");
       runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
         /*
         Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
@@ -76,33 +76,38 @@
         */
         x = (karl.clone_array1d(x0));
         v = (karl.clone_array1d(v0));
+        /*-- process input options */
         lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
         dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
         ndebug = runge_kutta.runge_kutta_get_par_helper(opt, "ndebug", 0);
         lambda0 = runge_kutta.runge_kutta_get_par_helper(opt, "lambda0", 0.0);
         norm_final = runge_kutta.runge_kutta_get_par_helper(opt, "norm_final", (true));
-        n = Math.ceil((lambda_max - lambda0) / dlambda);
-        ok = (false);
-        if (ndebug == 0) {
-          steps_between_debugging = n * 2; /* debugging will never happen */
-        } else {
-          steps_between_debugging = ndebug;
-        }
         n_triggers = 0;
-        trigger_s = [];
-        trigger_on = [];
-        trigger_threshold = [];
-        trigger_alpha = [];
+        (function() {
+          var temp = [
+            [],
+            [],
+            [],
+            []
+          ];
+          trigger_s = temp[0];
+          trigger_on = temp[1];
+          trigger_threshold = temp[2];
+          trigger_alpha = temp[3]
+        })();
         if ((("triggers") in (opt))) {
           n_triggers = runge_kutta.runge_kutta_get_trigger_options_helper(opt, trigger_s, trigger_on, trigger_threshold, trigger_alpha);
         }
-        debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
-        lam = lambda0;
+        /*-- initial setup */
         (function() {
-          var temp = runge_kutta.chart_info(spacetime, chart);
-          ok = temp[0];
-          ndim = temp[1];
-          christoffel_function = temp[2]
+          var temp = runge_kutta.runge_kutta_init_helper(lambda_max, lambda0, dlambda, ndebug, spacetime, chart);
+          n = temp[0];
+          steps_between_debugging = temp[1];
+          debug_count = temp[2];
+          lam = temp[3];
+          ok = temp[4];
+          ndim = temp[5];
+          christoffel_function = temp[6]
         })();
         use_c = false;
         if (!ok) {
@@ -176,6 +181,25 @@
           }
         }
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+      };
+      runge_kutta.runge_kutta_init_helper = function(lambda_max, lambda0, dlambda, ndebug, spacetime, chart) {
+        var n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function;
+
+        n = Math.ceil((lambda_max - lambda0) / dlambda);
+        if (ndebug == 0) {
+          steps_between_debugging = n * 2; /* debugging will never happen */
+        } else {
+          steps_between_debugging = ndebug;
+        }
+        debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
+        lam = lambda0;
+        (function() {
+          var temp = runge_kutta.chart_info(spacetime, chart);
+          ok = temp[0];
+          ndim = temp[1];
+          christoffel_function = temp[2]
+        })();
+        return [n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function];
       };
       runge_kutta.trigger_helper = function(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim) {
         var s, m, thr, alpha, dx, x_dot;
