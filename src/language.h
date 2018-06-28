@@ -13,6 +13,7 @@
 #define EMPTY1DIM(x) [0 for i in range(x)]
 #define EMPTY2DIM(x) [[0 for i in range(x)] for j in range(x)]
 #define EMPTY3DIM(x) [[[0 for i in range(x)] for j in range(x)] for k in range(x)]
+#define APPEND_TO_ARRAY(x,y) ((x).append(y))
 #define PRINT print
 #define THROW(message) raise RuntimeError(message)
 #define MATH_E math.e
@@ -21,7 +22,7 @@
 #define CLONE_ARRAY_OF_FLOATS(x) copy.copy(x)
 #          ... need extra parens in usages like CLONE_ARRAY_OF_FLOATS(([x,y])), otherwise filepp gets 
 #              confused by comma and thinks this is multiple arguments
-#define HASATTR(x,y) hasattr((x),(y))
+#define HAS_KEY(x,y) ((y) in (x))
 #define TRUE (True)
 #define FALSE (False)
 #define LEN(x) len(x)
@@ -39,6 +40,7 @@ karl.load("lib/array");
 #define EMPTY1DIM(x) karl.array1d((x))
 #define EMPTY2DIM(x) karl.array2d((x),(x))
 #define EMPTY3DIM(x) karl.array3d((x),(x),(x))
+#define APPEND_TO_ARRAY(x,y) ((x).push(y))
 #define PRINT print
 # ... works in rhino and d8
 #define IS_BROWSER (typeof window !== 'undefined')
@@ -50,7 +52,7 @@ karl.load("lib/array");
 #           ... see notes above about usage with array literals
 #define CLONE_FLOAT(x) (x)
 #           ... in JS, numbers are primitives, not objects, so no need clone them
-#define HASATTR(x,y) ((y) in (x))
+#define HAS_KEY(x,y) ((y) in (x))
 #define TRUE (true)
 #define FALSE (false)
 #define LEN(x) ((x).length)

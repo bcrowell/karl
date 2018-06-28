@@ -41,7 +41,8 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     [0] = sense, +1 or -1 for triggering in a rising or falling direction
     [1] = index of coordinate (0-4) or velocity (5-9) on which to trigger
     [2] = threshold value
-    [3] = fudge factor alpha, which can should typically be less than 1; see docs
+    [3] = fudge factor alpha, which should be less than 1 if something bad happens at threshold or if it would
+                   be bad not to get the trigger
   returns
     [err,final_x,final_v,final_a,final_lambda,info]
   where
@@ -56,10 +57,10 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   dlambda=opt["dlambda"]
   ndebug=opt["ndebug"]
   lambda0=0.0
-  if HASATTR(opt,"lambda0"):
+  if HAS_KEY(opt,"lambda0"):
     lambda0=opt["lambda0"]
   norm_final = TRUE
-  if HASATTR(opt,"norm_final"):
+  if HAS_KEY(opt,"norm_final"):
     norm_final=opt["norm_final"]
   n = CEIL((lambda_max-lambda0)/dlambda)
   ok = FALSE
@@ -68,7 +69,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   else:
     steps_between_debugging=ndebug
   n_triggers = 0
-  if HASATTR(opt,"triggers"):
+  if HAS_KEY(opt,"triggers"):
     n_triggers = LEN(opt["triggers"])
     trigger_s = []
     trigger_on = []
@@ -76,10 +77,10 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     trigger_alpha = []
     for i in range(n_triggers):
       trigger = opt["triggers"][i]
-      trigger_s[i] = [0]
-      trigger_on[i] = [1]
-      trigger_threshold[i] = [2]
-      trigger_alpha[i] = [3]
+      APPEND_TO_ARRAY(trigger_s,trigger[0])
+      APPEND_TO_ARRAY(trigger_on,trigger[1])
+      APPEND_TO_ARRAY(trigger_threshold,trigger[2])
+      APPEND_TO_ARRAY(trigger_alpha,trigger[3])
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = lambda0
   ok,ndim,christoffel_function = chart_info(spacetime,chart)
@@ -146,12 +147,12 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
             for k in range(0, ndim):
               a -= ch[j][k][i]*y[ndim+j]*y[ndim+k]
           est[step][ndim+i] = a*dlambda
-          acc[i] = a # may be needed for trigger detection
+          acc[i] = a # may be needed for trigger detection; in this non-C version, we have not multiplied by dlambda
       for i in range(0, ndim):
         est[step][i] = y[ndim+i]*dlambda
     #-- Check triggers:
     # We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity
-    # we're triggering differs from the trigger value by dx, and it's currently changing at
+    # we're triggering on differs from the trigger value by dx, and it's currently changing at
     # a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below
     # handles all the cases properly.
     for i in range(n_triggers):
@@ -167,9 +168,12 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
         # triggering on a velocity
         dx = thr-v[m-ndim]
         x_dot = acc[m-ndim] # left over from step==3, good enough for an estimate
+        if use_c:
+          x_dot = x_dot/dlambda # undo what the C version does
+      #PRINT("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s)
       if s*dx>0 and x_dot*dlambda*s>alpha*dx*s: # Note that we can't cancel the s, which may be negative.
         # We extrapolate that if we were to complete this iteration, we would cross the threshold.
-        return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final)
+        return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v,acc,norm_final)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)

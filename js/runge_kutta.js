@@ -41,7 +41,7 @@
       karl.load("kruskal");
       karl.load("angular");
       runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, i, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, y, ch, a, est, step, s, m, thr, alpha, dx, x_dot, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, ch, a, est, step, s, m, thr, alpha, dx, x_dot, tot_est;
 
         /*
         Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
@@ -65,7 +65,8 @@
           [0] = sense, +1 or -1 for triggering in a rising or falling direction
           [1] = index of coordinate (0-4) or velocity (5-9) on which to trigger
           [2] = threshold value
-          [3] = fudge factor alpha, which can should typically be less than 1; see docs
+          [3] = fudge factor alpha, which should be less than 1 if something bad happens at threshold or if it would
+                         be bad not to get the trigger
         returns
           [err,final_x,final_v,final_a,final_lambda,info]
         where
@@ -103,10 +104,10 @@
           trigger_alpha = [];
           for (var i = 0; i < n_triggers; i++) {
             trigger = opt["triggers"][i];
-            trigger_s[i] = [0];
-            trigger_on[i] = [1];
-            trigger_threshold[i] = [2];
-            trigger_alpha[i] = [3];
+            ((trigger_s).push(trigger[0]));
+            ((trigger_on).push(trigger[1]));
+            ((trigger_threshold).push(trigger[2]));
+            ((trigger_alpha).push(trigger[3]));
           }
         }
         debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
@@ -170,7 +171,7 @@
                   }
                 }
                 est[step][ndim + i] = a * dlambda;
-                acc[i] = a; /* may be needed for trigger detection */
+                acc[i] = a; /* may be needed for trigger detection; in this non-C version, we have not multiplied by dlambda */
               }
             }
             for (var i = 0; i < ndim; i++) {
@@ -179,7 +180,7 @@
           }
           /*-- Check triggers: */
           /* We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity */
-          /* we're triggering differs from the trigger value by dx, and it's currently changing at */
+          /* we're triggering on differs from the trigger value by dx, and it's currently changing at */
           /* a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below */
           /* handles all the cases properly. */
           for (var i = 0; i < n_triggers; i++) {
@@ -195,10 +196,14 @@
               /* triggering on a velocity */
               dx = thr - v[m - ndim];
               x_dot = acc[m - ndim]; /* left over from step==3, good enough for an estimate */
+              if (use_c) {
+                x_dot = x_dot / dlambda; /* undo what the C version does */
+              }
             }
+            /*print("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s) */
             if (s * dx > 0 && x_dot * dlambda * s > alpha * dx * s) { /* Note that we can't cancel the s, which may be negative. */
               /* We extrapolate that if we were to complete this iteration, we would cross the threshold. */
-              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, x, v, acc, norm_final);
             }
           }
           /*-- Update everything: */

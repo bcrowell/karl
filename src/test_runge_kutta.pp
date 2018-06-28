@@ -90,7 +90,7 @@ def circular_orbit_period():
 
 #--------------------------------------------------------------------------------------------------
 
-def elliptical_orbit_period(r,a,direction,n):
+def elliptical_orbit_period(r,a,direction,n,half_period):
   """
   Period of an elliptical orbit, Schwarzschild coordinates.
 
@@ -115,36 +115,57 @@ def elliptical_orbit_period(r,a,direction,n):
   q=a**2/2.0-1.0
   r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
   period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
+  triggers = []
   lambda_max = period
+  if half_period:
+    lambda_max = 0.5*period*(1+2.0/n) # has to be longer than 0.5*period, or it doesn't test trigger
+    triggers = [[-1.0, 6, 0, 0.5]] # trigger when rdot crosses zero from above
   #--
   ndebug=0
   if verbosity>=3:
+    if half_period:
+      PRINT("testing half-period")
     ndebug=n/10
-  opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug,'norm_final':FALSE}
+  opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug,'norm_final':FALSE,'triggers':triggers}
   err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.geodesic_simple(spacetime,chart,x,v,opt)
-  if verbosity>=2:
-    PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
   if err & RK_ERR:
     THROW('error: '+info['message'])
-  eps = 100.0/r + 10000.0/(n**4) # first term is for error in Keplerian period, second for Runge-Kutta
-  test.assert_equal_eps(x[2],final_x[2],eps)
-  test.assert_equal_eps(x[3],final_x[3],eps)
-  test.assert_equal_eps(x[4],final_x[4],eps)
+  if verbosity>=2:
+    PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
+  if half_period:
+    eps = 10.0/n # won't be as accurate as RK, because we extrapolate linearly to find where v crosses zero
+    lamx = -final_v[1]/final_a[1] # additional increment to lambda based on extrapolation to the trigger
+    final_lambda = final_lambda+lamx
+    final_t = final_x[0]+final_v[0]*lamx
+    final_r = final_x[1] # any correction would be second order
+    final_j = final_x[3]+final_v[3]*lamx
+    if verbosity>=3:
+      PRINT("final lam=",final_lambda,", t=",final_t,", r=",final_r,", j=",final_j)
+    test.assert_rel_equal_eps(final_r,r_max,eps)
+    test.assert_rel_equal_eps(final_t,0.5*period,eps)
+    test.assert_equal_eps(final_j,0.0,eps)
+  else:
+    eps = 100.0/r + 10000.0/(n**4) # first term is for error in Keplerian period, second for Runge-Kutta
+    test.assert_equal_eps(x[2],final_x[2],eps)
+    test.assert_equal_eps(x[3],final_x[3],eps)
+    test.assert_equal_eps(x[4],final_x[4],eps)
 
 
 #--------------------------------------------------------------------------------------------------
 
-#verbosity=3
+
 smoke_test()
 simple_newtonian_free_fall()
 circular_orbit_period()
 
+
 r = 1.0e8
 a = 1.1
 direction = 0.0
-#verbosity=3
-n = 100
-elliptical_orbit_period(r,a,direction,n)
+n = 10000
+verbosity=3
 
+elliptical_orbit_period(r,a,direction,n,FALSE) # test period
+elliptical_orbit_period(r,a,direction,n,TRUE) # test half-period
 
 test.done(verbosity,"runge_kutta")

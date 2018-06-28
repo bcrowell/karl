@@ -10,7 +10,7 @@
       if (typeof test_runge_kutta === 'undefined') {
         var test_runge_kutta = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, r, a, direction, n;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, r, a, direction, n, verbosity;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
@@ -178,8 +178,8 @@
         test.assert_equal_eps(x[4], final_x[4], eps);
       };
       /*-------------------------------------------------------------------------------------------------- */
-      test_runge_kutta.elliptical_orbit_period = function(r, a, direction, n) {
-        var spacetime, chart, v_phi, x, circular_period, v, q, r_max, period, lambda_max, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info, eps;
+      test_runge_kutta.elliptical_orbit_period = function(r, a, direction, n, half_period) {
+        var spacetime, chart, v_phi, x, circular_period, v, q, r_max, period, triggers, lambda_max, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info, eps, lamx, final_t, final_r, final_j;
 
         /*
         Period of an elliptical orbit, Schwarzschild coordinates.
@@ -204,17 +204,28 @@
         q = ((-1.0) + (((0.5) * (Math.pow((a), (2.0))))));
         r_max = ((((1.0) / (2.0))) * (Math.pow((q), (-1.0))) * (((-1.0) + (((-1.0) * (Math.pow((((1.0) + (((2.0) * (Math.pow((a), (2.0))) * (q))))), (((1.0) / (2.0))))))))) * (r));
         period = ((0.35355339059327384) * (circular_period) * (Math.pow((((Math.pow((r), (-1.0))) * (((r) + (r_max))))), (1.5)))); /* Kepler's law of periods */
+        triggers = [];
         lambda_max = period;
+        if (half_period) {
+          lambda_max = 0.5 * period * (1 + 2.0 / n); /* has to be longer than 0.5*period, or it doesn't test trigger */
+          triggers = [
+            [-1.0, 6, 0, 0.5]
+          ]; /* trigger when rdot crosses zero from above */
+        }
         /*-- */
         ndebug = 0;
         if (verbosity >= 3) {
+          if (half_period) {
+            print("testing half-period");
+          }
           ndebug = n / 10;
         }
         opt = {
           'lambda_max': lambda_max,
           'dlambda': lambda_max / n,
           'ndebug': ndebug,
-          'norm_final': (false)
+          'norm_final': (false),
+          'triggers': triggers
         };
         (function() {
           var temp = runge_kutta.geodesic_simple(spacetime, chart, x, v, opt);
@@ -225,26 +236,41 @@
           final_lambda = temp[4];
           info = temp[5]
         })();
-        if (verbosity >= 2) {
-          print("final x=", io_util.vector_to_str_n_decimals(final_x, 16));
-        }
         if (err & 1) {
           throw 'error: ' + info['message'];;
         }
-        eps = ((((10000.0) * (Math.pow((n), (-4.0))))) + (((100.0) * (Math.pow((r), (-1.0)))))); /* first term is for error in Keplerian period, second for Runge-Kutta */
-        test.assert_equal_eps(x[2], final_x[2], eps);
-        test.assert_equal_eps(x[3], final_x[3], eps);
-        test.assert_equal_eps(x[4], final_x[4], eps);
+        if (verbosity >= 2) {
+          print("final x=", io_util.vector_to_str_n_decimals(final_x, 16));
+        }
+        if (half_period) {
+          eps = 10.0 / n; /* won't be as accurate as RK, because we extrapolate linearly to find where v crosses zero */
+          lamx = -final_v[1] / final_a[1]; /* additional increment to lambda based on extrapolation to the trigger */
+          final_lambda = final_lambda + lamx;
+          final_t = final_x[0] + final_v[0] * lamx;
+          final_r = final_x[1]; /* any correction would be second order */
+          final_j = final_x[3] + final_v[3] * lamx;
+          if (verbosity >= 3) {
+            print("final lam=", final_lambda, ", t=", final_t, ", r=", final_r, ", j=", final_j);
+          }
+          test.assert_rel_equal_eps(final_r, r_max, eps);
+          test.assert_rel_equal_eps(final_t, 0.5 * period, eps);
+          test.assert_equal_eps(final_j, 0.0, eps);
+        } else {
+          eps = ((((10000.0) * (Math.pow((n), (-4.0))))) + (((100.0) * (Math.pow((r), (-1.0)))))); /* first term is for error in Keplerian period, second for Runge-Kutta */
+          test.assert_equal_eps(x[2], final_x[2], eps);
+          test.assert_equal_eps(x[3], final_x[3], eps);
+          test.assert_equal_eps(x[4], final_x[4], eps);
+        }
       };
       /*-------------------------------------------------------------------------------------------------- */
-      /*verbosity=3 */
       test_runge_kutta.smoke_test();
       test_runge_kutta.simple_newtonian_free_fall();
       test_runge_kutta.circular_orbit_period();
       r = 1.0e8;
       a = 1.1;
       direction = 0.0;
-      /*verbosity=3 */
       n = 100;
-      test_runge_kutta.elliptical_orbit_period(r, a, direction, n);
+      verbosity = 3;
+      test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (false)); /* test period */
+      test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (true)); /* test half-period */
       test.done(verbosity, "runge_kutta");
