@@ -90,7 +90,7 @@ test_js:
 	done
 
 $(JS)/%.js: $(SRC)/%.pp $(SRC)/*.h
-	@filepp -DLANG=js $< -o $@i
+	filepp -DLANG=js $< -o $@i
 	pj/pj.rb $@i karl <$@i >$@
 	@rm $@i
 	@-js-beautify --replace -n -s 2 $@

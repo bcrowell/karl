@@ -55,7 +55,9 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   v=CLONE_ARRAY_OF_FLOATS(v0)
   lambda_max=opt["lambda_max"]
   dlambda=opt["dlambda"]
-  ndebug=opt["ndebug"]
+  ndebug = 0
+  if HAS_KEY(opt,"ndebug"):
+    ndebug=opt["ndebug"]
   lambda0=0.0
   if HAS_KEY(opt,"lambda0"):
     lambda0=opt["lambda0"]

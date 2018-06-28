@@ -10,7 +10,7 @@
       if (typeof test_runge_kutta === 'undefined') {
         var test_runge_kutta = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, r, a, direction, n, verbosity;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
@@ -179,7 +179,7 @@
       };
       /*-------------------------------------------------------------------------------------------------- */
       test_runge_kutta.elliptical_orbit_period = function(r, a, direction, n, half_period) {
-        var spacetime, chart, v_phi, x, circular_period, v, q, r_max, period, triggers, lambda_max, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info, eps, lamx, final_t, final_r, final_j;
+        var spacetime, chart, v_phi, x, circular_period, v, q, r_max, foo, period, triggers, lambda_max, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info, eps, lamx, final_t, final_r, final_j;
 
         /*
         Period of an elliptical orbit, Schwarzschild coordinates.
@@ -203,6 +203,7 @@
         /* Compute newtonian r_max: */
         q = ((-1.0) + (((0.5) * (Math.pow((a), (2.0))))));
         r_max = ((((1.0) / (2.0))) * (Math.pow((q), (-1.0))) * (((-1.0) + (((-1.0) * (Math.pow((((1.0) + (((2.0) * (Math.pow((a), (2.0))) * (q))))), (((1.0) / (2.0))))))))) * (r));
+        foo = ((1.0) + (((2.0) * (Math.pow((a), (2.0))) * (q))));
         period = ((0.35355339059327384) * (circular_period) * (Math.pow((((Math.pow((r), (-1.0))) * (((r) + (r_max))))), (1.5)))); /* Kepler's law of periods */
         triggers = [];
         lambda_max = period;
@@ -263,14 +264,21 @@
         }
       };
       /*-------------------------------------------------------------------------------------------------- */
-      test_runge_kutta.smoke_test();
-      test_runge_kutta.simple_newtonian_free_fall();
-      test_runge_kutta.circular_orbit_period();
-      r = 1.0e8;
-      a = 1.1;
-      direction = 0.0;
-      n = 100;
-      verbosity = 3;
-      test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (false)); /* test period */
-      test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (true)); /* test half-period */
-      test.done(verbosity, "runge_kutta");
+      test_runge_kutta.main = function() {
+        var r, a, direction, n, verbosity;
+
+        test_runge_kutta.smoke_test();
+        test_runge_kutta.simple_newtonian_free_fall();
+        test_runge_kutta.circular_orbit_period();
+        /*-- */
+        r = 1.0e8;
+        a = 1.1;
+        direction = 0.0;
+        n = 100;
+        verbosity = 3;
+        test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (false)); /* test period */
+        test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (true)); /* test half-period */
+        /*-- */
+        test.done(verbosity, "runge_kutta");
+      };
+      test_runge_kutta.main();

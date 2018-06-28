@@ -114,6 +114,7 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
   # Compute newtonian r_max:
   q=a**2/2.0-1.0
   r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
+  foo = 1.0+2.0*a**2*q
   period = circular_period*((r+r_max)/(r+r))**1.5 # Kepler's law of periods
   triggers = []
   lambda_max = period
@@ -153,19 +154,19 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
 
 #--------------------------------------------------------------------------------------------------
 
+def main():
+  smoke_test()
+  simple_newtonian_free_fall()
+  circular_orbit_period()
+  #--
+  r = 1.0e8
+  a = 1.1
+  direction = 0.0
+  n = 100
+  verbosity=3
+  elliptical_orbit_period(r,a,direction,n,FALSE) # test period
+  elliptical_orbit_period(r,a,direction,n,TRUE) # test half-period
+  #--
+  test.done(verbosity,"runge_kutta")
 
-smoke_test()
-simple_newtonian_free_fall()
-circular_orbit_period()
-
-
-r = 1.0e8
-a = 1.1
-direction = 0.0
-n = 10000
-verbosity=3
-
-elliptical_orbit_period(r,a,direction,n,FALSE) # test period
-elliptical_orbit_period(r,a,direction,n,TRUE) # test half-period
-
-test.done(verbosity,"runge_kutta")
+main()

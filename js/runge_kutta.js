@@ -79,7 +79,10 @@
         v = (karl.clone_array1d(v0));
         lambda_max = opt["lambda_max"];
         dlambda = opt["dlambda"];
-        ndebug = opt["ndebug"];
+        ndebug = 0;
+        if ((("ndebug") in (opt))) {
+          ndebug = opt["ndebug"];
+        }
         lambda0 = 0.0;
         if ((("lambda0") in (opt))) {
           lambda0 = opt["lambda0"];
