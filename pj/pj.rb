@@ -367,6 +367,9 @@ def translate_math_expression(e0)
   e = e0.clone
   err = ''
   if e=~/\*\*/ then # fancy math that requires translate_maxima
+    if e=~/print/ then
+      return ['','break up print(expression) into simpler parts']
+    end
     e.gsub!(/\*\*/,'^') # translate exponentiation to maxima syntax
     e.gsub!(/^\s+/,'') # delete leading whitespace, which upsets it, not sure why
     # Protect array subscripts from translation, since translate_maxima can't handle them.
