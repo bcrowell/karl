@@ -138,19 +138,11 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
         for i in range(0, ndim2):
           pt[i]=y[i]
         c_libs.karl_c_lib.apply_christoffel(spacetime,chart,pt_p,acc_p,ctypes.c_double(dlambda))
-        for i in range(0, ndim):
-          est[step][ndim+i] = acc[i] # C routine takes care of multiplying a by dlambda
 #endif
       else:
-        ch = christoffel_function(y)
-        for i in range(0, ndim):
-          a = 0.0 # is essentially the acceleration
-          for j in range(0, ndim):
-            for k in range(0, ndim):
-              a -= ch[j][k][i]*y[ndim+j]*y[ndim+k]
-          est[step][ndim+i] = a*dlambda
-          acc[i] = a # may be needed for trigger detection; in this non-C version, we have not multiplied by dlambda
+        apply_christoffel(christoffel_function,y,acc,dlambda,ndim)
       for i in range(0, ndim):
+        est[step][ndim+i] = acc[i]
         est[step][i] = y[ndim+i]*dlambda
     #-- Check triggers:
     # We can trigger in the rising (s=+1) or falling (s=-1) direction. The coordinate or velocity
@@ -169,9 +161,7 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
       else:
         # triggering on a velocity
         dx = thr-v[m-ndim]
-        x_dot = acc[m-ndim] # left over from step==3, good enough for an estimate
-        if use_c:
-          x_dot = x_dot/dlambda # undo what the C version does
+        x_dot = acc[m-ndim]/dlambda # left over from step==3, good enough for an estimate
       #PRINT("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s)
       if s*dx>0 and x_dot*dlambda*s>alpha*dx*s: # Note that we can't cancel the s, which may be negative.
         # We extrapolate that if we were to complete this iteration, we would cross the threshold.
@@ -194,6 +184,17 @@ def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,
     x = angular.renormalize(x)
     v = angular.make_tangent(x,v)
   return [0,x,v,acc,lam,{}]
+
+def apply_christoffel(christoffel_function,y,acc,dlambda,ndim):
+  # A similar routine, written in C for speed, is in apply_christoffel.c. This version exists
+  # only so it can be translated into javascript.
+  ch = christoffel_function(y)
+  for i in range(0, ndim):
+    a = 0.0 # is essentially the acceleration
+    for j in range(0, ndim):
+      for k in range(0, ndim):
+        a -= ch[j][k][i]*y[ndim+j]*y[ndim+k]
+    acc[i] = a*dlambda
 
 def mess(stuff):
   return {'message':io_util.strcat(stuff)}

@@ -41,7 +41,7 @@
       karl.load("kruskal");
       karl.load("angular");
       runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, ch, a, est, step, s, m, thr, alpha, dx, x_dot, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, s, m, thr, alpha, dx, x_dot, tot_est;
 
         /*
         Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
@@ -165,19 +165,10 @@
             if (use_c) {
               /* use faster C implementation: */
             } else {
-              ch = christoffel_function(y);
-              for (var i = 0; i < ndim; i++) {
-                a = 0.0; /* is essentially the acceleration */
-                for (var j = 0; j < ndim; j++) {
-                  for (var k = 0; k < ndim; k++) {
-                    a -= ch[j][k][i] * y[ndim + j] * y[ndim + k];
-                  }
-                }
-                est[step][ndim + i] = a * dlambda;
-                acc[i] = a; /* may be needed for trigger detection; in this non-C version, we have not multiplied by dlambda */
-              }
+              runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
             }
             for (var i = 0; i < ndim; i++) {
+              est[step][ndim + i] = acc[i];
               est[step][i] = y[ndim + i] * dlambda;
             }
           }
@@ -198,10 +189,7 @@
             } else {
               /* triggering on a velocity */
               dx = thr - v[m - ndim];
-              x_dot = acc[m - ndim]; /* left over from step==3, good enough for an estimate */
-              if (use_c) {
-                x_dot = x_dot / dlambda; /* undo what the C version does */
-              }
+              x_dot = acc[m - ndim] / dlambda; /* left over from step==3, good enough for an estimate */
             }
             /*print("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s) */
             if (s * dx > 0 && x_dot * dlambda * s > alpha * dx * s) { /* Note that we can't cancel the s, which may be negative. */
@@ -234,6 +222,22 @@
           v = angular.make_tangent(x, v);
         }
         return [0, x, v, acc, lam, {}];
+      };
+      runge_kutta.apply_christoffel = function(christoffel_function, y, acc, dlambda, ndim) {
+        var ch, a, acc, i;
+
+        /* A similar routine, written in C for speed, is in apply_christoffel.c. This version exists */
+        /* only so it can be translated into javascript. */
+        ch = christoffel_function(y);
+        for (var i = 0; i < ndim; i++) {
+          a = 0.0; /* is essentially the acceleration */
+          for (var j = 0; j < ndim; j++) {
+            for (var k = 0; k < ndim; k++) {
+              a -= ch[j][k][i] * y[ndim + j] * y[ndim + k];
+            }
+          }
+          acc[i] = a * dlambda;
+        }
       };
       runge_kutta.mess = function(stuff) {
 
