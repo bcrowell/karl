@@ -65,18 +65,12 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   else:
     steps_between_debugging=ndebug
   n_triggers = 0
+  trigger_s = []
+  trigger_on = []
+  trigger_threshold = []
+  trigger_alpha = []
   if HAS_KEY(opt,"triggers"):
-    n_triggers = LEN(opt["triggers"])
-    trigger_s = []
-    trigger_on = []
-    trigger_threshold = []
-    trigger_alpha = []
-    for i in range(n_triggers):
-      trigger = opt["triggers"][i]
-      APPEND_TO_ARRAY(trigger_s,trigger[0])
-      APPEND_TO_ARRAY(trigger_on,trigger[1])
-      APPEND_TO_ARRAY(trigger_threshold,trigger[2])
-      APPEND_TO_ARRAY(trigger_alpha,trigger[3])
+    n_triggers = runge_kutta_get_trigger_options_helper(opt,trigger_s,trigger_on,trigger_threshold,trigger_alpha)
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = lambda0
   ok,ndim,christoffel_function = chart_info(spacetime,chart)
@@ -198,6 +192,16 @@ def runge_kutta_get_par_helper(opt,name,default_val):
   if IS_NONE(val):
     THROW('required option '+name+' not supplied')
   return val
+
+def runge_kutta_get_trigger_options_helper(opt,trigger_s,trigger_on,trigger_threshold,trigger_alpha):
+  n_triggers = LEN(opt["triggers"])
+  for i in range(n_triggers):
+    trigger = opt["triggers"][i]
+    APPEND_TO_ARRAY(trigger_s,trigger[0])
+    APPEND_TO_ARRAY(trigger_on,trigger[1])
+    APPEND_TO_ARRAY(trigger_threshold,trigger[2])
+    APPEND_TO_ARRAY(trigger_alpha,trigger[3])
+  return n_triggers
 
 def apply_christoffel(christoffel_function,y,acc,dlambda,ndim):
   # A similar routine, written in C for speed, is in apply_christoffel.c. This version exists

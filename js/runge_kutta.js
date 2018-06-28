@@ -40,7 +40,7 @@
       karl.load("kruskal");
       karl.load("angular");
       runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, trigger, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n, ok, steps_between_debugging, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, debug_count, lam, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
         /*
         Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
@@ -89,19 +89,12 @@
           steps_between_debugging = ndebug;
         }
         n_triggers = 0;
+        trigger_s = [];
+        trigger_on = [];
+        trigger_threshold = [];
+        trigger_alpha = [];
         if ((("triggers") in (opt))) {
-          n_triggers = ((opt["triggers"]).length);
-          trigger_s = [];
-          trigger_on = [];
-          trigger_threshold = [];
-          trigger_alpha = [];
-          for (var i = 0; i < n_triggers; i++) {
-            trigger = opt["triggers"][i];
-            ((trigger_s).push(trigger[0]));
-            ((trigger_on).push(trigger[1]));
-            ((trigger_threshold).push(trigger[2]));
-            ((trigger_alpha).push(trigger[3]));
-          }
+          n_triggers = runge_kutta.runge_kutta_get_trigger_options_helper(opt, trigger_s, trigger_on, trigger_threshold, trigger_alpha);
         }
         debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
         lam = lambda0;
@@ -238,6 +231,19 @@
           throw 'required option ' + name + '  !  supplied';;
         }
         return val;
+      };
+      runge_kutta.runge_kutta_get_trigger_options_helper = function(opt, trigger_s, trigger_on, trigger_threshold, trigger_alpha) {
+        var n_triggers, trigger;
+
+        n_triggers = ((opt["triggers"]).length);
+        for (var i = 0; i < n_triggers; i++) {
+          trigger = opt["triggers"][i];
+          ((trigger_s).push(trigger[0]));
+          ((trigger_on).push(trigger[1]));
+          ((trigger_threshold).push(trigger[2]));
+          ((trigger_alpha).push(trigger[3]));
+        }
+        return n_triggers;
       };
       runge_kutta.apply_christoffel = function(christoffel_function, y, acc, dlambda, ndim) {
         var ch, a, acc, i;
