@@ -1,3 +1,5 @@
+MAKEFLAGS += --no-print-directory
+
 PYTHON = python3
 
 SRC = src

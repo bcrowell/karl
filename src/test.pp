@@ -32,6 +32,6 @@ def assert_rel_equal_eps_vector(x,y,eps):
 
 def done(verbosity,name):
   if verbosity>=1:
-    print("Passed test_"+name)
+    print("Passed test_"+name+", language=LANG")
 
 verbosity=1

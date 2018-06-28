@@ -67,7 +67,7 @@
       test.done = function(verbosity, name) {
 
         if (verbosity >= 1) {
-          print("Passed test_" + name);
+          print("Passed test_" + name + ", language=js");
         }
       };
       verbosity = 1;

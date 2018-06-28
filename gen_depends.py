@@ -52,41 +52,57 @@ def main():
   all_test_obj = []
   all_js = []
   all_py = []
+  all_js_modules = []
+  all_py_modules = []
   individual = ""
-  for pat_name in targets:
-    for target in targets[pat_name]:
-      pat = targets[pat_name][target]
-      is_test = ("test" in pat and pat["test"])
-      prefix = ""
-      if is_test:
-        prefix = "test_"
-      pp = "src/"+prefix+target+".pp"
-      py = "obj/"+prefix+target+".py"
-      js = "js/"+prefix+target+".js"
-      jsi = "js/"+prefix+target+".jsi"
-      include_files = "src/*.h"
-      individual = individual + "#--------- "+target+" ("+pat_name+")"+"\n"
-      individual = individual + py+": "+pp+" "+include_files+"\n"
-      individual = individual + "	filepp -DLANG=python "+pp+" -o "+py+"\n"
-      individual = individual + js+": "+pp+" "+include_files+"\n"
-      individual = individual + "	filepp -DLANG=js "+pp+" -o "+jsi+"\n"
-      individual = individual + "	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js+"\n"
-      individual = individual + "	@rm "+jsi+"\n"
-      individual = individual + "	@-js-beautify --replace -n -s 2 "+js+"\n"
-      all_js.append(js)
-      all_py.append(py)
-      if is_test:
-        individual = individual + "test_"+target+": "+py+" "+js+"\n"
-        individual = individual + "	$(PYTHON3) "+py+"\n"
-        individual = individual + "	cd js ; rhino -opt -1 "+js+" ; cd -"+"\n"
-        all_tests = all_tests + "	make test_"+target+"\n"
-        all_test_obj.append(py)
-        all_test_obj.append(js)
-      individual = individual + "\n"
-  print("test: "+' '.join(all_test_obj)+"\n"+all_tests)
-  print("js: "+' '.join(all_js)+"\n"+"	#")
-  print("py: "+' '.join(all_py)+"\n"+"	#")
-  print(individual)
+  include_files = "src/*.h"
+  for npass in range(2):
+    if npass==1:
+      js_modules = ' '.join(all_js_modules)
+      py_modules = ' '.join(all_py_modules)
+      print("test: "+' '.join(all_test_obj)+' '+js_modules+' '+py_modules+"\n"+all_tests)
+      print("js: "+' '.join(all_js)+"\n"+"	#")
+      print("py: "+' '.join(all_py)+"\n"+"	#")
+    for pat_name in targets:
+      for target in targets[pat_name]:
+        pat = targets[pat_name][target]
+        is_test = ("test" in pat and pat["test"])
+        prefix = ""
+        if is_test:
+          prefix = "test_"
+        pp = "src/"+prefix+target+".pp"
+        py = "obj/"+prefix+target+".py"
+        js = "js/"+prefix+target+".js"
+        jsi = "js/"+prefix+target+".jsi"
+        if npass==0:
+          all_js.append(js)
+          all_py.append(py)
+          if not is_test:
+            all_js_modules.append(js)
+            all_py_modules.append(py)
+          if is_test:
+            all_tests = all_tests + "	@make test_"+target+"\n"
+            all_test_obj.append(py)
+            all_test_obj.append(js)
+        if npass==1:
+          print("#--------- "+target+" ("+pat_name+")")
+          print(py+": "+pp+" "+include_files)
+          print("	filepp -DLANG=python "+pp+" -o "+py)
+          print("	@chmod +x "+py)
+          print(js+": "+pp+" "+include_files)
+          print("	filepp -DLANG=js "+pp+" -o "+jsi)
+          print("	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js)
+          print("	@rm "+jsi)
+          print("	@-js-beautify --replace -n -s 2 "+js)
+          if is_test:
+            print("test_"+target+"_py: "+py+" "+py_modules)
+            print("	@$(PYTHON3) "+py)
+            print("test_"+target+"_js: "+js+" "+js_modules)
+            print("	@$(PYTHON3) run_js.py "+js)
+            print("test_"+target+":")
+            print("	@make -s --no-print-directory test_"+target+"_py")
+            print("	@make -s --no-print-directory test_"+target+"_js")
+          print("")
 
 def add_target(targets,target,pat):
   pat_name = pat["name"]
