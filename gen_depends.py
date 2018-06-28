@@ -52,6 +52,7 @@ def main():
   all_test_obj = []
   all_js = []
   all_py = []
+  individual = ""
   for pat_name in targets:
     for target in targets[pat_name]:
       pat = targets[pat_name][target]
@@ -64,27 +65,28 @@ def main():
       js = "js/"+prefix+target+".js"
       jsi = "js/"+prefix+target+".jsi"
       include_files = "src/*.h"
-      print("#--------- "+target+" ("+pat_name+")")
-      print(py+": "+pp+" "+include_files)
-      print("	filepp -DLANG=python "+pp+" -o "+py)
-      print(js+": "+pp+" "+include_files)
-      print("	filepp -DLANG=js "+pp+" -o "+jsi)
-      print("	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js)
-      print("	@rm "+jsi)
-      print("	@-js-beautify --replace -n -s 2 "+js)
+      individual = individual + "#--------- "+target+" ("+pat_name+")"+"\n"
+      individual = individual + py+": "+pp+" "+include_files+"\n"
+      individual = individual + "	filepp -DLANG=python "+pp+" -o "+py+"\n"
+      individual = individual + js+": "+pp+" "+include_files+"\n"
+      individual = individual + "	filepp -DLANG=js "+pp+" -o "+jsi+"\n"
+      individual = individual + "	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js+"\n"
+      individual = individual + "	@rm "+jsi+"\n"
+      individual = individual + "	@-js-beautify --replace -n -s 2 "+js+"\n"
       all_js.append(js)
       all_py.append(py)
       if is_test:
-        print("test_"+target+": "+py+" "+js)
-        print("	$(PYTHON3) "+py)
-        print("	cd js ; rhino -opt -1 "+js+" ; cd -")
+        individual = individual + "test_"+target+": "+py+" "+js+"\n"
+        individual = individual + "	$(PYTHON3) "+py+"\n"
+        individual = individual + "	cd js ; rhino -opt -1 "+js+" ; cd -"+"\n"
         all_tests = all_tests + "	make test_"+target+"\n"
         all_test_obj.append(py)
         all_test_obj.append(js)
-      print()
+      individual = individual + "\n"
   print("test: "+' '.join(all_test_obj)+"\n"+all_tests)
   print("js: "+' '.join(all_js)+"\n"+"	#")
   print("py: "+' '.join(all_py)+"\n"+"	#")
+  print(individual)
 
 def add_target(targets,target,pat):
   pat_name = pat["name"]

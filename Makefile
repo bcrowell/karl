@@ -25,5 +25,5 @@ clean_js:
 	rm -f js/*.js js/*.jsi
 
 clean:
-	rm -f *~ src/*~ obj/*~ pj/*~ js/*~ js/*.jsi
+	rm -f *~ src/*~ obj/*~ pj/*~ js/*~ js/*.jsi obj/*.pyc
 	cd doc && make clean && cd -
