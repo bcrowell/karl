@@ -77,27 +77,19 @@
         x = (karl.clone_array1d(x0));
         v = (karl.clone_array1d(v0));
         /*-- process input options */
-        lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
-        dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
-        ndebug = runge_kutta.runge_kutta_get_par_helper(opt, "ndebug", 0);
-        lambda0 = runge_kutta.runge_kutta_get_par_helper(opt, "lambda0", 0.0);
-        norm_final = runge_kutta.runge_kutta_get_par_helper(opt, "norm_final", (true));
-        n_triggers = 0;
         (function() {
-          var temp = [
-            [],
-            [],
-            [],
-            []
-          ];
-          trigger_s = temp[0];
-          trigger_on = temp[1];
-          trigger_threshold = temp[2];
-          trigger_alpha = temp[3]
+          var temp = runge_kutta.runge_kutta_get_options_helper(opt);
+          lambda_max = temp[0];
+          dlambda = temp[1];
+          ndebug = temp[2];
+          lambda0 = temp[3];
+          norm_final = temp[4];
+          n_triggers = temp[5];
+          trigger_s = temp[6];
+          trigger_on = temp[7];
+          trigger_threshold = temp[8];
+          trigger_alpha = temp[9]
         })();
-        if ((("triggers") in (opt))) {
-          n_triggers = runge_kutta.runge_kutta_get_trigger_options_helper(opt, trigger_s, trigger_on, trigger_threshold, trigger_alpha);
-        }
         /*-- initial setup */
         (function() {
           var temp = runge_kutta.runge_kutta_init_helper(lambda_max, lambda0, dlambda, ndebug, spacetime, chart);
@@ -181,6 +173,32 @@
           }
         }
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+      };
+      runge_kutta.runge_kutta_get_options_helper = function(opt) {
+        var lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha;
+
+        lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
+        dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
+        ndebug = runge_kutta.runge_kutta_get_par_helper(opt, "ndebug", 0);
+        lambda0 = runge_kutta.runge_kutta_get_par_helper(opt, "lambda0", 0.0);
+        norm_final = runge_kutta.runge_kutta_get_par_helper(opt, "norm_final", (true));
+        n_triggers = 0;
+        (function() {
+          var temp = [
+            [],
+            [],
+            [],
+            []
+          ];
+          trigger_s = temp[0];
+          trigger_on = temp[1];
+          trigger_threshold = temp[2];
+          trigger_alpha = temp[3]
+        })();
+        if ((("triggers") in (opt))) {
+          n_triggers = runge_kutta.runge_kutta_get_trigger_options_helper(opt, trigger_s, trigger_on, trigger_threshold, trigger_alpha);
+        }
+        return [lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha];
       };
       runge_kutta.runge_kutta_init_helper = function(lambda_max, lambda0, dlambda, ndebug, spacetime, chart) {
         var n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function;
