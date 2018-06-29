@@ -61,7 +61,8 @@
           triggers = array of 4-element arrays, each describing a trigger (see below)
           force_acts = boolean, do we have an external force?
           force_function = function that calculates the proper acceleration vector d^2x/dlambda^2,
-                                   given (lambda,x,v) as inputs; its output will automatically be cloned
+                                   given (lambda,x,v) as inputs; its output will be used and immediately discarded,
+                                   so the function does not need to clone it before returning it
           force_chart = chart that the function wants for its inputs and outputs
         triggers
           These allow the integration to be halted when it appears that in the next iteration,
@@ -153,11 +154,16 @@
                 y[i] = y0[i] + est[2][i];
               }
             }
-            for (var i = 0; i < ndim2; i++);
+            for (var i = 0; i < ndim2; i++) {
+              est[step][i] = 0.0;
+            }
             if (use_c) {
               /* use faster C implementation: */
             } else {
               runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
+            }
+            if (force_acts) {
+              runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart);
             }
             for (var i = 0; i < ndim; i++) {
               est[step][ndim + i] = acc[i];
@@ -181,6 +187,19 @@
           }
         }
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
+      };
+      runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart) {
+        var x2, v2, proper_accel2, proper_accel, a, i;
+
+        /* The API says that force_function does not need to clone its output vector before returning it, so */
+        /* we need to make sure to discard it here and never do anything with it later. */
+        x2 = transform_point(x, spacetime, chart, force_chart);
+        v2 = transform_vector(v, x, spacetime, chart, force_chart);
+        proper_accel2 = force_function(lam, x2, v2);
+        proper_accel = transform_vector(proper_accel2, x2, spacetime, force_chart, chart);
+        for (var i = 0; i < ndim; i++) {
+          a[i] = a[i] + proper_accel[i];
+        }
       };
       runge_kutta.runge_kutta_get_options_helper = function(opt) {
         var lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart;

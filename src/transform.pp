@@ -16,14 +16,47 @@ not document the math or the definitions of the variables.)
 import math_util
 import kruskal
 
-def transform_vector(v,x,spacetime,chart,chart2):
+def transform_point(x,spacetime,chart,chart2):
   """
-  Transforms a vector v from chart to chart2 in the tangent space at x. Return value is a vector.
+  Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
+  It's legal to have chart==chart2.
   """
+  if chart==chart2:
+    return CLONE_ARRAY_OF_FLOATS(x)
   ok = FALSE
   if spacetime==SP_SCH:
     if (chart==CH_SCH and chart2==CH_AKS) or (chart==CH_AKS and chart2==CH_SCH):
       ok = TRUE
+      ndim = 5
+      x2=EMPTY1DIM(ndim)
+      if chart==CH_SCH and chart2==CH_AKS:
+        a,b = schwarzschild_to_kruskal(x[0],x[1])
+        x2[0] = a
+        x2[1] = b
+      else:
+        t,r = kruskal_to_schwarzschild(x[0],x[1])
+        x2[0] = t
+        x2[1] = r
+      x2[2]=x[2]
+      x2[3]=x[3]
+      x2[4]=x[4]
+  if ok:
+    return CLONE_ARRAY_OF_FLOATS(x2) # for python, divorce the new vector from entanglement with components of old
+  else:
+    THROW_ARRAY((["unrecognized charts, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))
+
+def transform_vector(v,x,spacetime,chart,chart2):
+  """
+  Transforms a vector v from chart to chart2 in the tangent space at x. Return value is an array, which is
+  automatically cloned. It's legal to have chart==chart2.
+  """
+  if chart==chart2:
+    return CLONE_ARRAY_OF_FLOATS(v)
+  ok = FALSE
+  if spacetime==SP_SCH:
+    if (chart==CH_SCH and chart2==CH_AKS) or (chart==CH_AKS and chart2==CH_SCH):
+      ok = TRUE
+      ndim = 5
       if chart==CH_SCH and chart2==CH_AKS:
         t,r = [x[0],x[1]]
         jac = transform.jacobian_schwarzschild_to_kruskal(t,r)

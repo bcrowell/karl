@@ -34,16 +34,65 @@
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */
       karl.load("math_util");
       karl.load("kruskal");
-      transform.transform_vector = function(v, x, spacetime, chart, chart2) {
-        var ok, t, r, jac, v2;
+      transform.transform_point = function(x, spacetime, chart, chart2) {
+        var ok, ndim, x2, a, b, t, r;
 
         /*
-        Transforms a vector v from chart to chart2 in the tangent space at x. Return value is a vector.
+        Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
+        It's legal to have chart==chart2.
         */
+        if (chart == chart2) {
+          return (karl.clone_array1d(x));
+        }
         ok = (false);
         if (spacetime == SP_SCH) {
           if ((chart == CH_SCH && chart2 == CH_AKS) || (chart == CH_AKS && chart2 == CH_SCH)) {
             ok = (true);
+            ndim = 5;
+            x2 = karl.array1d((ndim));
+            if (chart == CH_SCH && chart2 == CH_AKS) {
+              (function() {
+                var temp = transform.schwarzschild_to_kruskal(x[0], x[1]);
+                a = temp[0];
+                b = temp[1]
+              })();
+              x2[0] = a;
+              x2[1] = b;
+            } else {
+              (function() {
+                var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
+                t = temp[0];
+                r = temp[1]
+              })();
+              x2[0] = t;
+              x2[1] = r;
+            }
+            x2[2] = x[2];
+            x2[3] = x[3];
+            x2[4] = x[4];
+          }
+        }
+        if (ok) {
+          return (karl.clone_array1d(x2)); /* for python, divorce the new vector from entanglement with components of old */
+        } else {
+          throw io_util.strcat((["unrecognized charts, spacetime=", spacetime, ", chart=", chart, ", chart2=", chart2]));;
+        }
+      };
+      transform.transform_vector = function(v, x, spacetime, chart, chart2) {
+        var ok, ndim, t, r, jac, v2;
+
+        /*
+        Transforms a vector v from chart to chart2 in the tangent space at x. Return value is an array, which is
+        automatically cloned. It's legal to have chart==chart2.
+        */
+        if (chart == chart2) {
+          return (karl.clone_array1d(v));
+        }
+        ok = (false);
+        if (spacetime == SP_SCH) {
+          if ((chart == CH_SCH && chart2 == CH_AKS) || (chart == CH_AKS && chart2 == CH_SCH)) {
+            ok = (true);
+            ndim = 5;
             if (chart == CH_SCH && chart2 == CH_AKS) {
               (function() {
                 var temp = [x[0], x[1]];
