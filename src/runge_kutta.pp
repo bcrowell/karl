@@ -15,7 +15,7 @@ from c_libs import c_double_p
 
 from io_util import fl
 
-import schwarzschild,kruskal,angular
+import schwarzschild,kruskal,angular,transform
 
 def trajectory_simple(spacetime,chart,x0,v0,opt):
   """
@@ -127,7 +127,7 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
       else:
         apply_christoffel(christoffel_function,y,acc,dlambda,ndim)
       if force_acts:
-        handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart)
+        handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda)
       for i in range(ndim):
         est[step][ndim+i] = acc[i]
         est[step][i] = y[ndim+i]*dlambda
@@ -145,15 +145,17 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
       x[i] += tot_est[i]
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final)
 
-def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart):
+def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda):
   # The API says that force_function does not need to clone its output vector before returning it, so
   # we need to make sure to discard it here and never do anything with it later.
-  x2 = transform_point(x,spacetime,chart,force_chart)
-  v2 = transform_vector(v,x,spacetime,chart,force_chart)
+  # The vector a that we're modifying already has a factor of dlambda in it, so we multiply by dlambda here
+  # as well.
+  x2 = transform.transform_point(x,spacetime,chart,force_chart)
+  v2 = transform.transform_vector(v,x,spacetime,chart,force_chart)
   proper_accel2 = force_function(lam,x2,v2)
-  proper_accel = transform_vector(proper_accel2,x2,spacetime,force_chart,chart)
+  proper_accel = transform.transform_vector(proper_accel2,x2,spacetime,force_chart,chart)
   for i in range(ndim):
-    a[i] = a[i]+proper_accel[i]
+    a[i] = a[i]+proper_accel[i]*dlambda
 
 def runge_kutta_get_options_helper(opt):
   lambda_max  =runge_kutta_get_par_helper(opt,"lambda_max",NONE)

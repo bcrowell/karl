@@ -3,25 +3,30 @@ karl
 
 ## Purpose
 
-Karl, named after Karl Schwarzschild, is a library for numerical calculations regarding
-black holes.
+Karl, named after Karl Schwarzschild, is a library for numerical calculations of trajectories
+of test particles in black-hole spacetimes. The technique used is direct numerical integration
+of the equations of motion. Compared to techniques involving conserved quantities, this has
+some advantages:
+
+* We can simulate a nongravitational force, e.g., in the motion of a rocket ship.
+* We can handle spacetimes having fewer symmetries than the Schwarzschild spacetime.
 
 Current features:
 
 * the Schwarzschild spacetime
+* computation of trajectories using Runge-Kutta integration
 * Schwarzschild coordinates
 * Kruskal-Szekeres coordinates 
-* Christoffel symbols
+* Christoffel symbols, coordinate transformations, and Jacobian matrices
 * test suite
-* implementation in both python and javascript, with time-critical code written in C for speed
-* computation of geodesics using Runge-Kutta integration
+* implementation in both python and javascript, with time-critical code written in C for speed in the python version
+* user-defined triggers to stop the computation when a specified coordinate or velocity reaches a set value
 
 Features I plan to add:
 
 * automatic switching between coordinate charts for better numerical behavior
 * automatic handling of the case where a geodesic is terminating
-* trajectories under the influence of a force (e.g., simulations of rocket ships)
-* Reissner-Nordstrom spacetime
+* other black-hole spacetimes such as Reissner-Nordstrom
 
 Documentation for the math is in the file doc.tex, which can be
 compiled to pdf format by doing a "make doc." (Comments in the code do
@@ -34,7 +39,7 @@ which can be installed on a debian
 system by doing `apt-get install python-scipy3 python-numpy3 filepp`.
 If you want to be able to modify the python code and then translate python to javascript:
 
-    apt-get install rhino
+    apt-get install rhino ruby
     pip install jsbeautifier
 
 ## In the browser
@@ -43,9 +48,6 @@ There is a simple text-based demo in the file browser/sample.html.
 
 The startup scripts in browser/util create the following global variables:
 karl, print, verbosity, and some all-caps constants in constants.js.
-
-Surprisingly, the javascript version runs about 30 times faster than the
-python version.
 
 ## Notes on performance
 
@@ -65,12 +67,6 @@ constant of proportionality than I'd imagined, or is it a bug or a sign of numer
 instability in Kruskal coordinates?
 
 ## To do
-
-In the Runge-Kutta code, allow a trigger to be set when a coordinate or its derivative
-passes a certain threshold, either in the positive direction or in the negative
-direction. This allows us to, e.g., stop when we reach perihelion (r' crosses zero,
-going from negative to positive), or when the geodesic is incomplete
-(r crosses zero).
 
 Wrap the simple Runge-Kutta routine in a fancier one that is adaptive, so that we can,
 e.g., accurately determine the affine parameter at which we hit the singularity.

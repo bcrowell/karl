@@ -40,6 +40,7 @@
       karl.load("schwarzschild");
       karl.load("kruskal");
       karl.load("angular");
+      karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, x0, v0, opt) {
         var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
@@ -163,7 +164,7 @@
               runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
             }
             if (force_acts) {
-              runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart);
+              runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda);
             }
             for (var i = 0; i < ndim; i++) {
               est[step][ndim + i] = acc[i];
@@ -188,17 +189,19 @@
         }
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
       };
-      runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart) {
+      runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda) {
         var x2, v2, proper_accel2, proper_accel, a, i;
 
         /* The API says that force_function does not need to clone its output vector before returning it, so */
         /* we need to make sure to discard it here and never do anything with it later. */
-        x2 = transform_point(x, spacetime, chart, force_chart);
-        v2 = transform_vector(v, x, spacetime, chart, force_chart);
+        /* The vector a that we're modifying already has a factor of dlambda in it, so we multiply by dlambda here */
+        /* as well. */
+        x2 = transform.transform_point(x, spacetime, chart, force_chart);
+        v2 = transform.transform_vector(v, x, spacetime, chart, force_chart);
         proper_accel2 = force_function(lam, x2, v2);
-        proper_accel = transform_vector(proper_accel2, x2, spacetime, force_chart, chart);
+        proper_accel = transform.transform_vector(proper_accel2, x2, spacetime, force_chart, chart);
         for (var i = 0; i < ndim; i++) {
-          a[i] = a[i] + proper_accel[i];
+          a[i] = a[i] + proper_accel[i] * dlambda;
         }
       };
       runge_kutta.runge_kutta_get_options_helper = function(opt) {

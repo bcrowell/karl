@@ -10,7 +10,7 @@
       if (typeof test_runge_kutta === 'undefined') {
         var test_runge_kutta = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, verbosity;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
@@ -56,7 +56,7 @@
       test_runge_kutta.smoke_test = function() {
         var x, v, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info;
 
-        /* Free fall from rest, from 3 Schwarzschild radii.  */
+        /* Free fall from rest, from 10 Schwarzschild radii.  */
         /* Affine param is approximately but not exactly equal to proper time. */
         x = [0.0, 10.0, 1.0, 0.0, 0.0];
         v = [1.0, 0.0, 0.0, 0.0, 0.0];
@@ -81,6 +81,51 @@
         if (err & 1) {
           throw 'error: ' + info['message'];;
         }
+        /* Angular coordinates shouldn't have changed: */
+        test.assert_equal(x[2], final_x[2]);
+        test.assert_equal(x[3], final_x[3]);
+        test.assert_equal(x[4], final_x[4]);
+      };
+      /*-------------------------------------------------------------------------------------------------- */
+      test_runge_kutta.test_force = function() {
+        var r, x, v, ndebug, fmag, force, opt, err, final_x, final_v, final_a, final_lambda, info;
+
+        /* Hover at r Schwarzschild radii. */
+        /* Affine param is approximately but not exactly equal to proper time. */
+        r = 1000.0;
+        x = [0.0, r, 1.0, 0.0, 0.0];
+        v = [1.0, 0.0, 0.0, 0.0, 0.0];
+        ndebug = 0;
+        if (verbosity >= 3) {
+          ndebug = 1;
+        }
+        fmag = 0.5 / (r * r); /* Newtonian acceleration, m=1/2 */
+        force = [0.0, fmag, 0.0, 0.0, 0.0]; /* constant radial proper acceleration */
+        f = function(lam, x, v) {
+          return force;
+        }
+        opt = {
+          'lambda_max': 100.0,
+          'dlambda': 10.0,
+          'ndebug': ndebug,
+          'force_acts': (true),
+          'force_function': f,
+          'force_chart': 1
+        };
+        (function() {
+          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
+          err = temp[0];
+          final_x = temp[1];
+          final_v = temp[2];
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
+        })();
+        if (err & 1) {
+          throw 'error: ' + info['message'];;
+        }
+        /* We're hovering, so r shouldn't have changed: */
+        test.assert_rel_equal_eps(x[1], final_x[1], 1.0e-8);
         /* Angular coordinates shouldn't have changed: */
         test.assert_equal(x[2], final_x[2]);
         test.assert_equal(x[3], final_x[3]);
@@ -264,7 +309,7 @@
         }
       };
       /*-------------------------------------------------------------------------------------------------- */
-      /*verbosity=3 */
+      verbosity = 1;
       test_runge_kutta.main = function() {
         var r, a, direction, n;
 
@@ -278,6 +323,8 @@
         n = 100;
         test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (false)); /* test period */
         test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (true)); /* test half-period */
+        /*-- */
+        test_runge_kutta.test_force();
         /*-- */
         test.done(verbosity, "runge_kutta");
       };

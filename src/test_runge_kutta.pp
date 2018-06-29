@@ -15,7 +15,7 @@ import runge_kutta,angular,vector
 #--------------------------------------------------------------------------------------------------
 
 def smoke_test():
-  # Free fall from rest, from 3 Schwarzschild radii. 
+  # Free fall from rest, from 10 Schwarzschild radii. 
   # Affine param is approximately but not exactly equal to proper time.
   x = [0.0,10.0,1.0,0.0,0.0]
   v = [1.0,0.0,0.0,0.0,0.0]
@@ -26,6 +26,32 @@ def smoke_test():
   err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
+  # Angular coordinates shouldn't have changed:
+  test.assert_equal(x[2],final_x[2])
+  test.assert_equal(x[3],final_x[3])
+  test.assert_equal(x[4],final_x[4])
+
+#--------------------------------------------------------------------------------------------------
+
+def test_force():
+  # Hover at r Schwarzschild radii.
+  # Affine param is approximately but not exactly equal to proper time.
+  r = 1000.0
+  x = [0.0,r,1.0,0.0,0.0]
+  v = [1.0,0.0,0.0,0.0,0.0]
+  ndebug=0
+  if verbosity>=3:
+    ndebug=1
+  fmag = 0.5/(r*r) # Newtonian acceleration, m=1/2
+  force = [0.0,fmag,0.0,0.0,0.0] # constant radial proper acceleration
+  f = lambda lam,x,v: force #js f = function(lam,x,v) {return force;}
+  opt = {'lambda_max':100.0,'dlambda':10.0,'ndebug':ndebug,\
+         'force_acts':TRUE,'force_function':f,'force_chart':CH_SCH}
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,x,v,opt)
+  if err & RK_ERR:
+    THROW('error: '+info['message'])
+  # We're hovering, so r shouldn't have changed:
+  test.assert_rel_equal_eps(x[1],final_x[1],1.0e-8)
   # Angular coordinates shouldn't have changed:
   test.assert_equal(x[2],final_x[2])
   test.assert_equal(x[3],final_x[3])
@@ -154,7 +180,7 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
 
 #--------------------------------------------------------------------------------------------------
 
-#verbosity=3
+verbosity=1
 
 def main():
   smoke_test()
@@ -167,6 +193,8 @@ def main():
   n = 100
   elliptical_orbit_period(r,a,direction,n,FALSE) # test period
   elliptical_orbit_period(r,a,direction,n,TRUE) # test half-period
+  #--
+  test_force()
   #--
   test.done(verbosity,"runge_kutta")
 
