@@ -154,7 +154,7 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
 
 #--------------------------------------------------------------------------------------------------
 
-verbosity=3
+#verbosity=3
 
 def main():
   smoke_test()

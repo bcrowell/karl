@@ -11,6 +11,7 @@
       karl.load("lib/array");;
       /* ... works in rhino and d8 */
       /* ... https://stackoverflow.com/q/26738943/1142217 */
+      /* ... usage: throw io_util.strcat(([...])); ... extra parens required by filepp so it believes it's a single argument */
       /*           ... see notes above about usage with array literals */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
@@ -65,7 +66,7 @@
         if ((spacetime | chart) == (256 | 2)) { /* Schwarzschild metric, in arcsinh-Kruskal coordinates */
           return kruskal.metric_ks4(p);
         }
-        throw io_util.strcat(["unrecognized spacetime or chart: ", spacetime, " ", chart]);;
+        throw io_util.strcat((["unrecognized spacetime or chart: ", spacetime, " ", chart]));;
       };
       vector.scalar_mult = function(v0, s) {
         var v, i;
@@ -119,5 +120,5 @@
         if ((spacetime | chart) == (256 | 2)) { /* Schwarzschild metric, in arcsinh-Kruskal coordinates */
           return kruskal.metric(p);
         }
-        throw io_util.strcat(["unrecognized spacetime or chart: ", spacetime, " ", chart]);;
+        throw io_util.strcat((["unrecognized spacetime or chart: ", spacetime, " ", chart]));;
       };

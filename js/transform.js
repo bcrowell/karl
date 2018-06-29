@@ -7,8 +7,9 @@
       }
 
       /*
-      Low-level routines to compute transformations between Schwarzschild and
-      arcsinh-Kruskal coordinates, and the jacobians of those transformations.
+      Routines to compute transformations of points between Schwarzschild and
+      arcsinh-Kruskal coordinates, the jacobians of those transformations,
+      and transformations of vectors.
       Documentation for the math is in the file doc.tex, which can be
       compiled to pdf format by doing a "make doc." (Comments in the code do
       not document the math or the definitions of the variables.) 
@@ -17,6 +18,7 @@
       karl.load("lib/array");;
       /* ... works in rhino and d8 */
       /* ... https://stackoverflow.com/q/26738943/1142217 */
+      /* ... usage: throw io_util.strcat(([...])); ... extra parens required by filepp so it believes it's a single argument */
       /*           ... see notes above about usage with array literals */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
@@ -32,6 +34,45 @@
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */
       karl.load("math_util");
       karl.load("kruskal");
+      transform.transform_vector = function(v, x, spacetime, chart, chart2) {
+        var ok, t, r, jac, v2;
+
+        /*
+        Transforms a vector v from chart to chart2 in the tangent space at x. Return value is a vector.
+        */
+        ok = (false);
+        if (spacetime == SP_SCH) {
+          if ((chart == CH_SCH && chart2 == CH_AKS) || (chart == CH_AKS && chart2 == CH_SCH)) {
+            ok = (true);
+            if (chart == CH_SCH && chart2 == CH_AKS) {
+              (function() {
+                var temp = [x[0], x[1]];
+                t = temp[0];
+                r = temp[1]
+              })();
+              jac = transform.jacobian_schwarzschild_to_kruskal(t, r);
+            } else {
+              (function() {
+                var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
+                t = temp[0];
+                r = temp[1]
+              })();
+              jac = transform.jacobian_kruskal_to_schwarzschild(t, r);
+            }
+            v2 = karl.array1d((ndim));
+            v2[0] = jac[0][0] * v[0] + jac[0][1] * v[1];
+            v2[1] = jac[1][0] * v[0] + jac[1][1] * v[1];
+            v2[2] = v[2];
+            v2[3] = v[3];
+            v2[4] = v[4];
+          }
+        }
+        if (ok) {
+          return (karl.clone_array1d(v2)); /* for python, divorce the new vector from entanglement with components of old */
+        } else {
+          throw io_util.strcat((["unrecognized charts, spacetime=", spacetime, ", chart=", chart, ", chart2=", chart2]));;
+        }
+      };
       transform.schwarzschild_to_kruskal = function(t, r) {
         var p, sign_b;
 

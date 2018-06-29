@@ -1,6 +1,7 @@
 """
-Low-level routines to compute transformations between Schwarzschild and
-arcsinh-Kruskal coordinates, and the jacobians of those transformations.
+Routines to compute transformations of points between Schwarzschild and
+arcsinh-Kruskal coordinates, the jacobians of those transformations,
+and transformations of vectors.
 
 Documentation for the math is in the file doc.tex, which can be
 compiled to pdf format by doing a "make doc." (Comments in the code do
@@ -14,6 +15,31 @@ not document the math or the definitions of the variables.)
 
 import math_util
 import kruskal
+
+def transform_vector(v,x,spacetime,chart,chart2):
+  """
+  Transforms a vector v from chart to chart2 in the tangent space at x. Return value is a vector.
+  """
+  ok = FALSE
+  if spacetime==SP_SCH:
+    if (chart==CH_SCH and chart2==CH_AKS) or (chart==CH_AKS and chart2==CH_SCH):
+      ok = TRUE
+      if chart==CH_SCH and chart2==CH_AKS:
+        t,r = [x[0],x[1]]
+        jac = transform.jacobian_schwarzschild_to_kruskal(t,r)
+      else:
+        t,r = kruskal_to_schwarzschild(x[0],x[1])
+        jac = transform.jacobian_kruskal_to_schwarzschild(t,r)
+      v2=EMPTY1DIM(ndim)
+      v2[0]=jac[0][0]*v[0]+jac[0][1]*v[1]
+      v2[1]=jac[1][0]*v[0]+jac[1][1]*v[1]
+      v2[2]=v[2]
+      v2[3]=v[3]
+      v2[4]=v[4]
+  if ok:
+    return CLONE_ARRAY_OF_FLOATS(v2) # for python, divorce the new vector from entanglement with components of old
+  else:
+    THROW_ARRAY((["unrecognized charts, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))
 
 def schwarzschild_to_kruskal(t,r):
   """

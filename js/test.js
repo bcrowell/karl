@@ -14,6 +14,7 @@
       karl.load("lib/array");;
       /* ... works in rhino and d8 */
       /* ... https://stackoverflow.com/q/26738943/1142217 */
+      /* ... usage: throw io_util.strcat(([...])); ... extra parens required by filepp so it believes it's a single argument */
       /*           ... see notes above about usage with array literals */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
@@ -32,7 +33,7 @@
 
         err = x - y;
         if ((isNaN(x)) || (isNaN(y)) || Math.abs(err) > eps) {
-          throw io_util.strcat(["test failed, x=", x, ", y=", y, ", err=", err, ", eps=", eps]);;
+          throw io_util.strcat((["test failed, x=", x, ", y=", y, ", err=", err, ", eps=", eps]));;
         }
       };
       test.assert_rel_equal_eps = function(x, y, eps) {
@@ -46,7 +47,7 @@
         }
         rel_err = (x - y) / x;
         if ((isNaN(x)) || (isNaN(y)) || Math.abs(rel_err) > eps) {
-          throw io_util.strcat(["test failed, x=", x, ", y=", y, ", rel err=", rel_err, ", eps=", eps]);;
+          throw io_util.strcat((["test failed, x=", x, ", y=", y, ", rel err=", rel_err, ", eps=", eps]));;
         }
       };
       test.assert_equal = function(x, y) {

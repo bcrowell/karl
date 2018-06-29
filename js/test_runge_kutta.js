@@ -10,13 +10,14 @@
       if (typeof test_runge_kutta === 'undefined') {
         var test_runge_kutta = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, verbosity;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
       karl.load("lib/array");;
       /* ... works in rhino and d8 */
       /* ... https://stackoverflow.com/q/26738943/1142217 */
+      /* ... usage: throw io_util.strcat(([...])); ... extra parens required by filepp so it believes it's a single argument */
       /*           ... see notes above about usage with array literals */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
@@ -263,7 +264,7 @@
         }
       };
       /*-------------------------------------------------------------------------------------------------- */
-      verbosity = 3;
+      /*verbosity=3 */
       test_runge_kutta.main = function() {
         var r, a, direction, n;
 

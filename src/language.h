@@ -16,6 +16,8 @@
 #define APPEND_TO_ARRAY(x,y) ((x).append(y))
 #define PRINT print
 #define THROW(message) raise RuntimeError(message)
+#define THROW_ARRAY(aaa) THROW((io_util.strcat(aaa)))
+# ... usage: THROW_ARRAY(([...])) ... extra parens required by filepp so it believes it's a single argument
 #define MATH_E math.e
 #define MATH_PI math.pi
 #define CLONE_ARRAY_OF_FLOATS(x) copy.copy(x)
@@ -45,6 +47,8 @@ karl.load("lib/array");
 #define IS_BROWSER (typeof window !== 'undefined')
 # ... https://stackoverflow.com/q/26738943/1142217
 #define THROW(message) throw message;
+#define THROW_ARRAY(aaa) THROW(io_util.strcat(aaa))
+# ... usage: THROW_ARRAY(([...])) ... extra parens required by filepp so it believes it's a single argument
 #define MATH_E Math.E
 #define MATH_PI Math.PI
 #define CLONE_ARRAY_OF_FLOATS(x) (karl.clone_array1d(x))
