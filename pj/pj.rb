@@ -271,7 +271,7 @@ end
 # kludge: def, if, ... are handled in translate_stuff(), but assignments and for loops are handled in this
 # routine, which gets called by preprocess()
 def translate_line(l,current_function_key)
-  if l=~/^\s*(\w[\w0-9,\[\]]*)\s*=/ then 
+  if l=~/^\s*(\w([\w0-9\[\]]|,\s*)*)\s*=/ then 
     return translate_assignment(l,current_function_key)
   end
   if l=~/for/ and l=~/range/ then

@@ -40,11 +40,11 @@
       karl.load("schwarzschild");
       karl.load("kruskal");
       karl.load("angular");
-      runge_kutta.geodesic_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
+      runge_kutta.trajectory_simple = function(spacetime, chart, x0, v0, opt) {
+        var x, v, lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
         /*
-        Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
+        Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
         spacetime = label for the spacetime we're doing (see spacetimes.h for labels)
         chart = label for the coordinate chart we're using
         x = starting point, given as an array of coordinates
@@ -59,6 +59,10 @@
           norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                        default=(true)
           triggers = array of 4-element arrays, each describing a trigger (see below)
+          force_acts = boolean, do we have an external force?
+          force_function = function that calculates the proper acceleration vector d^2x/dlambda^2,
+                                   given (lambda,x,v) as inputs; its output will automatically be cloned
+          force_chart = chart that the function wants for its inputs and outputs
         triggers
           These allow the integration to be halted when it appears that in the next iteration,
           a certain coordinate or velocity would cross a certain threshold.
@@ -89,7 +93,10 @@
           trigger_s = temp[6];
           trigger_on = temp[7];
           trigger_threshold = temp[8];
-          trigger_alpha = temp[9]
+          trigger_alpha = temp[9];
+          force_acts = temp[10];
+          force_function = temp[11];
+          force_chart = temp[12]
         })();
         /*-- initial setup */
         (function() {
@@ -176,7 +183,7 @@
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final);
       };
       runge_kutta.runge_kutta_get_options_helper = function(opt) {
-        var lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha;
+        var lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart;
 
         lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
         dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
@@ -199,7 +206,10 @@
         if ((("triggers") in (opt))) {
           n_triggers = runge_kutta.runge_kutta_get_trigger_options_helper(opt, trigger_s, trigger_on, trigger_threshold, trigger_alpha);
         }
-        return [lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha];
+        force_acts = runge_kutta.runge_kutta_get_par_helper(opt, "force_acts", (false));
+        force_function = runge_kutta.runge_kutta_get_par_helper(opt, "force_function", 0);
+        force_chart = runge_kutta.runge_kutta_get_par_helper(opt, "force_chart", 0);
+        return [lambda_max, dlambda, ndebug, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart];
       };
       runge_kutta.runge_kutta_init_helper = function(lambda_max, lambda0, dlambda, ndebug, spacetime, chart) {
         var n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function;

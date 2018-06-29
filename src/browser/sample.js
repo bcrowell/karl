@@ -58,7 +58,7 @@
       var v   = state.data[2];
       opt.lambda0 = lam;
       opt.lambda_max = lam+delta_lambda_per_chunk;
-      var temp = runge_kutta.geodesic_simple(spacetime, chart, x, v, opt); // returns [0,x,v,lam,{}]
+      var temp = runge_kutta.trajectory_simple(spacetime, chart, x, v, opt); // returns [0,x,v,lam,{}]
       err = temp[0];
       x = temp[1];
       v = temp[2];

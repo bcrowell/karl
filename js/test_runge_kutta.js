@@ -70,7 +70,7 @@
           'ndebug': ndebug
         };
         (function() {
-          var temp = runge_kutta.geodesic_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -102,7 +102,7 @@
           'ndebug': 0
         };
         (function() {
-          var temp = runge_kutta.geodesic_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -158,7 +158,7 @@
           'norm_final': (false)
         };
         (function() {
-          var temp = runge_kutta.geodesic_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -229,7 +229,7 @@
           'triggers': triggers
         };
         (function() {
-          var temp = runge_kutta.geodesic_simple(spacetime, chart, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(spacetime, chart, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];

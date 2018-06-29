@@ -47,7 +47,7 @@ def simple_free_fall():
   v = [jac[0][0]*tdot,jac[1][0]*tdot,0.0,0.0,0.0]
   n = 100
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':0}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,CH_AKS,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_AKS,x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   tf,rf = transform.kruskal_to_schwarzschild(final_x[0],final_x[1])
@@ -118,7 +118,7 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
       x=x0k
       v=v0k
       chart = CH_AKS
-    err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.geodesic_simple(SP_SCH,chart,x,v,opt)
+    err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,chart,x,v,opt)
     if err & RK_ERR:
       THROW('error: '+info['message'])
     if i==0:

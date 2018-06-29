@@ -122,7 +122,7 @@
           'ndebug': 0
         };
         (function() {
-          var temp = runge_kutta.geodesic_simple(256, 2, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 2, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -231,7 +231,7 @@
             chart = 2;
           }
           (function() {
-            var temp = runge_kutta.geodesic_simple(256, chart, x, v, opt);
+            var temp = runge_kutta.trajectory_simple(256, chart, x, v, opt);
             err = temp[0];
             final_x = temp[1];
             final_v = temp[2];

@@ -17,9 +17,9 @@ from io_util import fl
 
 import schwarzschild,kruskal,angular
 
-def geodesic_simple(spacetime,chart,x0,v0,opt):
+def trajectory_simple(spacetime,chart,x0,v0,opt):
   """
-  Calculate a geodesic using geodesic equation and 4th-order Runge-Kutta.
+  Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
 
   spacetime = label for the spacetime we're doing (see spacetimes.h for labels)
   chart = label for the coordinate chart we're using
@@ -35,6 +35,10 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
     norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                  default=TRUE
     triggers = array of 4-element arrays, each describing a trigger (see below)
+    force_acts = boolean, do we have an external force?
+    force_function = function that calculates the proper acceleration vector d^2x/dlambda^2,
+                             given (lambda,x,v) as inputs; its output will automatically be cloned
+    force_chart = chart that the function wants for its inputs and outputs
   triggers
     These allow the integration to be halted when it appears that in the next iteration,
     a certain coordinate or velocity would cross a certain threshold.
@@ -54,7 +58,9 @@ def geodesic_simple(spacetime,chart,x0,v0,opt):
   x=CLONE_ARRAY_OF_FLOATS(x0)
   v=CLONE_ARRAY_OF_FLOATS(v0)
   #-- process input options
-  lambda_max,dlambda,ndebug,lambda0,norm_final,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha =\
+  lambda_max,dlambda,ndebug,lambda0,norm_final,\
+        n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,\
+        force_acts,force_function,force_chart =\
         runge_kutta_get_options_helper(opt)
   #-- initial setup
   n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function = \
@@ -145,8 +151,12 @@ def runge_kutta_get_options_helper(opt):
   trigger_s,trigger_on,trigger_threshold,trigger_alpha = [[],[],[],[]]
   if HAS_KEY(opt,"triggers"):
     n_triggers = runge_kutta_get_trigger_options_helper(opt,trigger_s,trigger_on,trigger_threshold,trigger_alpha)
+  force_acts     =runge_kutta_get_par_helper(opt,"force_acts",FALSE)
+  force_function =runge_kutta_get_par_helper(opt,"force_function",0)
+  force_chart     =runge_kutta_get_par_helper(opt,"force_chart",0)
   return [lambda_max,dlambda,ndebug,lambda0,norm_final, \
-                   n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha]
+                   n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha, \
+                   force_acts,force_function,force_chart]
 
 def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart):
   n = CEIL((lambda_max-lambda0)/dlambda)
