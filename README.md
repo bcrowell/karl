@@ -10,6 +10,7 @@ some advantages:
 
 * We can simulate a nongravitational force, e.g., in the motion of a rocket ship.
 * We can handle spacetimes having fewer symmetries than the Schwarzschild spacetime.
+* We can do calculations involving proper time or other affine parameters, e.g., finding how much time it takes for a particle to hit the singularity.
 
 Current features:
 

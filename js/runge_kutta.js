@@ -49,7 +49,9 @@
         spacetime = label for the spacetime we're doing (see spacetimes.h for labels)
         chart = label for the coordinate chart we're using
         x = starting point, given as an array of coordinates
-        v = components of starting tangent vector (need not be normalized, can be null or spacelike)
+        v = components of starting tangent vector
+          The velocity need not be normalized, can be null or spacelike. If it is normalized, then the
+          affine parameter represents proper time.
         The following options are in the hash opt[].
           lambda_max = maximum affine parameter, i.e., where to stop (but could stop earlier, e.g., if 
                          we hit a singularity)

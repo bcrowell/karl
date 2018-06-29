@@ -12,6 +12,20 @@ karl.clone_array1d = function(a) {
   return b;
 };
 
+/* Clone a two-dimensional array. */
+karl.clone_array2d = function(a) {
+  var m = a.length;
+  if (m==0) {return [];}
+  var n = a[0].length;
+  var b = karl.array2d(m,n);
+  for (var i=0; i<m; i++) {
+    for (var j=0; j<n; j++) {
+      b[i][j] = a[i][j];
+    }
+  }
+  return b;
+};
+
 /* arrays initialized with zeroes */
 karl.array1d = function(n) {
   a = Array(n);

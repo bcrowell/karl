@@ -106,6 +106,21 @@
         }
         return n;
       };
+      vector.inner_product = function(spacetime, chart, p, u, v) {
+        var g, result;
+
+        /*
+        Returns the norm of the vector, in 5-dimensional coordinates.
+        */
+        g = vector.get_metric(spacetime, chart, p);
+        result = 0.0;
+        for (var i = 0; i < 5; i++) {
+          for (var j = 0; j < 5; j++) {
+            result += g[i][j] * u[i] * v[j];
+          }
+        }
+        return result;
+      };
       vector.get_metric = function(spacetime, chart, p) {
         var r;
 

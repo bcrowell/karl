@@ -17,7 +17,8 @@ def main():
         schwarzschild  
         kruskal        
         transform      
-        runge_kutta    
+        runge_kutta
+        fancy
         angular        
         vector         
         test_math
@@ -38,7 +39,8 @@ def main():
         schwarzschild  
         kruskal  
         transform
-        runge_kutta  
+        runge_kutta
+        fancy
         angular
         math_util
         vector

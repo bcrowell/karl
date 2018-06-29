@@ -23,6 +23,7 @@
 #define CLONE_ARRAY_OF_FLOATS(x) copy.copy(x)
 #          ... need extra parens in usages like CLONE_ARRAY_OF_FLOATS(([x,y])), otherwise filepp gets 
 #              confused by comma and thinks this is multiple arguments
+#define CLONE_ARRAY_OF_FLOATS2DIM(x) copy.copy(x)
 #define HAS_KEY(x,y) ((y) in (x))
 #define TRUE (True)
 #define FALSE (False)
@@ -53,6 +54,7 @@ karl.load("lib/array");
 #define MATH_PI Math.PI
 #define CLONE_ARRAY_OF_FLOATS(x) (karl.clone_array1d(x))
 #           ... see notes above about usage with array literals
+#define CLONE_ARRAY_OF_FLOATS2DIM(x) (karl.clone_array2d(x))
 #define HAS_KEY(x,y) ((y) in (x))
 #define TRUE (true)
 #define FALSE (false)

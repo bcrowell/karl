@@ -58,6 +58,17 @@ def norm(spacetime,chart,p,v):
       n += g[i][j]*v[i]*v[j]
   return n
 
+def inner_product(spacetime,chart,p,u,v):
+  """
+  Returns the norm of the vector, in 5-dimensional coordinates.
+  """
+  g = get_metric(spacetime,chart,p)
+  result = 0.0
+  for i in range(5):
+    for j in range(5):
+      result += g[i][j]*u[i]*v[j]
+  return result
+
 def get_metric(spacetime,chart,p):
   """
   Returns the lower-index form of the metric at the point p, in 5-dimensional
