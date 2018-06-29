@@ -10,7 +10,7 @@
       if (typeof test_runge_kutta === 'undefined') {
         var test_runge_kutta = {};
       }
-      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps;
+      var assert_rel_equal, assert_equal, assert_rel_equal_eps, assert_equal_eps, verbosity;
 
       /*!/usr/bin/python3 */
       /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
@@ -263,8 +263,9 @@
         }
       };
       /*-------------------------------------------------------------------------------------------------- */
+      verbosity = 3;
       test_runge_kutta.main = function() {
-        var r, a, direction, n, verbosity;
+        var r, a, direction, n;
 
         test_runge_kutta.smoke_test();
         test_runge_kutta.simple_newtonian_free_fall();
@@ -274,7 +275,6 @@
         a = 1.1;
         direction = 0.0;
         n = 100;
-        verbosity = 3;
         test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (false)); /* test period */
         test_runge_kutta.elliptical_orbit_period(r, a, direction, n, (true)); /* test half-period */
         /*-- */

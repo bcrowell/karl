@@ -154,6 +154,8 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
 
 #--------------------------------------------------------------------------------------------------
 
+verbosity=3
+
 def main():
   smoke_test()
   simple_newtonian_free_fall()
@@ -163,7 +165,6 @@ def main():
   a = 1.1
   direction = 0.0
   n = 100
-  verbosity=3
   elliptical_orbit_period(r,a,direction,n,FALSE) # test period
   elliptical_orbit_period(r,a,direction,n,TRUE) # test half-period
   #--

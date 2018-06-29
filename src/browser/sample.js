@@ -45,7 +45,7 @@
       print("...done");
     };
     var output_helper = function(i,lam,x,v) {
-      print("i=",i," lambda/T=",io_util.fl(lam/period), 
+      print("step=",i," lambda/T=",io_util.fl(lam/period), 
                       " x=(",io_util.vector_to_str_n_decimals(x,2), 
                       ") v=(",io_util.vector_to_str_n_decimals(v,2),")");
     };
@@ -62,8 +62,8 @@
       err = temp[0];
       x = temp[1];
       v = temp[2];
-      lam = temp[3];
-      info = temp[4];
+      lam = temp[4];
+      info = temp[5];
       chunk += 1;
       output_helper(n*chunk/nchunks,lam,x,v);
       state.chunk = chunk;

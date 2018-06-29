@@ -6,22 +6,28 @@ SRC = src
 OBJ = obj
 JS = js
 
-include depend
-include c.mk
-# ... rules for C code
-
 VPATH = src
 
-.PHONY: clean clean_js js py c all
-
-depend: gen_depends.py
-	python3 gen_depends.py >depend
+.PHONY: clean clean_js js js_all py c all
 
 all:
 	make depend
 	make py
-	make js
+	make js_all
 	make c
+	make test
+
+depend: gen_depends.py
+	python3 gen_depends.py >depend
+
+js_all:
+	make js
+	cp src/lib/*.js js/lib
+	cp src/lib/*.js browser/lib # except  ...
+	rm -f browser/lib/loader.js # ... loader.js
+	cp src/browser/*.js browser
+	cp src/browser/*.html browser
+	cp src/browser/util/*.js browser/util
 
 clean_js:
 	rm -f js/*.js js/*.jsi
@@ -32,3 +38,8 @@ clean_py:
 clean:
 	rm -f *~ src/*~ obj/*~ pj/*~ js/*~ js/*.jsi obj/*.pyc
 	cd doc && make clean && cd -
+
+include depend
+include c.mk
+# ... rules for C code
+
