@@ -1,6 +1,6 @@
 """
-Routines to compute transformations of points between Schwarzschild and
-arcsinh-Kruskal coordinates, the jacobians of those transformations,
+Routines to compute transformations of points among Schwarzschild,
+arcsinh-Kruskal, and Keplerian coordinates, the jacobians of those transformations,
 and transformations of vectors.
 
 Documentation for the math is in the file doc.tex, which can be
@@ -12,9 +12,23 @@ not document the math or the definitions of the variables.)
 #include "util.h"
 #include "math.h"
 #include "precision.h"
+#include "spacetimes.h"
 
 import math_util
-import kruskal
+import kruskal,keplerian,schwarzschild
+
+def chart_info(spacetime,chart):
+  """
+  Returns [ok,ndim,christoffel_function].
+  """
+  recognized = FALSE
+  if (spacetime|chart)==(SP_SCH|CH_SCH):
+    return [TRUE,5,schwarzschild.christoffel]
+  if (spacetime|chart)==(SP_SCH|CH_AKS):
+    return [TRUE,5,kruskal.christoffel]
+  if (spacetime|chart)==(SP_SCH|CH_KEP):
+    return [TRUE,5,keplerian.christoffel]
+  return [FALSE,None,None]
 
 def transform_point(x,spacetime,chart,chart2):
   """
@@ -23,27 +37,55 @@ def transform_point(x,spacetime,chart,chart2):
   """
   if chart==chart2:
     return CLONE_ARRAY_OF_FLOATS(x)
-  ok = FALSE
-  if spacetime==SP_SCH:
-    if (chart==CH_SCH and chart2==CH_AKS) or (chart==CH_AKS and chart2==CH_SCH):
-      ok = TRUE
-      ndim = 5
-      x2=EMPTY1DIM(ndim)
-      if chart==CH_SCH and chart2==CH_AKS:
-        a,b = schwarzschild_to_kruskal(x[0],x[1])
-        x2[0] = a
-        x2[1] = b
-      else:
-        t,r = kruskal_to_schwarzschild(x[0],x[1])
-        x2[0] = t
-        x2[1] = r
-      x2[2]=x[2]
-      x2[3]=x[3]
-      x2[4]=x[4]
-  if ok:
+  if spacetime!=SP_SCH:
+    THROW_ARRAY((["unrecognized spacetime=",spacetime]))
+  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  if not ok:
+    THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart]))
+  ok,ndim2,christoffel_function = chart_info(spacetime,chart2)
+  if not ok:
+    THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart2]))
+  x2=EMPTY1DIM(ndim2)
+  done = FALSE
+  # The following assumes, as is true for CH_SCH, CH_AKS, and CH_KEP, that coords 2,3,4 are (i,j,k).
+  x2[2]=x[2]
+  x2[3]=x[3]
+  x2[4]=x[4]
+  # Transform the first two coordinates:
+  if chart==CH_SCH and chart2==CH_AKS:
+    a,b = schwarzschild_to_kruskal(x[0],x[1])
+    x2[0] = a
+    x2[1] = b
+    done = TRUE
+  if not done and chart==CH_AKS and chart2==CH_SCH:
+    t,r = kruskal_to_schwarzschild(x[0],x[1])
+    x2[0] = t
+    x2[1] = r
+    done = TRUE
+  if not done and chart==CH_SCH and chart2==CH_KEP:
+    x2[0] = x[0]
+    x2[1] = x[1]**(3.0/2.0)
+    done = TRUE
+  if not done and chart==CH_KEP and chart2==CH_SCH:
+    x2[0] = x[0]
+    x2[1] = x[1]**(2.0/3.0)
+    done = TRUE
+  if not done and chart==CH_AKS and chart2==CH_KEP:
+    t,r = kruskal_to_schwarzschild(x[0],x[1])
+    x2[0] = t
+    x2[1] = r**(3.0/2.0)
+    done = TRUE
+  if not done and chart==CH_KEP and chart2==CH_AKS:
+    t = x[0]
+    r = x[1]**(2.0/3.0)
+    a,b = schwarzschild_to_kruskal(t,r)
+    x2[0] = a
+    x2[1] = b
+    done = TRUE
+  if done:
     return CLONE_ARRAY_OF_FLOATS(x2) # for python, divorce the new vector from entanglement with components of old
   else:
-    THROW_ARRAY((["unrecognized charts, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))
+    THROW_ARRAY((["don't know how to transform, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))
 
 def transform_vector(v,x,spacetime,chart,chart2):
   """
@@ -52,27 +94,50 @@ def transform_vector(v,x,spacetime,chart,chart2):
   """
   if chart==chart2:
     return CLONE_ARRAY_OF_FLOATS(v)
-  ok = FALSE
-  if spacetime==SP_SCH:
-    if (chart==CH_SCH and chart2==CH_AKS) or (chart==CH_AKS and chart2==CH_SCH):
-      ok = TRUE
-      ndim = 5
-      if chart==CH_SCH and chart2==CH_AKS:
-        t,r = [x[0],x[1]]
-        jac = transform.jacobian_schwarzschild_to_kruskal(t,r)
-      else:
-        t,r = kruskal_to_schwarzschild(x[0],x[1])
-        jac = transform.jacobian_kruskal_to_schwarzschild(t,r)
-      v2=EMPTY1DIM(ndim)
-      v2[0]=jac[0][0]*v[0]+jac[0][1]*v[1]
-      v2[1]=jac[1][0]*v[0]+jac[1][1]*v[1]
-      v2[2]=v[2]
-      v2[3]=v[3]
-      v2[4]=v[4]
-  if ok:
-    return CLONE_ARRAY_OF_FLOATS(v2) # for python, divorce the new vector from entanglement with components of old
-  else:
+  if spacetime!=SP_SCH:
+    THROW_ARRAY((["unrecognized spacetime=",spacetime]))
+  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  if not ok:
+    THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart]))
+  ok,ndim2,christoffel_function = chart_info(spacetime,chart2)
+  if not ok:
+    THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart2]))
+  v2=EMPTY1DIM(ndim2)
+  # The following assumes, as is true for CH_SCH, CH_AKS, and CH_KEP, that coords 2,3,4 are (i,j,k).
+  v2[2]=v[2]
+  v2[3]=v[3]
+  v2[4]=v[4]
+  found_jac = FALSE
+  # Find the Jacobian.
+  if chart==CH_SCH and chart2==CH_AKS:
+    t,r = [x[0],x[1]]
+    jac = transform.jacobian_schwarzschild_to_kruskal(t,r)
+    found_jac = TRUE
+  if chart==CH_AKS and chart2==CH_SCH:
+    t,r = kruskal_to_schwarzschild(x[0],x[1])
+    jac = transform.jacobian_kruskal_to_schwarzschild(t,r)
+    found_jac = TRUE
+  if chart==CH_SCH and chart2==CH_KEP:
+    t,r = [x[0],x[1]]
+    jac = EMPTY2DIM(2)
+    jac[0][0] = 1.0
+    jac[1][0] = 0.0
+    jac[0][1] = 0.0
+    jac[1][1] = (1.5)*sqrt(r)
+    found_jac = TRUE
+  if chart==CH_KEP and chart2==CH_SCH:
+    t,u = [x[0],x[1]]
+    jac = EMPTY2DIM(2)
+    jac[0][0] = 1.0
+    jac[1][0] = 0.0
+    jac[0][1] = 0.0
+    jac[1][1] = (2.0/3.0)/POW(u,(1.0/3.0))
+    found_jac = TRUE
+  if not found_jac:
     THROW_ARRAY((["unrecognized charts, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))
+  v2[0]=jac[0][0]*v[0]+jac[0][1]*v[1]
+  v2[1]=jac[1][0]*v[0]+jac[1][1]*v[1]
+  return CLONE_ARRAY_OF_FLOATS(v2) # for python, divorce the new vector from entanglement with components of old
 
 def schwarzschild_to_kruskal(t,r):
   """
@@ -176,3 +241,4 @@ def schwarzschild_to_kruskal_small(t,r):
   v = ks_t+ks_x
   w = ks_t-ks_x
   return [arcsinh(v),arcsinh(w)]
+

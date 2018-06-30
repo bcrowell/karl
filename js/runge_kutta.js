@@ -32,13 +32,15 @@
       /* There is also a spacetimes_c.h version of this file for C sources. */
       /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
-      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
+      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...) */
+      /* ... ``Keplerian'' coordinates (t,u,...), with u=r^3/2 */
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
       /* ... something went really wrong, output is garbage */
       /* ... the geodesic was incomplete */
 
       karl.load("schwarzschild");
       karl.load("kruskal");
+      karl.load("keplerian");
       karl.load("angular");
       karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, x0, v0, opt) {
@@ -247,7 +249,7 @@
         debug_count = steps_between_debugging + 1; /* trigger it on the first iteration */
         lam = lambda0;
         (function() {
-          var temp = runge_kutta.chart_info(spacetime, chart);
+          var temp = transform.chart_info(spacetime, chart);
           ok = temp[0];
           ndim = temp[1];
           christoffel_function = temp[2]
@@ -343,18 +345,6 @@
         return {
           'runge_kutta.message': io_util.strcat(stuff)
         };
-      };
-      runge_kutta.chart_info = function(spacetime, chart) {
-        var recognized;
-
-        recognized = (false);
-        if ((spacetime | chart) == (256 | 1)) {
-          return [(true), 5, schwarzschild.christoffel];
-        }
-        if ((spacetime | chart) == (256 | 2)) {
-          return [(true), 5, kruskal.christoffel];
-        }
-        return [(false), None, None];
       };
       runge_kutta.debug_helper = function(debug_count, ndebug, steps_between_debugging, iter, lam, x, v) {
         var do_debug, debug_count;

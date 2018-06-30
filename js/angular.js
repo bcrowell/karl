@@ -63,3 +63,21 @@
         sin_theta = Math.sin(theta);
         return [sin_theta * Math.cos(phi), sin_theta * Math.sin(phi), Math.cos(theta)];
       };
+      angular.add_centripetal = function(ch, p) {
+        var i, j, k, xi2, z;
+
+        /*
+        Add centripetal terms to the Christoffel symbols for a 5-dimensional coordinate system.
+        Modifies ch in place by adding the centripetal parts.
+        */
+        i = p[2];
+        j = p[3];
+        k = p[4];
+        xi2 = i * i + j * j + k * k;; /* should normally be very close to 1 */
+        for (var m = 2; m < 5; m++) {
+          z = p[m];
+          for (var n = 2; n < 5; n++) {
+            ch[n][n][m] += z / xi2;
+          }
+        }
+      };

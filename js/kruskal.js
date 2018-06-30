@@ -39,6 +39,7 @@
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */
 
       karl.load("math_util");
+      karl.load("angular");
       karl.load("lambert_w_stuff");
       kruskal.metric_ks4 = function(p) {
         var g, t, r, mu, r2, sin_theta;
@@ -188,7 +189,7 @@
         ch[3][3][1] = z;
         ch[4][4][1] = z;
         /*------------------------------------------------------ */
-        kruskal.add_centripetal(ch, p);
+        angular.add_centripetal(ch, p);
         /*------------------------------------------------------ */
         return ch;
       };
@@ -241,79 +242,9 @@
         ch[4][4][1] = -(Math.sinh(b) * Math.lambert_w(-Math.exp(-1) * Math.sinh(a) * Math.sinh(b)) + Math.sinh(b)) / (2 * Math.cosh(b));
         /*   ... ^b _k k */
         /*------------------------------------------------------ */
-        kruskal.add_centripetal(ch, p);
+        angular.add_centripetal(ch, p);
         /*------------------------------------------------------ */
         return ch;
-      };
-      kruskal.christoffel_raw_maxima_output_first_try = function(p) {
-        var a, b, ch;
-
-        a = p[0];
-        b = p[1];
-        /* output of kruskal5.mac, plus centripetal terms */
-        ch = karl.array3d((5), (5), (5));
-        /*------------------------------------------------------ */
-        ch[0][0][0] = ((Math.pow((((((Math.cosh((a))) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))))) + (((2.0) * (Math.cosh((a))) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.cosh((a))) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))) * (((((-2.0) * (Math.pow((Math.E), (a))) * (Math.cosh((a))))) + (((Math.sinh((a))) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))))) + (((((((-1.0) * (Math.pow((Math.E), (a))) * (Math.cosh((a))))) + (((2.0) * (Math.sinh((a))) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.sinh((a))) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))));
-        /*   ... ^a _a a */
-        ch[0][2][2] = ((Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^i _a i */
-        ch[2][0][2] = ((Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^i _i a */
-        ch[0][3][3] = ((Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^j _a j */
-        ch[3][0][3] = ((Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^j _j a */
-        ch[0][4][4] = ((Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^k _a k */
-        ch[4][0][4] = ((Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^k _k a */
-        ch[1][1][1] = ((Math.pow((((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.cosh((b))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.cosh((b))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.cosh((b))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))) * (((((2.0) * (Math.pow((Math.E), (a))) * (Math.cosh((b))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.sinh((b))))) + (((((((Math.pow((Math.E), (a))) * (Math.cosh((b))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.sinh((b))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.sinh((b))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))));
-        /*   ... ^b _b b */
-        ch[1][2][2] = ((-1.0) * (Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^i _b i */
-        ch[2][1][2] = ((-1.0) * (Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^i _i b */
-        ch[1][3][3] = ((-1.0) * (Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^j _b j */
-        ch[3][1][3] = ((-1.0) * (Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^j _j b */
-        ch[1][4][4] = ((-1.0) * (Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^k _b k */
-        ch[4][1][4] = ((-1.0) * (Math.pow((Math.E), (a))) * (Math.pow((((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) + (((2.0) * (Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))) + (((Math.pow((Math.E), (((1.0) + (b) + (Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))))))) * (Math.pow((Math.lambert_w((Math.pow((Math.E), (((-1.0) + (a) + (((-1.0) * (b))))))))), (2.0))))))), (-1.0))));
-        /*   ... ^k _k b */
-        ch[2][2][0] = -(Math.exp(-b) * (Math.exp(a) * Math.lambert_w(Math.exp((-b) + a - 1)) + Math.exp(a))) / (2 * Math.cosh(a) * Math.cosh(b));
-        /*   ... ^a _i i */
-        ch[2][2][1] = (Math.exp(-b) * (Math.exp(a) * Math.lambert_w(Math.exp((-b) + a - 1)) + Math.exp(a))) / (2 * Math.cosh(a) * Math.cosh(b));
-        /*   ... ^b _i i */
-        ch[3][3][0] = -(Math.exp(-b) * (Math.exp(a) * Math.lambert_w(Math.exp((-b) + a - 1)) + Math.exp(a))) / (2 * Math.cosh(a) * Math.cosh(b));
-        /*   ... ^a _j j */
-        ch[3][3][1] = (Math.exp(-b) * (Math.exp(a) * Math.lambert_w(Math.exp((-b) + a - 1)) + Math.exp(a))) / (2 * Math.cosh(a) * Math.cosh(b));
-        /*   ... ^b _j j */
-        ch[4][4][0] = -(Math.exp(-b) * (Math.exp(a) * Math.lambert_w(Math.exp((-b) + a - 1)) + Math.exp(a))) / (2 * Math.cosh(a) * Math.cosh(b));
-        /*   ... ^a _k k */
-        ch[4][4][1] = (Math.exp(-b) * (Math.exp(a) * Math.lambert_w(Math.exp((-b) + a - 1)) + Math.exp(a))) / (2 * Math.cosh(a) * Math.cosh(b));
-        /*   ... ^b _k k */
-        /*------------------------------------------------------ */
-        kruskal.add_centripetal(ch, p);
-        /*------------------------------------------------------ */
-        return ch;
-      };
-      kruskal.add_centripetal = function(ch, p) {
-        var i, j, k, xi2, z;
-
-        /*
-        Modifies ch in place by adding the centripetal parts.
-        */
-        i = p[2];
-        j = p[3];
-        k = p[4];
-        xi2 = i * i + j * j + k * k;; /* should normally be very close to 1 */
-        for (var m = 2; m < 5; m++) {
-          z = p[m];
-          for (var n = 2; n < 5; n++) {
-            ch[n][n][m] += z / xi2;
-          }
-        }
       };
       kruskal.christoffel4 = function(p) {
         var ch, a, b, t, r, mu, ta, tb, ca, cb, sa, sb, q, big_b, eighth_r, sin_theta, sin2_theta, cos_theta;

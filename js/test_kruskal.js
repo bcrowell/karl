@@ -44,7 +44,8 @@
       /* There is also a spacetimes_c.h version of this file for C sources. */
       /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
-      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
+      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...) */
+      /* ... ``Keplerian'' coordinates (t,u,...), with u=r^3/2 */
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
       /* ... something went really wrong, output is garbage */
       /* ... the geodesic was incomplete */

@@ -15,7 +15,7 @@ from c_libs import c_double_p
 
 from io_util import fl
 
-import schwarzschild,kruskal,angular,transform
+import schwarzschild,kruskal,keplerian,angular,transform
 
 def trajectory_simple(spacetime,chart,x0,v0,opt):
   """
@@ -184,7 +184,7 @@ def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart):
     steps_between_debugging=ndebug
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = lambda0
-  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  ok,ndim,christoffel_function = transform.chart_info(spacetime,chart)
   return [n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function]
 
 def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
@@ -253,14 +253,6 @@ def apply_christoffel(christoffel_function,y,acc,dlambda,ndim):
 
 def mess(stuff):
   return {'message':io_util.strcat(stuff)}
-
-def chart_info(spacetime,chart):
-  recognized = FALSE
-  if (spacetime|chart)==(SP_SCH|CH_SCH):
-    return [TRUE,5,schwarzschild.christoffel]
-  if (spacetime|chart)==(SP_SCH|CH_AKS):
-    return [TRUE,5,kruskal.christoffel]
-  return [FALSE,None,None]
 
 def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
   """

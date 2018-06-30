@@ -32,7 +32,8 @@
       /* There is also a spacetimes_c.h version of this file for C sources. */
       /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
-      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
+      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...) */
+      /* ... ``Keplerian'' coordinates (t,u,...), with u=r^3/2 */
       karl.load("schwarzschild");
       karl.load("angular");
       karl.load("kruskal");

@@ -8,7 +8,7 @@ JS = js
 
 VPATH = src
 
-.PHONY: clean clean_js js js_all py c all
+.PHONY: clean clean_js js js_all py c all depend
 
 all:
 	make depend
@@ -18,7 +18,7 @@ all:
 	make test
 
 depend: gen_depends.py
-	python3 gen_depends.py >depend
+	@python3 gen_depends.py >depend
 
 js_all:
 	make js

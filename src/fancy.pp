@@ -1,9 +1,15 @@
+"""
+A wrapper around the RK routines to automatically switch coordinate systems when
+appropriate, and to accurately calculate the termination of incomplete geodesics.
+"""
+
 #include "language.h"
 #include "util.h"
 #include "math.h"
 #include "io_util.h"
 #include "spacetimes.h"
 #include "runge_kutta.h"
+#include "precision.h"
 
 from io_util import fl
 
@@ -24,7 +30,8 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   opt['triggers'] = triggers
   result = runge_kutta.trajectory_simple(spacetime,chart,x0,v0,opt)
   [err,final_x,final_v,final_a,final_lambda,info] = result
-  if final_x[1]<1.0e-6 or opt['dlambda']<1.0e-6:
+  if final_x[1]<EPS or opt['dlambda']<EPS:
+    result[0] = RK_INCOMPLETE
     return result
   opt['triggers'] = user_triggers
   opt['dlambda'] = opt['dlambda']*0.1

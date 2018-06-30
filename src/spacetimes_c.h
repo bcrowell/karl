@@ -7,4 +7,5 @@ See comments in that file for the meaning of these macros.
 
 #define CH_SCH 1
 #define CH_AKS 2
+#define CH_KEP 3
 

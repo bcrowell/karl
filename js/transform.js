@@ -7,8 +7,8 @@
       }
 
       /*
-      Routines to compute transformations of points between Schwarzschild and
-      arcsinh-Kruskal coordinates, the jacobians of those transformations,
+      Routines to compute transformations of points among Schwarzschild,
+      arcsinh-Kruskal, and Keplerian coordinates, the jacobians of those transformations,
       and transformations of vectors.
       Documentation for the math is in the file doc.tex, which can be
       compiled to pdf format by doing a "make doc." (Comments in the code do
@@ -32,10 +32,42 @@
       /* ... relative precision for arithmetic */
       /* ... ln of (1.0e-16) */
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */
+      /* The SP_ labels tell us what spacetime we're in. */
+      /* The CH_ labels refer to charts within that particular spacetime. */
+      /* These are designed so that we can bitwise or them. */
+      /* The physics code is written in python, and the js version is automatically translated */
+      /* from python, so it has already had these constants substituted in via filepp. But */
+      /* For browser-based user interface code written in js, these constants are also */
+      /* defined in util/constants.js. */
+      /* There is also a spacetimes_c.h version of this file for C sources. */
+      /* ... Schwarzschild spacetime */
+      /* ... sch5 coordinates */
+      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...) */
+      /* ... ``Keplerian'' coordinates (t,u,...), with u=r^3/2 */
       karl.load("math_util");
       karl.load("kruskal");
+      karl.load("keplerian");
+      karl.load("schwarzschild");
+      transform.chart_info = function(spacetime, chart) {
+        var recognized;
+
+        /*
+        Returns [ok,ndim,christoffel_function].
+        */
+        recognized = (false);
+        if ((spacetime | chart) == (256 | 1)) {
+          return [(true), 5, schwarzschild.christoffel];
+        }
+        if ((spacetime | chart) == (256 | 2)) {
+          return [(true), 5, kruskal.christoffel];
+        }
+        if ((spacetime | chart) == (256 | 3)) {
+          return [(true), 5, keplerian.christoffel];
+        }
+        return [(false), None, None];
+      };
       transform.transform_point = function(x, spacetime, chart, chart2) {
-        var ok, ndim, x2, a, b, t, r;
+        var ok, ndim, christoffel_function, ndim2, x2, done, a, b, t, r;
 
         /*
         Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
@@ -44,42 +76,94 @@
         if (chart == chart2) {
           return (karl.clone_array1d(x));
         }
-        ok = (false);
-        if (spacetime == SP_SCH) {
-          if ((chart == CH_SCH && chart2 == CH_AKS) || (chart == CH_AKS && chart2 == CH_SCH)) {
-            ok = (true);
-            ndim = 5;
-            x2 = karl.array1d((ndim));
-            if (chart == CH_SCH && chart2 == CH_AKS) {
-              (function() {
-                var temp = transform.schwarzschild_to_kruskal(x[0], x[1]);
-                a = temp[0];
-                b = temp[1]
-              })();
-              x2[0] = a;
-              x2[1] = b;
-            } else {
-              (function() {
-                var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
-                t = temp[0];
-                r = temp[1]
-              })();
-              x2[0] = t;
-              x2[1] = r;
-            }
-            x2[2] = x[2];
-            x2[3] = x[3];
-            x2[4] = x[4];
-          }
+        if (spacetime != 256) {
+          throw io_util.strcat((["unrecognized spacetime=", spacetime]));;
         }
-        if (ok) {
+        (function() {
+          var temp = transform.chart_info(spacetime, chart);
+          ok = temp[0];
+          ndim = temp[1];
+          christoffel_function = temp[2]
+        })();
+        if (!ok) {
+          throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart]));;
+        }
+        (function() {
+          var temp = transform.chart_info(spacetime, chart2);
+          ok = temp[0];
+          ndim2 = temp[1];
+          christoffel_function = temp[2]
+        })();
+        if (!ok) {
+          throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart2]));;
+        }
+        x2 = karl.array1d((ndim2));
+        done = (false);
+        /* The following assumes, as is true for 1, 2, and 3, that coords 2,3,4 are (i,j,k). */
+        x2[2] = x[2];
+        x2[3] = x[3];
+        x2[4] = x[4];
+        /* Transform the first two coordinates: */
+        if (chart == 1 && chart2 == 2) {
+          (function() {
+            var temp = transform.schwarzschild_to_kruskal(x[0], x[1]);
+            a = temp[0];
+            b = temp[1]
+          })();
+          x2[0] = a;
+          x2[1] = b;
+          done = (true);
+        }
+        if (!done && chart == 2 && chart2 == 1) {
+          (function() {
+            var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
+            t = temp[0];
+            r = temp[1]
+          })();
+          x2[0] = t;
+          x2[1] = r;
+          done = (true);
+        }
+        if (!done && chart == 1 && chart2 == 3) {
+          x2[0] = x[0];
+          x2[1] = Math.pow((x[1]), (1.5));
+          done = (true);
+        }
+        if (!done && chart == 3 && chart2 == 1) {
+          x2[0] = x[0];
+          x2[1] = Math.pow((x[1]), (0.6666666666666666));
+          done = (true);
+        }
+        if (!done && chart == 2 && chart2 == 3) {
+          (function() {
+            var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
+            t = temp[0];
+            r = temp[1]
+          })();
+          x2[0] = t;
+          x2[1] = Math.pow((r), (1.5));
+          done = (true);
+        }
+        if (!done && chart == 3 && chart2 == 2) {
+          t = x[0];
+          r = Math.pow((x[1]), (0.6666666666666666));
+          (function() {
+            var temp = transform.schwarzschild_to_kruskal(t, r);
+            a = temp[0];
+            b = temp[1]
+          })();
+          x2[0] = a;
+          x2[1] = b;
+          done = (true);
+        }
+        if (done) {
           return (karl.clone_array1d(x2)); /* for python, divorce the new vector from entanglement with components of old */
         } else {
-          throw io_util.strcat((["unrecognized charts, spacetime=", spacetime, ", chart=", chart, ", chart2=", chart2]));;
+          throw io_util.strcat((["don't know how to transform, spacetime=", spacetime, ", chart=", chart, ", chart2=", chart2]));;
         }
       };
       transform.transform_vector = function(v, x, spacetime, chart, chart2) {
-        var ok, ndim, t, r, jac, v2;
+        var ok, ndim, christoffel_function, ndim2, v2, found_jac, t, r, jac, u;
 
         /*
         Transforms a vector v from chart to chart2 in the tangent space at x. Return value is an array, which is
@@ -88,39 +172,84 @@
         if (chart == chart2) {
           return (karl.clone_array1d(v));
         }
-        ok = (false);
-        if (spacetime == SP_SCH) {
-          if ((chart == CH_SCH && chart2 == CH_AKS) || (chart == CH_AKS && chart2 == CH_SCH)) {
-            ok = (true);
-            ndim = 5;
-            if (chart == CH_SCH && chart2 == CH_AKS) {
-              (function() {
-                var temp = [x[0], x[1]];
-                t = temp[0];
-                r = temp[1]
-              })();
-              jac = transform.jacobian_schwarzschild_to_kruskal(t, r);
-            } else {
-              (function() {
-                var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
-                t = temp[0];
-                r = temp[1]
-              })();
-              jac = transform.jacobian_kruskal_to_schwarzschild(t, r);
-            }
-            v2 = karl.array1d((ndim));
-            v2[0] = jac[0][0] * v[0] + jac[0][1] * v[1];
-            v2[1] = jac[1][0] * v[0] + jac[1][1] * v[1];
-            v2[2] = v[2];
-            v2[3] = v[3];
-            v2[4] = v[4];
-          }
+        if (spacetime != 256) {
+          throw io_util.strcat((["unrecognized spacetime=", spacetime]));;
         }
-        if (ok) {
-          return (karl.clone_array1d(v2)); /* for python, divorce the new vector from entanglement with components of old */
-        } else {
+        (function() {
+          var temp = transform.chart_info(spacetime, chart);
+          ok = temp[0];
+          ndim = temp[1];
+          christoffel_function = temp[2]
+        })();
+        if (!ok) {
+          throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart]));;
+        }
+        (function() {
+          var temp = transform.chart_info(spacetime, chart2);
+          ok = temp[0];
+          ndim2 = temp[1];
+          christoffel_function = temp[2]
+        })();
+        if (!ok) {
+          throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart2]));;
+        }
+        v2 = karl.array1d((ndim2));
+        /* The following assumes, as is true for 1, 2, and 3, that coords 2,3,4 are (i,j,k). */
+        v2[2] = v[2];
+        v2[3] = v[3];
+        v2[4] = v[4];
+        found_jac = (false);
+        /* Find the Jacobian. */
+        if (chart == 1 && chart2 == 2) {
+          (function() {
+            var temp = [x[0], x[1]];
+            t = temp[0];
+            r = temp[1]
+          })();
+          jac = transform.jacobian_schwarzschild_to_kruskal(t, r);
+          found_jac = (true);
+        }
+        if (chart == 2 && chart2 == 1) {
+          (function() {
+            var temp = transform.kruskal_to_schwarzschild(x[0], x[1]);
+            t = temp[0];
+            r = temp[1]
+          })();
+          jac = transform.jacobian_kruskal_to_schwarzschild(t, r);
+          found_jac = (true);
+        }
+        if (chart == 1 && chart2 == 3) {
+          (function() {
+            var temp = [x[0], x[1]];
+            t = temp[0];
+            r = temp[1]
+          })();
+          jac = karl.array2d((2), (2));
+          jac[0][0] = 1.0;
+          jac[1][0] = 0.0;
+          jac[0][1] = 0.0;
+          jac[1][1] = (1.5) * Math.sqrt(r);
+          found_jac = (true);
+        }
+        if (chart == 3 && chart2 == 1) {
+          (function() {
+            var temp = [x[0], x[1]];
+            t = temp[0];
+            u = temp[1]
+          })();
+          jac = karl.array2d((2), (2));
+          jac[0][0] = 1.0;
+          jac[1][0] = 0.0;
+          jac[0][1] = 0.0;
+          jac[1][1] = (2.0 / 3.0) / POW(u, (1.0 / 3.0));
+          found_jac = (true);
+        }
+        if (!found_jac) {
           throw io_util.strcat((["unrecognized charts, spacetime=", spacetime, ", chart=", chart, ", chart2=", chart2]));;
         }
+        v2[0] = jac[0][0] * v[0] + jac[0][1] * v[1];
+        v2[1] = jac[1][0] * v[0] + jac[1][1] * v[1];
+        return (karl.clone_array1d(v2)); /* for python, divorce the new vector from entanglement with components of old */
       };
       transform.schwarzschild_to_kruskal = function(t, r) {
         var p, sign_b;

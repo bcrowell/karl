@@ -21,7 +21,7 @@ not document the math or the definitions of the variables.)
 
 from io_util import fl
 
-import math_util
+import math_util,angular
 import lambert_w_stuff
 
 def metric_ks4(p):
@@ -146,7 +146,7 @@ def christoffel_massaged_maxima_output(p):
   ch[3][3][1] = z
   ch[4][4][1] = z
   #------------------------------------------------------
-  add_centripetal(ch,p)
+  angular.add_centripetal(ch,p)
   #------------------------------------------------------
   return ch  
 
@@ -197,73 +197,9 @@ def christoffel_raw_maxima_output(p):
   ch[4][4][1] = -(sinh(b)*lambert_w(-exp(-1)*sinh(a)*sinh(b))+sinh(b))/(2*cosh(b)) 
   #   ... ^b _k k
   #------------------------------------------------------
-  add_centripetal(ch,p)
+  angular.add_centripetal(ch,p)
   #------------------------------------------------------
   return ch
-
-def christoffel_raw_maxima_output_first_try(p):
-  a=p[0]
-  b=p[1]
-  # output of kruskal5.mac, plus centripetal terms
-  ch = EMPTY3DIM(5)
-  #------------------------------------------------------
-  ch[0][0][0] = (sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2+(2*sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-exp(a)*cosh(a))*lambert_w(exp((-b)+a-1))+sinh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)-2*exp(a)*cosh(a))/(cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)+2*cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+cosh(a)*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^a _a a
-  ch[0][2][2] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^i _a i
-  ch[2][0][2] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^i _i a
-  ch[0][3][3] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^j _a j
-  ch[3][0][3] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^j _j a
-  ch[0][4][4] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^k _a k
-  ch[4][0][4] = exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^k _k a
-  ch[1][1][1] = (exp(lambert_w(exp((-b)+a-1))+b+1)*sinh(b)*lambert_w(exp((-b)+a-1))**2+(exp(a)*cosh(b)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*sinh(b))*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*sinh(b)+2*exp(a)*cosh(b))/(exp(lambert_w(exp((-b)+a-1))+b+1)*cosh(b)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*cosh(b)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*cosh(b)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^b _b b
-  ch[1][2][2] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^i _b i
-  ch[2][1][2] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^i _i b
-  ch[1][3][3] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^j _b j
-  ch[3][1][3] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^j _j b
-  ch[1][4][4] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^k _b k
-  ch[4][1][4] = -exp(a)/(exp(lambert_w(exp((-b)+a-1))+b+1)+2*exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))+exp(lambert_w(exp((-b)+a-1))+b+1)*lambert_w(exp((-b)+a-1))**2) 
-  #   ... ^k _k b
-  ch[2][2][0] = -(exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
-  #   ... ^a _i i
-  ch[2][2][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
-  #   ... ^b _i i
-  ch[3][3][0] = -(exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
-  #   ... ^a _j j
-  ch[3][3][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
-  #   ... ^b _j j
-  ch[4][4][0] = -(exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
-  #   ... ^a _k k
-  ch[4][4][1] = (exp(-b)*(exp(a)*lambert_w(exp((-b)+a-1))+exp(a)))/(2*cosh(a)*cosh(b)) 
-  #   ... ^b _k k
-  #------------------------------------------------------
-  add_centripetal(ch,p)
-  #------------------------------------------------------
-  return ch
-
-def add_centripetal(ch,p):
-  """
-  Modifies ch in place by adding the centripetal parts.
-  """
-  i=p[2]
-  j=p[3]
-  k=p[4]
-  xi2 = i*i+j*j+k*k; # should normally be very close to 1
-  for m in range(2,5): # upper index
-    z = p[m]
-    for n in range(2,5): # lower indices
-      ch[n][n][m] += z/xi2
 
 def christoffel4(p):
   """

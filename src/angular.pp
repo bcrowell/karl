@@ -39,3 +39,17 @@ def make_tangent(x,v0):
 def theta_phi_to_ijk(theta,phi):
   sin_theta = sin(theta)
   return [sin_theta*cos(phi),sin_theta*sin(phi),cos(theta)]
+
+def add_centripetal(ch,p):
+  """
+  Add centripetal terms to the Christoffel symbols for a 5-dimensional coordinate system.
+  Modifies ch in place by adding the centripetal parts.
+  """
+  i=p[2]
+  j=p[3]
+  k=p[4]
+  xi2 = i*i+j*j+k*k; # should normally be very close to 1
+  for m in range(2,5): # upper index
+    z = p[m]
+    for n in range(2,5): # lower indices
+      ch[n][n][m] += z/xi2

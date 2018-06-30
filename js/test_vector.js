@@ -44,7 +44,8 @@
       /* There is also a spacetimes_c.h version of this file for C sources. */
       /* ... Schwarzschild spacetime */
       /* ... sch5 coordinates */
-      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...),  */
+      /* ... Kruskal-Szekeres null coordinates (asinh V,asinh W,...) */
+      /* ... ``Keplerian'' coordinates (t,u,...), with u=r^3/2 */
       /* ... relative precision for arithmetic */
       /* ... ln of (1.0e-16) */
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */

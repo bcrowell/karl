@@ -16,6 +16,7 @@ def main():
         lambert_w_stuff
         schwarzschild  
         kruskal        
+        keplerian
         transform      
         runge_kutta
         fancy
@@ -37,7 +38,8 @@ def main():
   for target in prep_list("""
         lambert_w 
         schwarzschild  
-        kruskal  
+        kruskal
+        keplerian
         transform
         runge_kutta
         fancy

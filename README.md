@@ -90,3 +90,11 @@ Show a spacelike geodesic crossing from region I to region III, or timelike geod
 from I and III meeting in II.
 
 Make a 2-d spacewars-style game.
+
+## Adding a new coordinate system
+
+Define a number for it, and add that to spacetimes.h and spacetimes_c.h.
+Calculate the Christoffel symbols as in, e.g., kruskal5.mac, and run the output
+through clean_up_christoffel.rb. Implement the christoffel symbols in python.
+Add the new python file to gen_depends.py.
+Add to runge_kutta.chart_info.
