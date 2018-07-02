@@ -384,15 +384,12 @@ Call $(t,u)$ ``Keplerian'' coordinates. Christoffel symbols:
 \begin{align*}
 \Gamma\indices{^u_t_t} &= 3/(4u)-3/(4u^{5/3})  \\
 \Gamma\indices{^t_t_u} &= -u^{1/3}/(3u^{4/3}-3u^2)  \\
-\Gamma\indices{^u_u_u} &= u^{4/3}/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))\\
-             & -(2u^{2/3})/((-9u)+9u^{5/3}+u^(1/3)(3-3u^2))\\
-             & +1/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))  \\
-\Gamma\indices{^i_u_i} &= 2/(3u)  \\
-\Gamma\indices{^j_u_j} &= 2/(3u)  \\
-\Gamma\indices{^k_u_k} &= 2/(3u)  \\
-\Gamma\indices{^u_i_i} &= (3u^(1/3))/2-(3u)/2  \\
-\Gamma\indices{^u_j_j} &= (3u^(1/3))/2-(3u)/2  \\
-\Gamma\indices{^u_k_k} &= (3u^(1/3))/2-(3u)/2  \\
+\Gamma\indices{^u_u_u} &= \frac{1}{3}u^{-1/3}\frac{1-2u^{2/3}+u^{4/3}}{1-3u^{2/3}+3u^{4/3}-u^2} \\
+%             u^{4/3}/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))\\
+%             & -(2u^{2/3})/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))\\
+%             & +1/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))  \\
+\Gamma\indices{^i_u_i} = \Gamma\indices{^j_u_j} = \Gamma\indices{^k_u_k} &= 2/(3u)  \\
+\Gamma\indices{^u_i_i} = \Gamma\indices{^u_j_j} = \Gamma\indices{^u_k_k} &= (3u^{1/3})/2-(3u)/2  \\
 \end{align*}
 For small $u$, the worst behavior by any of the Christoffel symbols is
 to blow up like like $u^{-5/3}$. This seems a lot better than

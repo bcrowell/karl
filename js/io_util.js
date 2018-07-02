@@ -29,3 +29,6 @@
       io_util.fl = function(x) {
         return x.toExponential(3).toString();
       }
+      io_util.fl_n_decimals = function(x, n) {
+        return x.toExponential(n).toString();
+      }

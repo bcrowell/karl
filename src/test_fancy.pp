@@ -33,7 +33,7 @@ def test_hitting_singularity():
   # ... theoretical time to hit the singularity for a trajectory with E=1
   #     https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Orbits_of_test_particles
   tau_max = 1.1*tau_theory
-  n = 1000
+  n = 10000
   ndebug=0
   if verbosity>=3:
     ndebug=n
@@ -55,7 +55,7 @@ def debug_function(iter,lam,dlambda,x,v,name):
                       " x[0]=",io_util.fl_n_decimals(x[0],2), \
                       " x[1]=",io_util.fl_n_decimals(x[1],2),\
                       " v[0]=",io_util.fl_n_decimals(v[0],2), \
-                      " v[1]=",io_util.fl_n_decimals(v[1],6))
+                      " v[1]=",io_util.fl_n_decimals(v[1],5))
 
 def main():
   test_hitting_singularity()

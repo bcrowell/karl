@@ -44,7 +44,7 @@
       karl.load("angular");
       karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, debug_chart, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
         /*
         Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
@@ -60,7 +60,7 @@
           dlambda = step size
           ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100
                      then we print debugging information at every 100th step
-          debug_chart = boolean, when printing debug info, should we print what chart we're working in?; default=(false)
+          debug_function = a function to be called when printing debugging output
           lambda0 = initial affine parameter, defaults to 0
           norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                        default=(true)
@@ -94,7 +94,7 @@
           lambda_max = temp[0];
           dlambda = temp[1];
           ndebug = temp[2];
-          debug_chart = temp[3];
+          debug_function = temp[3];
           lambda0 = temp[4];
           norm_final = temp[5];
           n_triggers = temp[6];
@@ -131,7 +131,7 @@
         for (var iter = 0; iter < n; iter++) {
           est = karl.array2d(ndim2, order);; /*         =k in the notation of most authors */
           /*         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta. */
-          debug_count = runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, iter, lam, x, v, debug_chart, spacetime | chart);
+          debug_count = runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, debug_function, spacetime | chart);
           for (var i = 0; i < ndim; i++) {
             y0[i] = x[i];
           }
@@ -178,7 +178,7 @@
             }
           }
           if (n_triggers > 0 && runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim)) {
-            return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, x, v, acc, norm_final, debug_chart, chart);
+            return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, chart);
           }
           /*-- Update everything: */
           lam = lam + dlambda;
@@ -193,7 +193,7 @@
             x[i] += tot_est[i];
           }
         }
-        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final, debug_chart, spacetime | chart);
+        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart);
       };
       runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda) {
         var x2, v2, proper_accel2, proper_accel, a, i;
@@ -211,12 +211,12 @@
         }
       };
       runge_kutta.runge_kutta_get_options_helper = function(opt) {
-        var lambda_max, dlambda, ndebug, debug_chart, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart;
+        var lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart;
 
         lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
         dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
         ndebug = runge_kutta.runge_kutta_get_par_helper(opt, "ndebug", 0);
-        debug_chart = runge_kutta.runge_kutta_get_par_helper(opt, "debug_chart", (false));
+        debug_function = runge_kutta.runge_kutta_get_par_helper(opt, "debug_function", runge_kutta.default_debug_function);
         lambda0 = runge_kutta.runge_kutta_get_par_helper(opt, "lambda0", 0.0);
         norm_final = runge_kutta.runge_kutta_get_par_helper(opt, "norm_final", (true));
         n_triggers = 0;
@@ -238,7 +238,7 @@
         force_acts = runge_kutta.runge_kutta_get_par_helper(opt, "force_acts", (false));
         force_function = runge_kutta.runge_kutta_get_par_helper(opt, "force_function", 0);
         force_chart = runge_kutta.runge_kutta_get_par_helper(opt, "force_chart", 0);
-        return [lambda_max, dlambda, ndebug, debug_chart, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart];
+        return [lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart];
       };
       runge_kutta.runge_kutta_init_helper = function(lambda_max, lambda0, dlambda, ndebug, spacetime, chart) {
         var n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, name;
@@ -292,10 +292,10 @@
         }
         return (false);
       };
-      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, x, v, acc, norm_final, debug_chart, spacetime_and_chart) {
+      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime_and_chart) {
         var x, v;
 
-        runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, n, lam, x, v, debug_chart, spacetime_and_chart);
+        runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, debug_function, spacetime_and_chart);
         /* ... always do a printout for the final iteratation */
         if (norm_final) {
           x = angular.renormalize(x);
@@ -350,7 +350,7 @@
           'runge_kutta.message': io_util.strcat(stuff)
         };
       };
-      runge_kutta.debug_helper = function(debug_count, ndebug, steps_between_debugging, iter, lam, x, v, debug_chart, spacetime_and_chart) {
+      runge_kutta.debug_helper = function(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, debug_function, spacetime_and_chart) {
         var do_debug, debug_count, ok, ndim, christoffel_function, name;
 
         /*
@@ -362,18 +362,18 @@
           do_debug = (true);
         }
         if (do_debug) {
-          if (debug_chart) {
-            (function() {
-              var temp = transform.chart_info(spacetime_and_chart);
-              ok = temp[0];
-              ndim = temp[1];
-              christoffel_function = temp[2];
-              name = temp[3]
-            })();
-            print(name, " lam=", io_util.fl(lam), " x=", io_util.vector_to_str_n_decimals(x, 1), " v=", io_util.vector_to_str_n_decimals(v, 1));
-          } else {
-            print("i=", iter, " lam=", io_util.fl(lam), " x=", io_util.vector_to_str_n_decimals(x, 1), " v=", io_util.vector_to_str_n_decimals(v, 1));
-          }
+          (function() {
+            var temp = transform.chart_info(spacetime_and_chart) /* just to get name of chart */ ;
+            ok = temp[0];
+            ndim = temp[1];
+            christoffel_function = temp[2];
+            name = temp[3]
+          })();
+          debug_function(iter, lam, dlambda, x, v, name);
         }
-        return debug_count + 1;;
+        return debug_count + 1;
+      };
+      runge_kutta.default_debug_function = function(iter, lam, dlambda, x, v, name) {
+
+        print("i=", iter, " lam=", io_util.fl(lam), " x=", io_util.vector_to_str_n_decimals(x, 1), " v=", io_util.vector_to_str_n_decimals(v, 1));;
       };

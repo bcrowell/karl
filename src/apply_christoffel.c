@@ -23,6 +23,9 @@ void apply_christoffel(int spacetime,int chart,double *p,double *a,double dlambd
   if ((spacetime | chart)==(SP_SCH | CH_AKS)) {
     sum_christoffel_sch_aks(p,a);
   }
+  if ((spacetime | chart)==(SP_SCH | CH_KEP)) {
+    sum_christoffel_sch_aks(p,a);
+  }
   for (m=0; m<NDIM; m++) {a[m]=a[m]*dlambda;}
 }
 
@@ -44,6 +47,39 @@ void sum_christoffel_sch_sch(double *p,double *a) {
   for (m=2; m<=4; m++) {
     APPLY(a,p,  m,m,1,-c);
     APPLY(a,p,  m,1,m,2.0*inv_r); // factor of 2 handles 1mm as well as m1m
+  }
+  // Fictitious centripetal terms:
+  // For efficiency, we assume xi^2=i^2+j^2+k^2=1.
+  for (m=2; m<=4; m++) { // upper index
+    z = p[m];
+    for (n=2; n<=4; n++) { // lower indices
+      APPLY(a,p,  n,n,m,z);
+    }
+  }
+}
+
+// For the Schwarzschild spacetime, described in 5-dimensional "Keplerian" coordinates,
+// add up the Christoffel symbols as they appear in the geodesic equation.
+// The input array a[] needs to be zeroed before calling.
+void sum_christoffel_sch_kep(double *p,double *a) {
+  int m,n;
+  double z,u,c,u2,u13,u23,u43,u53;
+  u = p[1];
+  u2 = u*u;
+  u13 = POW(u,(1.0/3.0)); // u^(1/3)
+  u23 = u13*u13; // u^(2/3)
+  u43 = u23*u23; // u^(4/3)
+  u53 = u43*u13; // u^(5/3)
+  APPLY(a,p,  0,0,1,0.75*(1/u-1/u53)); // ^u _t t
+  z = -(1.0/3.0)*u13/(u43-u2)
+  APPLY(a,p,  0,1,0,2.0*z); // factor of 2 handles 100 as well as 010
+  APPLY(a,p,  1,1,1,(1.0/3.0)*(1/u13)*((1.0-2.0*u23+u43)/(1-3.0*u23+3.0*u43-u2)); // ^u _u u
+  // These terms are analogous to Gamma^r_theta_theta=-c and Gamma^theta_r_theta=1/r in sch4:
+  c = (1.5)*(u13-u);
+  c2 = (2.0/3.0)/u;
+  for (m=2; m<=4; m++) {
+    APPLY(a,p,  m,m,1,c);
+    APPLY(a,p,  m,1,m,2.0*c2); // factor of 2 handles 1mm as well as m1m
   }
   // Fictitious centripetal terms:
   // For efficiency, we assume xi^2=i^2+j^2+k^2=1.
