@@ -33,6 +33,7 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
     dlambda = step size
     ndebug = 0, or, if nonzero, determines how often to print debugging output; e.g., if ndebug=100
                then we print debugging information at every 100th step
+    debug_function = a function to be called when printing debugging output
     lambda0 = initial affine parameter, defaults to 0
     norm_final = adjust the final x and v to lie on and tangent to the unit sphere in i-j-k space;
                  default=TRUE
@@ -61,7 +62,7 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
   x=CLONE_ARRAY_OF_FLOATS(x0)
   v=CLONE_ARRAY_OF_FLOATS(v0)
   #-- process input options
-  lambda_max,dlambda,ndebug,lambda0,norm_final,\
+  lambda_max,dlambda,ndebug,debug_function,lambda0,norm_final,\
         n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,\
         force_acts,force_function,force_chart =\
         runge_kutta_get_options_helper(opt)
@@ -96,7 +97,8 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors
     #         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
-    debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v)
+    debug_count=debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,\
+                                        x,v,debug_function,spacetime|chart)
     for i in range(ndim):
       y0[i]=x[i]
     for i in range(ndim):
@@ -135,7 +137,8 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
         est[step][i] = y[ndim+i]*dlambda
     if n_triggers>0 and \
             trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
-      return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v,acc,norm_final)
+      return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
+                     norm_final,debug_function,chart)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)
@@ -145,7 +148,8 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
       v[i] += tot_est[ndim+i]
     for i in range(ndim):
       x[i] += tot_est[i]
-  return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final)
+  return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
+              debug_function,spacetime|chart)
 
 def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda):
   # The API says that force_function does not need to clone its output vector before returning it, so
@@ -163,6 +167,7 @@ def runge_kutta_get_options_helper(opt):
   lambda_max  =runge_kutta_get_par_helper(opt,"lambda_max",NONE)
   dlambda     =runge_kutta_get_par_helper(opt,"dlambda",NONE)
   ndebug      =runge_kutta_get_par_helper(opt,"ndebug",0)
+  debug_function =runge_kutta_get_par_helper(opt,"debug_function",default_debug_function)
   lambda0     =runge_kutta_get_par_helper(opt,"lambda0",0.0)
   norm_final  =runge_kutta_get_par_helper(opt,"norm_final",TRUE)
   n_triggers = 0
@@ -172,7 +177,7 @@ def runge_kutta_get_options_helper(opt):
   force_acts     =runge_kutta_get_par_helper(opt,"force_acts",FALSE)
   force_function =runge_kutta_get_par_helper(opt,"force_function",0)
   force_chart     =runge_kutta_get_par_helper(opt,"force_chart",0)
-  return [lambda_max,dlambda,ndebug,lambda0,norm_final, \
+  return [lambda_max,dlambda,ndebug,debug_function,lambda0,norm_final, \
                    n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha, \
                    force_acts,force_function,force_chart]
 
@@ -184,7 +189,7 @@ def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart):
     steps_between_debugging=ndebug
   debug_count = steps_between_debugging+1 # trigger it on the first iteration
   lam = lambda0
-  ok,ndim,christoffel_function = transform.chart_info(spacetime,chart)
+  ok,ndim,christoffel_function,name = transform.chart_info(spacetime|chart)
   return [n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function]
 
 def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
@@ -214,8 +219,8 @@ def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_thres
       return TRUE
   return FALSE
 
-def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v,acc,norm_final):
-  debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,x,v)
+def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,debug_function,spacetime_and_chart):
+  debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,debug_function,spacetime_and_chart)
   # ... always do a printout for the final iteratation
   if norm_final:
     x = angular.renormalize(x)
@@ -254,7 +259,8 @@ def apply_christoffel(christoffel_function,y,acc,dlambda,ndim):
 def mess(stuff):
   return {'message':io_util.strcat(stuff)}
 
-def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
+def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,\
+                                x,v,debug_function,spacetime_and_chart):
   """
   Prints debugging info and returns the updated debug_count.
   """
@@ -263,9 +269,12 @@ def debug_helper(debug_count,ndebug,steps_between_debugging,iter,lam,x,v):
     debug_count = 0
     do_debug = TRUE
   if do_debug:
-    PRINT("i=",iter," lam=",io_util.fl(lam), \
-                      " x=",io_util.vector_to_str_n_decimals(x,1), \
-                      " v=",io_util.vector_to_str_n_decimals(v,1))
+    ok,ndim,christoffel_function,name = transform.chart_info(spacetime_and_chart) # just to get name of chart
+    debug_function(iter,lam,dlambda,x,v,name)
   return debug_count+1
 
+def default_debug_function(iter,lam,dlambda,x,v,name):
+  PRINT("i=",iter," lam=",io_util.fl(lam), \
+                      " x=",io_util.vector_to_str_n_decimals(x,1), \
+                      " v=",io_util.vector_to_str_n_decimals(v,1))
   

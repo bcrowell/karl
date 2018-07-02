@@ -8,7 +8,7 @@ JS = js
 
 VPATH = src
 
-.PHONY: clean clean_js js js_all py c all depend
+.PHONY: clean clean_js js js_all py c all depend doc
 
 all:
 	make depend
@@ -38,6 +38,12 @@ clean_py:
 clean:
 	rm -f *~ src/*~ obj/*~ pj/*~ js/*~ js/*.jsi obj/*.pyc
 	cd doc && make clean && cd -
+
+doc: doc/doc.pdf
+	#
+
+doc/doc.pdf: doc/doc.tex
+	cd doc ; make ; cd -
 
 include depend
 include c.mk

@@ -48,26 +48,27 @@
       karl.load("kruskal");
       karl.load("keplerian");
       karl.load("schwarzschild");
-      transform.chart_info = function(spacetime, chart) {
+      transform.chart_info = function(spacetime_and_chart) {
         var recognized;
 
         /*
-        Returns [ok,ndim,christoffel_function].
+        Input is spacetime|chart. Returns [ok,ndim,christoffel_function,name].
+        See README for a list of things to do when adding a new chart.
         */
         recognized = (false);
-        if ((spacetime | chart) == (256 | 1)) {
-          return [(true), 5, schwarzschild.christoffel];
+        if ((spacetime_and_chart) == (256 | 1)) {
+          return [(true), 5, schwarzschild.christoffel, "SCH"];
         }
-        if ((spacetime | chart) == (256 | 2)) {
-          return [(true), 5, kruskal.christoffel];
+        if ((spacetime_and_chart) == (256 | 2)) {
+          return [(true), 5, kruskal.christoffel, "AKS"];
         }
-        if ((spacetime | chart) == (256 | 3)) {
-          return [(true), 5, keplerian.christoffel];
+        if ((spacetime_and_chart) == (256 | 3)) {
+          return [(true), 5, keplerian.christoffel, "KEP"];
         }
-        return [(false), None, None];
+        return [(false), None, None, ''];
       };
       transform.transform_point = function(x, spacetime, chart, chart2) {
-        var ok, ndim, christoffel_function, ndim2, x2, done, a, b, t, r;
+        var ok, ndim, christoffel_function, name, ndim2, x2, done, a, b, t, r;
 
         /*
         Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
@@ -80,19 +81,21 @@
           throw io_util.strcat((["unrecognized spacetime=", spacetime]));;
         }
         (function() {
-          var temp = transform.chart_info(spacetime, chart);
+          var temp = transform.chart_info(spacetime | chart);
           ok = temp[0];
           ndim = temp[1];
-          christoffel_function = temp[2]
+          christoffel_function = temp[2];
+          name = temp[3]
         })();
         if (!ok) {
           throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart]));;
         }
         (function() {
-          var temp = transform.chart_info(spacetime, chart2);
+          var temp = transform.chart_info(spacetime | chart2);
           ok = temp[0];
           ndim2 = temp[1];
-          christoffel_function = temp[2]
+          christoffel_function = temp[2];
+          name = temp[3]
         })();
         if (!ok) {
           throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart2]));;
@@ -163,10 +166,11 @@
         }
       };
       transform.transform_vector = function(v, x, spacetime, chart, chart2) {
-        var ok, ndim, christoffel_function, ndim2, v2, found_jac, t, r, jac, u;
+        var ok, ndim, christoffel_function, name, ndim2, v2, found_jac, t, r, jac, u;
 
         /*
-        Transforms a vector v from chart to chart2 in the tangent space at x. Return value is an array, which is
+        Transforms a vector v from chart to chart2 in the tangent space at x (x being described in chart, not chart2).
+        Return value is an array, which is
         automatically cloned. It's legal to have chart==chart2.
         */
         if (chart == chart2) {
@@ -176,19 +180,21 @@
           throw io_util.strcat((["unrecognized spacetime=", spacetime]));;
         }
         (function() {
-          var temp = transform.chart_info(spacetime, chart);
+          var temp = transform.chart_info(spacetime | chart);
           ok = temp[0];
           ndim = temp[1];
-          christoffel_function = temp[2]
+          christoffel_function = temp[2];
+          name = temp[3]
         })();
         if (!ok) {
           throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart]));;
         }
         (function() {
-          var temp = transform.chart_info(spacetime, chart2);
+          var temp = transform.chart_info(spacetime | chart2);
           ok = temp[0];
           ndim2 = temp[1];
-          christoffel_function = temp[2]
+          christoffel_function = temp[2];
+          name = temp[3]
         })();
         if (!ok) {
           throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart2]));;

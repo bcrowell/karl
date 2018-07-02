@@ -17,18 +17,20 @@ not document the math or the definitions of the variables.)
 import math_util
 import kruskal,keplerian,schwarzschild
 
-def chart_info(spacetime,chart):
+def chart_info(spacetime_and_chart):
   """
-  Returns [ok,ndim,christoffel_function].
+  Input is spacetime|chart. Returns [ok,ndim,christoffel_function,name].
+
+  See README for a list of things to do when adding a new chart.
   """
   recognized = FALSE
-  if (spacetime|chart)==(SP_SCH|CH_SCH):
-    return [TRUE,5,schwarzschild.christoffel]
-  if (spacetime|chart)==(SP_SCH|CH_AKS):
-    return [TRUE,5,kruskal.christoffel]
-  if (spacetime|chart)==(SP_SCH|CH_KEP):
-    return [TRUE,5,keplerian.christoffel]
-  return [FALSE,None,None]
+  if (spacetime_and_chart)==(SP_SCH|CH_SCH):
+    return [TRUE,5,schwarzschild.christoffel,"SCH"]
+  if (spacetime_and_chart)==(SP_SCH|CH_AKS):
+    return [TRUE,5,kruskal.christoffel,"AKS"]
+  if (spacetime_and_chart)==(SP_SCH|CH_KEP):
+    return [TRUE,5,keplerian.christoffel,"KEP"]
+  return [FALSE,None,None,'']
 
 def transform_point(x,spacetime,chart,chart2):
   """
@@ -39,10 +41,10 @@ def transform_point(x,spacetime,chart,chart2):
     return CLONE_ARRAY_OF_FLOATS(x)
   if spacetime!=SP_SCH:
     THROW_ARRAY((["unrecognized spacetime=",spacetime]))
-  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  ok,ndim,christoffel_function,name = chart_info(spacetime|chart)
   if not ok:
     THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart]))
-  ok,ndim2,christoffel_function = chart_info(spacetime,chart2)
+  ok,ndim2,christoffel_function,name = chart_info(spacetime|chart2)
   if not ok:
     THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart2]))
   x2=EMPTY1DIM(ndim2)
@@ -89,17 +91,18 @@ def transform_point(x,spacetime,chart,chart2):
 
 def transform_vector(v,x,spacetime,chart,chart2):
   """
-  Transforms a vector v from chart to chart2 in the tangent space at x. Return value is an array, which is
+  Transforms a vector v from chart to chart2 in the tangent space at x (x being described in chart, not chart2).
+  Return value is an array, which is
   automatically cloned. It's legal to have chart==chart2.
   """
   if chart==chart2:
     return CLONE_ARRAY_OF_FLOATS(v)
   if spacetime!=SP_SCH:
     THROW_ARRAY((["unrecognized spacetime=",spacetime]))
-  ok,ndim,christoffel_function = chart_info(spacetime,chart)
+  ok,ndim,christoffel_function,name = chart_info(spacetime|chart)
   if not ok:
     THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart]))
-  ok,ndim2,christoffel_function = chart_info(spacetime,chart2)
+  ok,ndim2,christoffel_function,name = chart_info(spacetime|chart2)
   if not ok:
     THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart2]))
   v2=EMPTY1DIM(ndim2)

@@ -41,3 +41,12 @@ def fl(x):
 #js   return x.toExponential(3).toString();
 #js }
 
+#if "LANG" eq "python"
+def fl_n_decimals(x,n):
+  fmt = "%"+str(n+2)+"."+str(n)+"e"
+  return fmt % x
+#endif
+#js io_util.fl_n_decimals = function(x,n) {
+#js   return x.toExponential(n).toString();
+#js }
+

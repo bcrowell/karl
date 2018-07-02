@@ -382,9 +382,11 @@ The form of the exact solutions for radial infall from rest at infinity suggests
 the substitution $u=r^{3/2}$, which is essentially the Keplerian scaling of times.
 Call $(t,u)$ ``Keplerian'' coordinates. Christoffel symbols:
 \begin{align*}
-\Gamma\indices{^u_t_t} &= 3/(4u)-3/(4u^(5/3))  \\
-\Gamma\indices{^t_t_u} &= -u^(1/3)/(3u^(4/3)-3u^2)  \\
-\Gamma\indices{^u_u_u} &= u^(4/3)/((-9u)+9u^(5/3)+u^(1/3)(3-3u^2))-(2u^(2/3))/((-9u)+9u^(5/3)+u^(1/3)(3-3u^2))+1/((-9u)+9u^(5/3)+u^(1/3)(3-3u^2))  \\
+\Gamma\indices{^u_t_t} &= 3/(4u)-3/(4u^{5/3})  \\
+\Gamma\indices{^t_t_u} &= -u^{1/3}/(3u^{4/3}-3u^2)  \\
+\Gamma\indices{^u_u_u} &= u^{4/3}/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))\\
+             & -(2u^{2/3})/((-9u)+9u^{5/3}+u^(1/3)(3-3u^2))\\
+             & +1/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))  \\
 \Gamma\indices{^i_u_i} &= 2/(3u)  \\
 \Gamma\indices{^j_u_j} &= 2/(3u)  \\
 \Gamma\indices{^k_u_k} &= 2/(3u)  \\
@@ -392,11 +394,10 @@ Call $(t,u)$ ``Keplerian'' coordinates. Christoffel symbols:
 \Gamma\indices{^u_j_j} &= (3u^(1/3))/2-(3u)/2  \\
 \Gamma\indices{^u_k_k} &= (3u^(1/3))/2-(3u)/2  \\
 \end{align*}
-For small $u$, most of the Christoffel symbols blow up like $u^{-1}$, except for
-$\Gamma\indices{^u_t_t}$, which goes like $u^{-5/3}$. This seems a lot better than
+For small $u$, the worst behavior by any of the Christoffel symbols is
+to blow up like like $u^{-5/3}$. This seems a lot better than
 Schwarzschild, which goes like $r^{-3}$. Transformation of vectors is simply
-$v^u=(3/2)r^{1/2}v^r$. For a particle infalling from rest at infinity, all the Christoffel
-symbols vanish identically, so results of Runge-Kutta are exact up to rounding errors.
+$v^u=(3/2)r^{1/2}v^r$.
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 
@@ -661,9 +662,5 @@ Lewis and Kwan, ``No Way Back: Maximizing survival time below the Schwarzschild 
 \url{https://arxiv.org/abs/0705.1029} -- They say they used odepack, but nothing about what
 routine they used or how they managed the singularity. They quote errors on the order of
 $10^{-4}$, which is good enough for their purposes but would be sad for general-purpose use.
-
-http://numerical.recipes/CiP97.pdf -- ``Runge-Kutta, when we eventually learned to integrate away from --
-not into -- singularities, and to make a pre-integration change of variables in
-the equations, worked splendidly.''
 
 \end{document}

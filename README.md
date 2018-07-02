@@ -98,3 +98,5 @@ Calculate the Christoffel symbols as in, e.g., kruskal5.mac, and run the output
 through clean_up_christoffel.rb. Implement the christoffel symbols in python.
 Add the new python file to gen_depends.py.
 Add to runge_kutta.chart_info.
+Add to transform.chart_info() and,
+if necessary,  to other routines in transform module.
