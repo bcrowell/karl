@@ -18,6 +18,7 @@ Limitations:
 
 Features:
 
+* Handles the following constructs: for-in-range, if-then-else.
 * Allows multiple assignment like x,y,z=[1,2,3]. (Fakes it in js, which doesn't normally support this syntax.)
 
 Hand-translation is handled using active comments that look like this:

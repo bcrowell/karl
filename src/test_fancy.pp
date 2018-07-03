@@ -11,7 +11,7 @@
 
 import runge_kutta,fancy,angular,vector
 
-verbosity=3
+verbosity=1
 
 #--------------------------------------------------------------------------------------------------
 
@@ -33,22 +33,22 @@ def test_hitting_singularity():
   # ... theoretical time to hit the singularity for a trajectory with E=1
   #     https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Orbits_of_test_particles
   tau_max = 1.1*tau_theory
-  n = 10000
+  n = 1000
   ndebug=0
   if verbosity>=3:
-    ndebug=n
+    ndebug=n/20
     PRINT("tau_theory=",tau_theory)
     PRINT("x=",x)
     PRINT("v=",v)
   opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'debug_function':debug_function}
-  err,final_x,final_v,final_a,final_lambda,info  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt,1)
   #err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
   if verbosity>=2:
     PRINT("final_x=",final_x,", final_lambda=",final_lambda,", tau_theory=",tau_theory,", err=",(final_lambda-tau_theory))
-  eps = 1.0e-4/n # acts like first order, because should adapt dlambda but doesn't
-  assert_rel_equal_eps(final_lambda,tau_theory,eps)
-  if err & RK_ERR:
+  eps = 1.0e-9 # independent of n, because in Keplerian coords u' is constant
+  if err!=0 and err!=RK_INCOMPLETE:
     THROW('error: '+info['message'])
+  assert_rel_equal_eps(final_lambda,tau_theory,eps)
 
 def debug_function(iter,lam,dlambda,x,v,name):
   PRINT(name," lam=",io_util.fl(lam),", i=",iter,", dlam=",io_util.fl(dlambda),\

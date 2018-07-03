@@ -55,17 +55,6 @@
         g[3][3] = -r2 * sin_theta * sin_theta;
         return g;
       };
-      schwarzschild.sigma = function(r) {
-
-        /*
-        Compute sigma(r), whose sign tells us whether we're in region I or II.
-        */
-        if (r >= 1.0) {
-          return 1;
-        } else {
-          return -1;
-        }
-      };
       schwarzschild.metric = function(r) {
         var g, a, r2;
 

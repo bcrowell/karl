@@ -134,7 +134,7 @@ def transform_vector(v,x,spacetime,chart,chart2):
     jac[0][0] = 1.0
     jac[1][0] = 0.0
     jac[0][1] = 0.0
-    jac[1][1] = (2.0/3.0)/POW(u,(1.0/3.0))
+    jac[1][1] = (2.0/3.0)/(u**(1.0/3.0))
     found_jac = TRUE
   if not found_jac:
     THROW_ARRAY((["unrecognized charts, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))

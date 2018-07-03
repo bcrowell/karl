@@ -77,6 +77,15 @@ def aux(a,b):
     t = NONE
   return [t,r,mu]
 
+def sigma(a,b):
+  """
+  Determine the variable sigma (see docs), defined as +1 in regions I and II, -1 in regions III and IV.
+  """
+  if a>=0.0:
+    return 1
+  else:
+    return -1
+
 def metric(p):
   """
   For the Schwarzschild spacetime, compute the metric.

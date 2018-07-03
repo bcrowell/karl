@@ -99,7 +99,7 @@ def main():
           print("	@rm "+jsi)
           print("	@-js-beautify --replace -n -s 2 "+js)
           if is_test:
-            print("test_"+target+"_py: "+py+" "+py_modules)
+            print("test_"+target+"_py: "+py+" "+py_modules+" obj/karl.so")
             print("	@$(PYTHON3) "+py)
             print("test_"+target+"_js: "+js+" "+js_modules)
             print("	@$(PYTHON3) run_js.py "+js)

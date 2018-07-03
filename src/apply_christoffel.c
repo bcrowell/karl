@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include "spacetimes_c.h"
 
@@ -11,20 +12,30 @@ double lambert_w_of_exp(double);
 void aux(double *,double *,double *,double,double);
 void sum_christoffel_sch_sch(double *,double *);
 void sum_christoffel_sch_aks(double *,double *);
+void sum_christoffel_sch_kep(double *,double *);
 
 // Given a position and velocity (both packed into the 10 elements of p),
 // find the dv based on the Christoffel symbols and dlambda.
 void apply_christoffel(int spacetime,int chart,double *p,double *a,double dlambda) {
-  int m;
+  int m,ok;
+  ok = 0;
   for (m=0; m<NDIM; m++) {a[m]=0.0;}
   if ((spacetime | chart)==(SP_SCH | CH_SCH)) {
     sum_christoffel_sch_sch(p,a);
+    ok = 1;
   }
   if ((spacetime | chart)==(SP_SCH | CH_AKS)) {
     sum_christoffel_sch_aks(p,a);
+    ok = 1;
   }
   if ((spacetime | chart)==(SP_SCH | CH_KEP)) {
-    sum_christoffel_sch_aks(p,a);
+    sum_christoffel_sch_kep(p,a);
+    ok = 1;
+  }
+  if (!ok) {
+    fprintf(stderr,"Unrecognized combination of spacetime=%d, chart=%d in apply_christoffel.c.\n",
+                spacetime,chart);
+    exit(-1);
   }
   for (m=0; m<NDIM; m++) {a[m]=a[m]*dlambda;}
 }
@@ -63,17 +74,17 @@ void sum_christoffel_sch_sch(double *p,double *a) {
 // The input array a[] needs to be zeroed before calling.
 void sum_christoffel_sch_kep(double *p,double *a) {
   int m,n;
-  double z,u,c,u2,u13,u23,u43,u53;
+  double z,u,c,c2,u2,u13,u23,u43,u53;
   u = p[1];
   u2 = u*u;
-  u13 = POW(u,(1.0/3.0)); // u^(1/3)
+  u13 = pow(u,(1.0/3.0)); // u^(1/3)
   u23 = u13*u13; // u^(2/3)
   u43 = u23*u23; // u^(4/3)
   u53 = u43*u13; // u^(5/3)
   APPLY(a,p,  0,0,1,0.75*(1/u-1/u53)); // ^u _t t
-  z = -(1.0/3.0)*u13/(u43-u2)
+  z = -(1.0/3.0)*u13/(u43-u2);
   APPLY(a,p,  0,1,0,2.0*z); // factor of 2 handles 100 as well as 010
-  APPLY(a,p,  1,1,1,(1.0/3.0)*(1/u13)*((1.0-2.0*u23+u43)/(1-3.0*u23+3.0*u43-u2)); // ^u _u u
+  APPLY(a,p,  1,1,1,(1.0/3.0)*(1/u13)*((1.0-2.0*u23+u43)/(1-3.0*u23+3.0*u43-u2))); // ^u _u u
   // These terms are analogous to Gamma^r_theta_theta=-c and Gamma^theta_r_theta=1/r in sch4:
   c = (1.5)*(u13-u);
   c2 = (2.0/3.0)/u;

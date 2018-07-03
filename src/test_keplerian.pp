@@ -42,10 +42,10 @@ def test_hitting_singularity():
   if verbosity>=3:
     ndebug=n/10
   opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug}
-  err,final_x,final_v,final_a,final_lambda,info  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt,1)
   if verbosity>=2:
     PRINT("final_x=",final_x)
-  assert_rel_equal_eps(final_lambda,tau_theory,100*EPS) # is exact up to rounding errors, regardless of n
+  assert_rel_equal_eps(final_lambda,tau_theory,1.0e-5) # is exact up to rounding errors, regardless of n
   if err & RK_ERR:
     THROW('error: '+info['message'])
 

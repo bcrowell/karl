@@ -106,6 +106,17 @@
         }
         return [t, r, mu];
       };
+      kruskal.sigma = function(a, b) {
+
+        /*
+        Determine the variable sigma (see docs), defined as +1 in regions I and II, -1 in regions III and IV.
+        */
+        if (a >= 0.0) {
+          return 1;
+        } else {
+          return -1;
+        }
+      };
       kruskal.metric = function(p) {
         var g, t, r, mu, r2;
 
