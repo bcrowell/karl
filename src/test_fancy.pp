@@ -9,8 +9,11 @@
 #include "runge_kutta.h"
 #include "precision.h"
 
+import os,os.path
 import runge_kutta,fancy,angular,vector
 
+csv=FALSE
+csv_file = 'a.csv'
 verbosity=1
 
 #--------------------------------------------------------------------------------------------------
@@ -28,7 +31,9 @@ def test_hitting_singularity():
   aa = 1-1/r
   dt = 1.0
   dr = -sqrt(aa**2-aa**3) # the value that gives E=1=mc^2, i.e., falling from rest at infinity
-  v = vector.normalize(spacetime,chart,x,[dt,dr,0.0,0.0,0.0]) # normalize so that affine param is proper time
+  v = vector.normalize(spacetime,chart,x,[dt,dr,0.0,0.0,0.0])
+  # ...Normalize so that affine param is proper time.
+  #    Since E=(1-1/r)t', I think this means we're using t->-t inside the horizon...?
   tau_theory = (2.0/3.0)*r**1.5
   # ... theoretical time to hit the singularity for a trajectory with E=1
   #     https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Orbits_of_test_particles
@@ -51,13 +56,21 @@ def test_hitting_singularity():
   assert_rel_equal_eps(final_lambda,tau_theory,eps)
 
 def debug_function(iter,lam,dlambda,x,v,name):
-  PRINT(name," lam=",io_util.fl(lam),", i=",iter,", dlam=",io_util.fl(dlambda),\
+#if "LANG" eq "python"
+  if name=='KEP' and csv:
+    with open(csv_file, 'a') as f:
+      f.write(io_util.fl_n_decimals(lam,16)+","+io_util.vector_to_str_n_decimals(x,16)+","+io_util.vector_to_str_n_decimals(v,16)+"\n")
+#endif
+  if not csv:
+    PRINT(name," lam=",io_util.fl(lam),", i=",iter,", dlam=",io_util.fl(dlambda),\
                       " x[0]=",io_util.fl_n_decimals(x[0],2), \
                       " x[1]=",io_util.fl_n_decimals(x[1],2),\
                       " v[0]=",io_util.fl_n_decimals(v[0],2), \
                       " v[1]=",io_util.fl_n_decimals(v[1],5))
 
 def main():
+  if csv and os.path.isfile(csv_file):
+    os.remove(csv_file)
   test_hitting_singularity()
 
 main()

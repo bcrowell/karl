@@ -94,6 +94,7 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
 #endif
   y0 = EMPTY1DIM(ndim2)
   for iter in range(n):
+    dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors
     #         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta.
@@ -182,7 +183,7 @@ def runge_kutta_get_options_helper(opt):
                    force_acts,force_function,force_chart]
 
 def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart):
-  n = CEIL((lambda_max-lambda0)/dlambda)
+  n = CEIL((lambda_max-lambda0)/dlambda) # dlambda will be adjusted slightly in order to deal with the rounding
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
   else:

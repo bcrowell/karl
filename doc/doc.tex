@@ -389,13 +389,173 @@ Call $(t,u)$ ``Keplerian'' coordinates. Christoffel symbols:
 %             & -(2u^{2/3})/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))\\
 %             & +1/((-9u)+9u^{5/3}+u^{1/3}(3-3u^2))  \\
 \Gamma\indices{^i_u_i} = \Gamma\indices{^j_u_j} = \Gamma\indices{^k_u_k} &= 2/(3u)  \\
-\Gamma\indices{^u_i_i} = \Gamma\indices{^u_j_j} = \Gamma\indices{^u_k_k} &= (3u^{1/3})/2-(3u)/2  \\
+\Gamma\indices{^u_i_i} = \Gamma\indices{^u_j_j} = \Gamma\indices{^u_k_k} &= (3u^{1/3})/2-(3u)/2  
 \end{align*}
 For small $u$, the worst behavior by any of the Christoffel symbols is
 to blow up like like $u^{-5/3}$. This seems a lot better than
-Schwarzschild, which goes like $r^{-3}$. For free-fall from rest at infinity, $\dot{u}$ is
-constant. Transformation of vectors is simply
+Schwarzschild, which goes like $r^{-3}$. Transformation of vectors is simply
 $v^u=(3/2)r^{1/2}v^r$.
+
+For free-fall from rest at infinity, $u'(\lambda)$ is
+constant, which makes event location trivial. For timelike radial free-fall in general,
+$u(\lambda)$ is very gently curved, but is still differentiable near the singularity.
+
+For timelike non-radial infalling, $u'$ and $i'$ blow up at the singularity, but
+$t'$ approaches zero. The asymptotic behavior of $t'$ seems to be
+$t'\propto|\lambda-\lambda_0|^{2/5}$. Very close to the singularity,
+at $|\lambda-\lambda_0|$ on the order of $10^{-14}$ of the Schwarzschild radius,
+it looks in my numerical data like $t'$ deviates from this rule and approaches
+a small constant value, but this may be a numerical artifact.
+
+If it were true that $\dot{t}\propto \lambda^{\ldots}$, then it would be the magic bullet for
+event location.
+
+In Schwarzschild coordinates, 
+it seems empirically that $r$ sort of approximately goes like $\lambda^\alpha$
+(where $\lambda\rightarrow0+$),
+although $\alpha$ may not really be constant, may approach $0^+$, which would be more the flavor
+of a logarithm. I get $\alpha$ at least as low as 0.2 close to the singularity.
+
+Suppose we write down geodesic eqns and use conserved quantities $E=A\dot{t}$ and $L=r^2\dot{\phi}$.
+Then
+\begin{align*}
+  \ddot{t} &= -Er^{-2}A^{-2}\dot{r} \\
+  \ddot{r} &= -E^2/(2r^2A)+A\dot{r}^2/2r^2+L^2A/r^3,
+\end{align*}
+where $A=1-1/r$. Now approximate $A\approx -1/r$ and neglect the $E^2$ term. The first equation
+becomes integrable.
+\begin{align*}
+  \dot{t} &= -Er \\
+  \ddot{r} &= -\dot{r}^2/2r^3-L^2/r^4
+\end{align*}
+The first equation shows why $\dot{t}\rightarrow0$. In the second equation, if we assume
+$r\propto \lambda^\epsilon$, then the $\ddot{r}$ term becomes negligible, and the solution
+is $\epsilon=2/3$, which is the result for radial infall from rest at infinity --- but in
+fact I don't really observe $r\propto \lambda^\epsilon$, so this is not super exciting.
+If I instead assume that the $\dot{r}^2$ term is negligible, then the solution is
+$r\propto\lambda^{1/3}$, which is more similar to what I observe when $L\ne0$, but still probably not
+right.
+
+Better: as in the WP article ``Schwarzschild geodesics,'' substitute the conserved quantities
+into the metric. This results in an integral for proper time in terms of $r$,
+\begin{equation*}
+  \tau = -\int \left[E^2-(1+L^2r^{-2})(1-1/r)\right]^{-1/2}dr .
+\end{equation*}
+(The minus sign in front is specific to this situation.
+Note that inside the horizon, $1-1/r$ is negative, so the expression inside the square brackets
+is really a sum of two positive terms.)
+I couldn't get Maxima or WA to integrate this, although various approximations and special
+cases do seem to have integrals that are nasty, complex expressions in terms of elliptic integrals.
+In the case where $L\ne0$, neglecting all but the $r^{-3}$ term gives $r\propto\lambda^{2/5}$,
+and this matches up with my numerical observation that $\dot{t}\propto \lambda^{2/5}$.
+
+Plan: try to put a lower bound on $\tau(r=0)$ using this integral, and also possibly extend that
+to a lower bound when an external force acts.
+
+For $L\ne0$, the proper time $\tau$ to move along a timelike geodesic from $r=R$ to $r=0$ is given by
+\begin{equation*}
+  \tau|L| = \int_0^R r^{3/2}(1-r+ar^2+br^3)^{-1/2} dr,
+\end{equation*}
+where $a=L^{-2}$ and $b=L^{-2}(E^2-1)$. I think $b$ can have either sign.
+Let $\epsilon=r-ar^2-br^3$, $-\infty < \epsilon<1$. (Can't have $\epsilon\ge1$, because
+then the integral becomes complex.) If we get close enough to the singularity, $0<\epsilon<1$,
+so that the Taylor series of $(1-\epsilon)^{-1/2}$ converges and has only positive terms.
+We can therefore put a lower bound on $\tau$ by truncating this series (which is not the
+same as truncating according to exponents of $R$). Taking only the constant term gives
+the bound
+\begin{equation*}
+  \tau|L| > \frac{2}{5}R^{5/2},
+\end{equation*}
+or, with the next term included,
+\begin{equation*}
+  \tau|L| > \frac{2}{5}R^{5/2}+\frac{1}{7}R^{7/2}-\frac{a}{9}R^{9/2}-\frac{b}{11}R^{11/2}.
+\end{equation*}
+When $L$ is small, this bound becomes a poor one, because we may need $r\lesssim L^3$ and
+$r\lesssim L^3/(E^2-1)$ to get $\epsilon<1$.
+
+For my purposes an upper bound on $\tau$ is of less interest, but if we want one,
+we can put an upper bound $\epsilon_0$ on $\epsilon$ and substitute that
+constant into the integral in place of $\epsilon$, giving
+\begin{equation*}
+  \tau|L| < \frac{2}{5}R^{5/2}(1-\epsilon_0)^{-1/2}.
+\end{equation*}
+There are two cases, depending on how $b$ compares to
+$b_0=-a^2/3$. In the case where $b<b_0$, $\epsilon$ is increasing for all $r$, so we can
+take $\epsilon_0=\epsilon(R)$. For $b>b_0$, $\epsilon$ is increasing for $r\le 0<r_0$,
+where $r_0=-(a/3b)(1-\sqrt{1+3b/a^2})$ (which is positive regardless of the sign of $b$).
+In this case we have to wait until $r<r_0$, and then the same method applies.
+For very large values of $b$, i.e., ultrarelativistic particles, the upper bound on
+$\tau$ given above will valid but weak, and it may be better to treat such cases as null geodesics.
+If $R$ is small enough so that $\epsilon\approx r$ is a good approximation for all of
+the remaining motion, then we have the approximate bound
+\begin{equation*}
+  \tau|L| \lesssim \frac{2}{5}R^{5/2}(1-R)^{-1/2}.
+\end{equation*}
+For $b>0$, this is a strict bound, but weaker than the previous one.
+
+For a timelike geodesic with $L=0$, there are closed-form solutions for $\tau$. Let $c=E^2-1$.
+For $c \ge 0$,
+\begin{equation*}
+\tau = {{\log \left(1+2\,c\,r-2\,\sqrt{c}\,\sqrt{r}\,\sqrt{c\,r+1}\right)
+ }\over{2\,c^{{{3}\over{2}}}}}+{{\sqrt{r}\,\sqrt{c\,r+1}}\over{c}},
+\end{equation*}
+or in maxima notation
+\begin{verbatim}
+log((-2*sqrt(c)*sqrt(r)*sqrt(c*r+1))+2*c*r+1)/(2*c^(3/2))+(sqrt(r)*sqrt(c*r+1))/c
+\end{verbatim}
+In a series expansion, this is
+\begin{equation*}
+  \tau = \frac{2}{3}r^{3/2}-\frac{c}{5}r^{5/2}+\frac{3c^2}{28}r^{7/2}+\ldots,
+\end{equation*}
+which is consistent with the case of
+$c=0$ (free fall from rest at infinity), where $\tau=(2/3)r^{3/2}$.
+Maxima source code:
+\begin{verbatim}
+taylor(integrate(x^(1/2)*(1+c*x)^(-1/2),x,0,r)/r^(3/2),r,0,2);
+\end{verbatim}
+For $c<0$ and $r<-1/c$, we get a result that looks like it's going to turn out
+complex, which seems to be a proof that $c>0$ for timelike geodesics.
+For ultrarelativistic particles, we could have large values of $c$ that would
+make the series expansion wrong, and the exact expression will not behave well
+numerically. May want to treat such cases as null geodesics.
+
+\section{Choice of step size}
+
+I tried an empirical study of the optimal step size, using a massive
+particle infalling from $r_0<1$ with $E=2$ and $L=0.3$. Did this with
+$r=0.9$, then 0.1, and decreasing roughly by decades. Took the
+estimate $\tau_s=(2/5)(1/|L|)r_0^{5/2}$ for the time to hit the
+singularity, and ran the simulation for $\Delta\tau=0.1\tau_s$,
+finding final $r$. For each $r$, did calculations with a bunch of
+different $n$ values, and made a log-log plot of error versus n.
+(Error from assumed true value based on what the results seemed to be
+converging to.) For each $r_0$,
+found the optimal $n$, which was the one where the graph stopped
+showing a decrease with a slope of $-4$ and flattened out.
+
+For $r_0$ from 0.1 down to $10^{-8}$, found that the optimal $n$ was
+remarkably constant at about 100-200. For $r_0=0.9$, optimal $n$ was more
+like 3000, and for $r_0<10^{-8}$ it began to decrease rapidly, to an optimal
+$n$ of 1 at $r_0=16^{-10}$.
+
+Does this behavior correspond to any naturally defined physical distance scales?
+Consider the quantities $a=L^{-2}$, $b=L^{-2}(E^2-1)$, and $\epsilon=r-ar^2-br^3$.
+The first value of $r$ for which $\epsilon>0$ is about 0.01. So possibly a reasonable
+rule of thumb is that for $r$ small enough to give positive $\epsilon$, we should
+keep $\Delta n/\Delta \tau$ proportional to $1/\tau_s$, down to some cut-off. If we
+never had a cut-off, the computation time would be $n\sim \int d\tau/\tau$, which diverges
+logarithmically. But we can have a cut-off, for several reasons:
+
+(1) optimal n goes down
+past a certain point (why?)
+
+(2) at optimal n, the relative error $\delta r_f/r$ is always roughly equal to rounding
+error, which means that the absolute error gets extremely small, probably negligible for
+most applications
+
+(3) for this particular spacetime, for various cases, I understand the asymptotic behavior
+well enough analytically that, depending on what I'm trying to calculate, I may be able
+to slap on the asymptotic result as a substitute for the remainder of the calculation
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 
@@ -660,5 +820,14 @@ Lewis and Kwan, ``No Way Back: Maximizing survival time below the Schwarzschild 
 \url{https://arxiv.org/abs/0705.1029} -- They say they used odepack, but nothing about what
 routine they used or how they managed the singularity. They quote errors on the order of
 $10^{-4}$, which is good enough for their purposes but would be sad for general-purpose use.
+
+Semerak, ``Approximating light rays in the Schwarzwschild field,''
+\url{https://arxiv.org/abs/1412.5650} -- An ad hoc prescription with finite errors,
+allows finding $r(\phi)$.
+
+Boonserm et al., ``Near-horizon geodesics for astrophysical and idealised
+black holes: Coordinate velocity and coordinate acceleration,''
+https://arxiv.org/abs/1710.06139.pdf -- compares various coordinate systems
+and behavior of coordinate acceleration near the horizon for an infalling particle
 
 \end{document}
