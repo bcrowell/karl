@@ -129,7 +129,9 @@
         acc = karl.array1d((ndim));
         y0 = karl.array1d((ndim2));
         for (var iter = 0; iter < n; iter++) {
-          est = karl.array2d(ndim2, order);; /*         =k in the notation of most authors */
+          dlambda = (lambda_max - lam) / (n - iter); /* small readjustment so we land on the right final lambda */
+          est = karl.array2d(ndim2, order);
+          /*         =k in the notation of most authors */
           /*         Four estimates of the changes in the independent variables for 4th-order Runge-Kutta. */
           debug_count = runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, debug_function, spacetime | chart);
           for (var i = 0; i < ndim; i++) {
@@ -243,7 +245,7 @@
       runge_kutta.runge_kutta_init_helper = function(lambda_max, lambda0, dlambda, ndebug, spacetime, chart) {
         var n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, name;
 
-        n = Math.ceil((lambda_max - lambda0) / dlambda);
+        n = Math.ceil((lambda_max - lambda0) / dlambda); /* dlambda will be adjusted slightly in order to deal with the rounding */
         if (ndebug == 0) {
           steps_between_debugging = n * 2; /* debugging will never happen */
         } else {

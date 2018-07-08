@@ -376,7 +376,9 @@ return when r is projected to drop below 0, and then we can use the returned
 coordinates and velocities to extrapolate to find the $\lambda$, $t$, and $r$
 at which the geodesic terminates.
 
-Possibility of using specialized coordinates. Press suggests ``to make
+\section{Specialized coordinates for use near the singularity}
+
+Press suggests ``to make
 a pre-integration change of variables in the equations'' near a singularity.
 The form of the exact solutions for radial infall from rest at infinity suggests
 the substitution $u=r^{3/2}$, which is essentially the Keplerian scaling of times.
@@ -409,6 +411,26 @@ a small constant value, but this may be a numerical artifact.
 
 If it were true that $\dot{t}\propto \lambda^{\ldots}$, then it would be the magic bullet for
 event location.
+
+To see whether Keplerian coordinates really help with performance, I tried a sample
+problem with initial conditions being $r=0.01$, $E=2$, $L=0$ or $0.3$, $\Delta\tau=0.1\tau_s$,
+where $\tau_s$ is the estimated time to reach the singularity. Found minimum
+number of iterations needed to give 16 digits of precision on final $r$.
+
+For $L=0$, Keplerian coordinates needed 17 iterations, Sch 46. Times were 1.3 ms vs 3.0 ms.
+So this is a pretty big win, but $L=0$ is the case that the coordinates were designed for.
+
+For $L=0.3$, the number of iterations required is basically the same, and the times were
+nearly identical.
+
+Conclusion: clever choices of coordinates may help enough to matter
+in certain specialized regimes, but not in general.
+
+With hindsight, it would have been smarter to choose the exponent in the Keplerian coordinates
+to linearize the behavior for the $L\ne0$ case. This could still be worth doing, but is not
+a ginormous win.
+
+\section{Asymptotic behavior approaching the singularity}
 
 In Schwarzschild coordinates, 
 it seems empirically that $r$ sort of approximately goes like $\lambda^\alpha$
@@ -519,6 +541,9 @@ For ultrarelativistic particles, we could have large values of $c$ that would
 make the series expansion wrong, and the exact expression will not behave well
 numerically. May want to treat such cases as null geodesics.
 
+For a null geodesic with $L=0$, the solution is $r=\lambda$, $t=\lambda+\ln(1-\lambda)$
+(or any affine reparametrization).
+
 \section{Choice of step size}
 
 I tried an empirical study of the optimal step size, using a massive
@@ -542,7 +567,9 @@ Does this behavior correspond to any naturally defined physical distance scales?
 Consider the quantities $a=L^{-2}$, $b=L^{-2}(E^2-1)$, and $\epsilon=r-ar^2-br^3$.
 The first value of $r$ for which $\epsilon>0$ is about 0.01. So possibly a reasonable
 rule of thumb is that for $r$ small enough to give positive $\epsilon$, we should
-keep $\Delta n/\Delta \tau$ proportional to $1/\tau_s$, down to some cut-off. If we
+keep $\Delta n/\Delta \tau$ proportional to $1/\tau_s$, down to some cut-off.
+
+If we
 never had a cut-off, the computation time would be $n\sim \int d\tau/\tau$, which diverges
 logarithmically. But we can have a cut-off, for several reasons:
 
@@ -556,6 +583,26 @@ most applications
 (3) for this particular spacetime, for various cases, I understand the asymptotic behavior
 well enough analytically that, depending on what I'm trying to calculate, I may be able
 to slap on the asymptotic result as a substitute for the remainder of the calculation
+
+I tried paper-and-pencil calculations to estimate some kind of optimal scaling of the
+step size, given the empirical observation that over short periods,
+$\Delta n/\Delta \tau \propto 1/\tau_s$ for precision limited by rounding. The result
+depends on what variable you want to know the error in ($\lambda$, $r$), and on how
+you assume $r(\tau)$ behaves (which is different for different regimes of energy and
+angular momentum). For the most common case ($L\ne0$, not ultrarelativistic), with
+Runge-Kutta of order $M$, using error in $\tau$ as the criterion, the result I got
+(not totally sure if this was right) was that one should scale the step size like
+$dn/d\tau \sim \tau_s^\alpha$, with $\alpha=-1-2/5M$. (It's not at all obvious to me that
+this is correct for general $M$, since my calculation assumes that some of the behavior
+I observed holds regardless of $M$.) For $M=4$, this is $\alpha=-1.1$, which is kind
+of a trivial difference from just taking $\alpha=-1$.
+
+Try an empirical rule with three parameters:
+$\Delta\lambda=k(\lambda_s-\lambda)^{-\alpha}$, starting when $\epsilon>0$
+and ending at $\lambda_s-\lambda=\lambda_\text{min}$. Goal is to get
+to 16-digit precision with minimum computation.  For massive particles
+in the non-ultrarelativistic regime ($E$ not $\gg 1$), it seems
+reasonable to hope that there would be some universal value of $k$. 
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 

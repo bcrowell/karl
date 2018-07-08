@@ -8,9 +8,7 @@
 #include "spacetimes.h"
 #include "runge_kutta.h"
 
-import runge_kutta,angular,vector
-
-#verbosity=2
+import runge_kutta,angular,vector,transform
 
 #--------------------------------------------------------------------------------------------------
 
@@ -180,9 +178,47 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
 
 #--------------------------------------------------------------------------------------------------
 
+def test_radial_null_geodesic(r,rdot,lam,chart,n):
+  """
+  Start a radial null geodesic at r with dr/dlambda=rdot.
+  Return the r reached at affine parameter lam.
+  Test against the closed-form solution.
+  """
+  spacetime = SP_SCH
+  # First calculate the initial conditions in Schwarzschild coordinates:
+  x = [0.0,r,1.0,0.0,0.0]
+  aa = 1-1/r
+  tdot = abs(rdot/aa) # Either sign is actually possible.
+  v = [tdot,rdot,0.0,0.0,0.0]
+  if chart!=CH_SCH:
+    x2 = transform.transform_point(x,spacetime,CH_SCH,chart)
+    v2 = transform.transform_vector(v,x,spacetime,CH_SCH,chart)
+    x = x2
+    v = v2
+  ndebug=0
+  if verbosity>=3:
+    ndebug=n/10
+  opt = {'lambda_max':lam,'dlambda':lam/n,'ndebug':ndebug}
+  err,final_x,final_v,final_a,final_lambda,info  = \
+              runge_kutta.trajectory_simple(SP_SCH,chart,x,v,opt)
+  if err!=0:
+    THROW("error: "+err)
+  final_x = transform.transform_point(final_x,spacetime,chart,CH_SCH) # convert to Schwarzschild coords
+  if verbosity>=2:
+    PRINT("final_x (Schwarzschild)=",final_x)
+  # Test against the closed-form solution r=r0+rdot*lam, t=const+-(r+ln|r-1|).
+  rf = final_x[1]
+  tf = final_x[0]
+  eps = 1.0/n**4
+  test.assert_equal_eps(rf,r+rdot*lam,eps)
+  test.assert_equal_eps(abs(tf),abs((r+log(abs(r-1.0)))-(rf+log(abs(rf-1.0)))),eps)
+
+#--------------------------------------------------------------------------------------------------
+
 verbosity=1
 
 def main():
+  test_radial_null_geodesic(2.0,1.0,1.0,CH_SCH,100)
   smoke_test()
   simple_newtonian_free_fall()
   circular_orbit_period()
