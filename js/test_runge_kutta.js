@@ -315,7 +315,6 @@
 
         /*
         Start a radial null geodesic at r with dr/dlambda=rdot.
-        Return the r reached at affine parameter lam.
         Test against the closed-form solution.
         */
         spacetime = 256;
@@ -363,14 +362,75 @@
         test.assert_equal_eps(Math.abs(tf), Math.abs((r + Math.log(Math.abs(r - 1.0))) - (rf + Math.log(Math.abs(rf - 1.0)))), eps);
       };
       /*-------------------------------------------------------------------------------------------------- */
+      test_runge_kutta.test_null_geodesic_ang_mom = function(r, rdot, le, lam, chart, n) {
+        var spacetime, x, aa, tdot, phidot, v, x2, v2, ndebug, opt, err, final_x, final_v, final_a, final_lambda, info, rf, i, j, idot, jdot, phidotf, aaf, lef, eps;
+
+        /*
+        Start a null geodesic at r with initial radial velocity rdot=dr/dlambda and ratio of
+        angular momentum to energy L/E=le.
+        Check that L/E is conserved.
+        */
+        spacetime = 256;
+        /* First calculate the initial conditions in Schwarzschild coordinates: */
+        x = [0.0, r, 1.0, 0.0, 0.0];
+        aa = 1 - 1 / r;
+        tdot = ((Math.pow((((1.0) + (((-1.0) * (aa) * (Math.pow((le), (2.0))) * (Math.pow((r), (-2.0))))))), (-0.5))) * (Math.abs((rdot))));
+        phidot = le * aa * (1 / (r * r)) * tdot;
+        v = [tdot, rdot, 0.0, phidot, 0.0];
+        if (chart != 1) {
+          x2 = transform.transform_point(x, spacetime, 1, chart);
+          v2 = transform.transform_vector(v, x, spacetime, 1, chart);
+          x = x2;
+          v = v2;
+        }
+        ndebug = 0;
+        if (verbosity >= 3) {
+          ndebug = n / 10;
+        }
+        opt = {
+          'lambda_max': lam,
+          'dlambda': lam / n,
+          'ndebug': ndebug
+        };
+        (function() {
+          var temp = runge_kutta.trajectory_simple(256, chart, x, v, opt);
+          err = temp[0];
+          final_x = temp[1];
+          final_v = temp[2];
+          final_a = temp[3];
+          final_lambda = temp[4];
+          info = temp[5]
+        })();
+        if (err != 0) {
+          throw "error: " + err;;
+        }
+        final_x = transform.transform_point(final_x, spacetime, chart, 1); /* convert to Schwarzschild coords */
+        if (verbosity >= 2) {
+          print("final_x (Schwarzschild)=", final_x);
+          print("final_v (Schwarzschild)=", final_v);
+        }
+        rf = final_x[1];
+        i = final_x[2];
+        j = final_x[3];
+        idot = final_v[2];
+        jdot = final_v[3];
+        phidotf = ((Math.pow((((1.0) + (((Math.pow((i), (-2.0))) * (Math.pow((j), (2.0))))))), (-1.0))) * (((((-1.0) * (Math.pow((i), (-2.0))) * (idot) * (j))) + (((Math.pow((i), (-1.0))) * (jdot))))));
+        aaf = 1 - 1 / rf;
+        lef = rf * rf * phidotf / (aaf * final_v[0]);
+        eps = ((100.0) * (Math.pow((n), (-4.0))));
+        test.assert_equal_eps(le, lef, eps);
+        return rf;
+      };
+      /*-------------------------------------------------------------------------------------------------- */
       verbosity = 1;
       test_runge_kutta.main = function() {
         var r, a, direction, n;
 
-        test_runge_kutta.test_radial_null_geodesic(2.0, 1.0, 1.0, 1, 100);
         test_runge_kutta.smoke_test();
         test_runge_kutta.simple_newtonian_free_fall();
         test_runge_kutta.circular_orbit_period();
+        test_runge_kutta.test_radial_null_geodesic(2.0, 1.0, 1.0, 1, 100);
+        test_runge_kutta.test_null_geodesic_ang_mom(0.9, -1.0, 0.2, 0.3, 1, 100);
         /*-- */
         r = 1.0e8;
         a = 1.1;

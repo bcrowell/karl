@@ -181,7 +181,6 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
 def test_radial_null_geodesic(r,rdot,lam,chart,n):
   """
   Start a radial null geodesic at r with dr/dlambda=rdot.
-  Return the r reached at affine parameter lam.
   Test against the closed-form solution.
   """
   spacetime = SP_SCH
@@ -214,14 +213,57 @@ def test_radial_null_geodesic(r,rdot,lam,chart,n):
   test.assert_equal_eps(abs(tf),abs((r+log(abs(r-1.0)))-(rf+log(abs(rf-1.0)))),eps)
 
 #--------------------------------------------------------------------------------------------------
+def test_null_geodesic_ang_mom(r,rdot,le,lam,chart,n):
+  """
+  Start a null geodesic at r with initial radial velocity rdot=dr/dlambda and ratio of
+  angular momentum to energy L/E=le.
+  Check that L/E is conserved.
+  """
+  spacetime = SP_SCH
+  # First calculate the initial conditions in Schwarzschild coordinates:
+  x = [0.0,r,1.0,0.0,0.0]
+  aa = 1-1/r
+  tdot = abs(rdot)*(1-aa*(le/r)**2)**(-1.0/2.0)
+  phidot = le*aa*(1/(r*r))*tdot
+  v = [tdot,rdot,0.0,phidot,0.0]
+  if chart!=CH_SCH:
+    x2 = transform.transform_point(x,spacetime,CH_SCH,chart)
+    v2 = transform.transform_vector(v,x,spacetime,CH_SCH,chart)
+    x = x2
+    v = v2
+  ndebug=0
+  if verbosity>=3:
+    ndebug=n/10
+  opt = {'lambda_max':lam,'dlambda':lam/n,'ndebug':ndebug}
+  err,final_x,final_v,final_a,final_lambda,info  = \
+              runge_kutta.trajectory_simple(SP_SCH,chart,x,v,opt)
+  if err!=0:
+    THROW("error: "+err)
+  final_x = transform.transform_point(final_x,spacetime,chart,CH_SCH) # convert to Schwarzschild coords
+  if verbosity>=2:
+    PRINT("final_x (Schwarzschild)=",final_x)
+    PRINT("final_v (Schwarzschild)=",final_v)
+  rf = final_x[1]
+  i = final_x[2]
+  j = final_x[3]
+  idot = final_v[2]
+  jdot = final_v[3]
+  phidotf = 1/(1+(j/i)**2)*(jdot/i-j*idot/i**2)
+  aaf = 1-1/rf
+  lef = rf*rf*phidotf/(aaf*final_v[0])
+  eps = 100.0/n**4
+  test.assert_equal_eps(le,lef,eps)
+  return rf
+#--------------------------------------------------------------------------------------------------
 
 verbosity=1
 
 def main():
-  test_radial_null_geodesic(2.0,1.0,1.0,CH_SCH,100)
   smoke_test()
   simple_newtonian_free_fall()
   circular_orbit_period()
+  test_radial_null_geodesic(2.0,1.0,1.0,CH_SCH,100)
+  test_null_geodesic_ang_mom(0.9,-1.0,0.2,0.3,CH_SCH,100)
   #--
   r = 1.0e8
   a = 1.1
