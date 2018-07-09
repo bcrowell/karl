@@ -72,11 +72,36 @@ def debug_function(iter,lam,dlambda,x,v,name):
                       " v[0]=",io_util.fl_n_decimals(v[0],2), \
                       " v[1]=",io_util.fl_n_decimals(v[1],5))
 
+#--------------------------------------------------------------------------------------------------
+
+def circular_orbit_period(tol):
+  """
+  Period of a circular orbit, Schwarzschild coordinates.
+
+  There is also a version of this using non-adaptive RK, in test_runge_kutta.
+  """
+  r = 3.0
+  v_phi = 1/sqrt(2.0*r*r*r) # exact condition for circular orbit in Sch., if v_t=1.
+  x = [0.0,r,1.0,0.0,0.0]
+  v = [1.0,0.0,0.0,v_phi,0.0]
+  period = 2.0*MATH_PI/v_phi
+  opt = {'lambda_max':period,'ndebug':0,'norm_final':FALSE,'tol':tol,\
+             'sigma':1,'future_oriented':TRUE}
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(SP_SCH,CH_SCH,x,v,opt)
+  if verbosity>=2:
+    PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
+  if err & RK_ERR:
+    THROW('error: '+info['message'])
+  test.assert_equal_eps(x[2],final_x[2],tol)
+  test.assert_equal_eps(x[3],final_x[3],tol)
+  test.assert_equal_eps(x[4],final_x[4],tol)
+
 def main():
 #if "LANG" eq "python"
   if csv and os.path.isfile(csv_file):
     os.remove(csv_file)
 #endif
-  test_hitting_singularity()
+  circular_orbit_period(1.0e-3)
+  test_hitting_singularity() # qwe -- uncomment
 
 main()

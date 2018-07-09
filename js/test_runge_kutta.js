@@ -191,6 +191,7 @@
 
         /*
         Period of a circular orbit, Schwarzschild coordinates.
+        There is also a version of this using adaptive RK, in test_fancy.
         */
         r = 3.0;
         v_phi = 1 / Math.sqrt(2.0 * r * r * r); /* exact condition for circular orbit in Sch., if v_t=1. */

@@ -25,8 +25,9 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   """
   A specialized wrapper for trajectory_simple(), optimized for speed and numerical precision in the
   Schwarzschild spacetime, for causal world-lines.
-  Inputs and outputs are the same as for runge_kutta.trajectory_simple(), with some additional
-  information packed in the options hash.
+  Inputs are the same as for runge_kutta.trajectory_simple(), except that dlambda is not to be specified,
+  and there are  three additional pieces of data that are required in the options hash.
+  Outputs are the same except for the additional output sigma.
 
   Values of spacetime and chart are defined in spacetimes.h.
   x0 and v0 = initial position and velocity, expressed in the chosen chart
@@ -97,7 +98,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
         v = v2
       chart = optimal_chart
     opt['triggers'] = triggers
-    n,dlambda,terminate = choose_step_size(r,p,tol,lam_left,x,v,chart)
+    n,dlambda,terminate = choose_step_size(r,p,tol,lam_left,x,v,chart,real_lambda_max-lambda0)
     if terminate:
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
@@ -140,33 +141,39 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
     info['message'] = 'incomplete geodesic'
   return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
 
-def choose_step_size(r,p,tol,lam_left,x,v,chart):
-    """
-    Choose step size.
-    Returns [n,dlambda,terminate]
-    """
-    if r<=1.0:
-      return choose_step_size_interior(r,p,tol,lam_left)
-    else:
-      return choose_step_size_exterior(r,tol,x,v,chart)
+def choose_step_size(r,p,tol,lam_left,x,v,chart,user_lambda_max):
+  """
+  Choose step size.
+  Returns [n,dlambda,terminate]
+  """
+  if r<=1.0:
+    z = choose_step_size_interior(r,p,tol,lam_left)
+  else:
+    z = choose_step_size_exterior(r,tol,x,v,chart)
+  n,dlambda,terminate = z
+  if n*dlambda>user_lambda_max:
+    n = CEIL(user_lambda_max/dlambda)
+    dlambda = user_lambda_max/n
+    z = [n,dlambda,terminate]
+  return z
 
 def choose_step_size_exterior(r,tol,x,v,chart):
-    """
-    Choose step size.
-    Returns [n,dlambda,terminate]
-    """
-    # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
-    # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
-    # roughly the inverse time scale for motion by about one schwarzschild radius.
-    vs = transform.transform_vector(v,x,SP_SCH,chart,CH_SCH) # find v vector in Sch coords
-    scale = abs(vs[0]/r**1.5)+abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
-    # The following parameters have to be tuned for optimal performance and only work for
-    # a particular order of RK.
-    n = 100
-    k = 1.0
-    order = 4.0 # order of RK
-    dlambda = k*tol**(1.0/order)/scale
-    return [n,dlambda,FALSE]
+  """
+  Choose step size.
+  Returns [n,dlambda,terminate]
+  """
+  # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
+  # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
+  # roughly the inverse time scale for motion by about one schwarzschild radius.
+  vs = transform.transform_vector(v,x,SP_SCH,chart,CH_SCH) # find v vector in Sch coords
+  scale = abs(vs[0]/r**1.5)+abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
+  # The following parameters have to be tuned for optimal performance and only work for
+  # a particular order of RK.
+  n = 100
+  k = 1.0 # tuned so that it passes the version of circular_orbit_period() in test_fancy
+  order = 4.0 # order of RK
+  dlambda = k*tol**(1.0/order)/scale
+  return [n,dlambda,FALSE]
 
 def choose_step_size_interior(r,p,tol,lam_left):
     # Use heuristics to pick a step size:

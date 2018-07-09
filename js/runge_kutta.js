@@ -209,7 +209,7 @@
         and for small r,
         p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
         left before the singularity in terms of the affine parameter. For values of r that are not small,
-        the p and lam_left outputs are basically meaningless.
+        the p and lam_left outputs would be meaningless, and are returned as NaN.
         The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
         or None if this is the js implementation. If r<0, err=1.
         */
@@ -239,14 +239,18 @@
         }
         rdot = v2[1];
         rddot = acc[1];
-        p = 1.0 / (1 - r * rddot / (rdot * rdot));
-        if (p < 0.4) {
-          p = 0.4;
+        p = (NaN);
+        lam_left = (NaN);
+        if (r < 1.0) {
+          p = 1.0 / (1 - r * rddot / (rdot * rdot));
+          if (p < 0.4) {
+            p = 0.4;
+          }
+          if (p > 1.0) {
+            p = 1.0;
+          }
+          lam_left = -p * r / rdot; /* estimate of when we'd hit the singularity */
         }
-        if (p > 1.0) {
-          p = 1.0;
-        }
-        lam_left = -p * r / rdot; /* estimate of when we'd hit the singularity */
         return [0, r, rdot, rddot, p, lam_left];
       };
       runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda) {
