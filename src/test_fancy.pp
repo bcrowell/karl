@@ -48,8 +48,9 @@ def test_hitting_singularity():
     PRINT("x=",x)
     PRINT("v=",v)
   tol = 1.0e-6
-  opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'debug_function':debug_function,'tol':tol}
-  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt,1)
+  opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'debug_function':debug_function,'tol':tol,\
+             'sigma':1,'future_oriented':TRUE}
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt)
   #err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
   if verbosity>=2:
     PRINT("final_x=",final_x,", final_lambda=",final_lambda,", tau_theory=",tau_theory,", err=",(final_lambda-tau_theory))

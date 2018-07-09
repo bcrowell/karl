@@ -42,8 +42,8 @@ def test_hitting_singularity():
   if verbosity>=3:
     ndebug=n/10
   tol = 1.0e-5 # is exact up to rounding errors, regardless of n
-  opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'tol':tol}
-  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt,1)
+  opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'tol':tol,'sigma':1,'future_oriented':TRUE}
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt)
   if verbosity>=2:
     PRINT("final_x=",final_x)
   assert_rel_equal_eps(final_lambda,tau_theory,tol) 

@@ -21,18 +21,21 @@ from io_util import fl
 
 import schwarzschild,kruskal,angular,transform,runge_kutta
 
-def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
+def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   """
   A specialized wrapper for trajectory_simple(), optimized for speed and numerical precision in the
-  Schwarzschild spacetime, for causal, future-oriented world-lines.
-  Inputs and outputs are the same as for runge_kutta.trajectory_simple(), plus the additional input sigma,
-  and opt['tol'], which is a desired error tolerance.
+  Schwarzschild spacetime, for causal world-lines.
+  Inputs and outputs are the same as for runge_kutta.trajectory_simple(), with some additional
+  information packed in the options hash.
 
   Values of spacetime and chart are defined in spacetimes.h.
   x0 and v0 = initial position and velocity, expressed in the chosen chart
-  opt = same hash of options defined in runge_kutta
-  sigma = see docs, distinguishes regions I and II from III and IV, if this ambiguity isn't resolvable
+  opt = same hash of options defined in runge_kutta, plus the following three required parameters: --
+    tol: desired error tolerance, notated delta in the docs
+    sigma: see docs, distinguishes regions I and II from III and IV, if this ambiguity isn't resolvable
              in the chosen coordinate chart
+    future_oriented: boolean; e.g., if we're in Schwarzschild coordinates, r<1, sigma==-1, and
+             future_oriented is true, then we're rising away from the white-hole singularity of region III
   returns [err,x,v,a,final_lambda,info,sigma]
   """
   ndim = 5
@@ -60,6 +63,8 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     lambda0 = opt['lambda0']
   real_lambda_max = opt['lambda_max'] # as opposed to the shorter chunks we do with fixed step size
   tol = opt['tol']
+  sigma = opt['sigma']
+  future_oriented = opt['future_oriented']
   x = CLONE_ARRAY_OF_FLOATS(x0)
   v = CLONE_ARRAY_OF_FLOATS(v0)
   user_chart = chart
