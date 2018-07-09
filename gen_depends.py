@@ -21,7 +21,8 @@ def main():
         runge_kutta
         fancy
         angular        
-        vector         
+        vector
+        conserved
         test_math
       """):
     add_target(targets,target,physics_and_math)

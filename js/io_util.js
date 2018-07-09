@@ -17,7 +17,7 @@
       };
       io_util.vector_to_str = function(v) {
 
-        return io_util.vector_to_str_n_decimals(v, 3);
+        return vector_to_str_n_decimals(v, 3);
       };
       io_util.vector_to_str_n_decimals = function(v, n) {
         var f = [];

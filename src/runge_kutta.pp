@@ -158,8 +158,10 @@ def c_available(spacetime,chart):
 def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   """
   Returns [err,r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
+  and for small r,
   p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
-  left before the singularity in terms of the affine parameter.
+  left before the singularity in terms of the affine parameter. For values of r that are not small,
+  the p and lam_left outputs are basically meaningless.
 
   The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
   or None if this is the js implementation. If r<0, err=1.

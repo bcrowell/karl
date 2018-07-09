@@ -17,6 +17,7 @@ not document the math or the definitions of the variables.)
 """
 
 #include "language.h"
+#include "spacetimes.h"
 #include "util.h"
 #include "math.h"
 
@@ -125,4 +126,5 @@ def christoffel_sch4(t,r,sin_theta,cos_theta):
   ch[2][3][3] = cot
   ch[3][2][3] = cot
   return ch
+
 

@@ -19,7 +19,7 @@ from c_libs import c_double_p
 
 from io_util import fl
 
-import schwarzschild,kruskal,angular,transform,runge_kutta
+import schwarzschild,kruskal,angular,transform,runge_kutta,conserved
 
 def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   """
@@ -97,7 +97,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
         v = v2
       chart = optimal_chart
     opt['triggers'] = triggers
-    n,dlambda,terminate = choose_step_size(r,p,tol,lam_left)
+    n,dlambda,terminate = choose_step_size(r,p,tol,lam_left,x,v,chart)
     if terminate:
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
@@ -140,13 +140,36 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
     info['message'] = 'incomplete geodesic'
   return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
 
-def choose_step_size(r,p,tol,lam_left):
+def choose_step_size(r,p,tol,lam_left,x,v,chart):
     """
     Choose step size.
     Returns [n,dlambda,terminate]
     """
+    if r<=1.0:
+      return choose_step_size_interior(r,p,tol,lam_left)
+    else:
+      return choose_step_size_exterior(r,tol,x,v,chart)
+
+def choose_step_size_exterior(r,tol,x,v,chart):
+    """
+    Choose step size.
+    Returns [n,dlambda,terminate]
+    """
+    # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
+    # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
+    # roughly the inverse time scale for motion by about one schwarzschild radius.
+    vs = transform.transform_vector(v,x,SP_SCH,chart,CH_SCH) # find v vector in Sch coords
+    scale = abs(vs[0]/r**1.5)+abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
+    # The following parameters have to be tuned for optimal performance and only work for
+    # a particular order of RK.
+    n = 100
+    k = 1.0
+    order = 4.0 # order of RK
+    dlambda = k*tol**(1.0/order)/scale
+    return [n,dlambda,FALSE]
+
+def choose_step_size_interior(r,p,tol,lam_left):
     # Use heuristics to pick a step size:
-    # fixme -- the following only really applies at small r
     # fixme -- sanity checks on lam_left
     # fixme: don't hardcode parameters here
     alpha = 0.5
@@ -184,7 +207,7 @@ def chart_and_triggers(r,triggers,sigma,future_oriented):
     optimal_chart = CH_SCH
     APPEND_TO_ARRAY(triggers,([-1.0,1,1.05,0.3])) # trigger on r<1.05, nearing horizon
   else:
-    if r>0.9:
+    if r>=1.0:
       optimal_chart = CH_AKS
       # Trigger on a change of sign in either a or b, which means a change of region.
       APPEND_TO_ARRAY(triggers,([ 1.0,0, 0.0,0.3])) # a becoming positive

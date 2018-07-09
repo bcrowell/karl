@@ -85,7 +85,9 @@ end
 def qualify_local_functions(t0,module_name)
   t = t0.clone
   $local_functions.keys.each { |f|
-    t.gsub!(/(?<![\.\w])#{f}/) {module_name+'.'+f} # change f(x) to module.f(x)
+    if !(f=~/\./) then
+      t.gsub!(/(?<![\.\w])#{f}(?![\.\w])/) {module_name+'.'+f} # change f(x) to module.f(x)
+    end
   }
   return t
 end
@@ -429,7 +431,6 @@ def list_variables_to_declare(lhs,current_function_key)
     $stderr.print "multiple assignments on a single line: #{lhs}"
     exit(-1)
   end
-  $stderr.print("list_variables_to_declare, lhs=#{lhs}\n") if lhs=~/karl/; # qwe
   lhs.scan(/[a-zA-Z]\w*/) { |var|
     # Make a list of variables inside this function so that we can declare them.
     # In multiple assignment like x,y,z=array, loop over variables. In something like g[i]=...,
