@@ -99,30 +99,30 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     # Use heuristics to pick a step size:
     # fixme -- the following only really applies at small r
     r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
-    r,rdot,rddot = r_stuff
-    p = 0.4 # fixme, use actual algorithm
-    lam_left = -p*r/rdot # estimate of when we'd hit the singularity
-    # fixme -- sanity checks on lam_s
+    r,rdot,rddot,p,lam_left = r_stuff
+    # fixme -- sanity checks on lam_left
     # fixme: don't hardcode parameters here
     alpha = 0.5
     k = 0.3
     r_min = 1.0e-16
     # time to quit?
     if r<r_min:
-      # fixme -- correct final_lambda
-      return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
+      PRINT("quitting because r<r_min") # qwe
+      final_lambda = final_lambda+lam_left
+      return final_helper(RK_INCOMPLETE,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
     # set step size
     dlambda = k*tol**0.25*lam_left**alpha
     n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
-    if n*dlambda>lam_left:
+    safety = 0.7 # margin of safety so that we never hit singularity
+    if n*dlambda>safety*lam_left:
       # ...fixme -- can this be improved?
-      n=lam_left/dlambda
+      n=safety*lam_left/dlambda
       if n<1:
         n=1
-        dlambda = lam_left
+        dlambda = safety*lam_left
     opt['dlambda'] = dlambda
     opt['lambda_max'] = lambda0+n*dlambda
-#if 0
+#if 1
     PRINT("r=",io_util.fl(r),", r'=",io_util.fl(rdot),", r''=",io_util.fl(rddot),\
             ", lam=",io_util.fl(lambda0),\
             ", dlam=",io_util.fl(dlambda),", lam_max=",io_util.fl(opt['lambda_max']))
@@ -136,6 +136,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II
     if final_lambda>=real_lambda_max:
+      PRINT("quitting because final_lambda>=real_lambda_max") # qwe
       return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
 
     x = final_x
@@ -145,8 +146,10 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     r = xs[1]
     # Check for incomplete geodesic:
     if r<10*EPS or opt['dlambda']<10*EPS:
-      result[0] = RK_INCOMPLETE
-      return final_helper(RK_INCOMPLETE,final_x,final_v,final_a,final_lambda,\
+      r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
+      r,rdot,rddot,p,lam_left = r_stuff
+      PRINT("quitting because r<10*EPS or opt['dlambda']<10*EPS") # qwe
+      return final_helper(RK_INCOMPLETE,final_x,final_v,final_a,final_lambda+lam_left,\
                           {'message':'incomplete geodesic'},\
                           sigma,spacetime,chart,user_chart)
     opt['triggers'] = user_triggers

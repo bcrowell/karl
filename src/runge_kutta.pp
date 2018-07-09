@@ -157,7 +157,9 @@ def c_available(spacetime,chart):
 
 def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   """
-  Returns [r,r',r''], where the primes represent derivatives with respect to affine parameter.
+  Returns [r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
+  p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
+  left before the singularity in terms of the affine parameter.
 
   The arrays acc_p and pt_p are pointers to arrays that have already been allocated, or
   None if this is the js implementation.
@@ -177,7 +179,12 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   else:
     ok,ndim,christoffel_function,name = transform.chart_info(spacetime|chart)
     apply_christoffel(christoffel_function,pt,acc,1.0,ndim)
-  return [x2[1],v2[1],acc[1]]
+  r = x2[1]
+  rdot = v2[1]
+  rddot = acc[1]
+  p = 1.0/(1-r*rddot/(rdot*rdot))
+  lam_left = -p*r/rdot # estimate of when we'd hit the singularity
+  return [r,rdot,rddot,p,lam_left]
 
 def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda):
   # The API says that force_function does not need to clone its output vector before returning it, so
