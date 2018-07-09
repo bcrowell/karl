@@ -65,9 +65,10 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
   user_chart = chart
   while True: #js while (true)
     triggers = CLONE_ARRAY_OF_FLOATS2DIM(user_triggers)
-    # Find out our initial Schwarzschild r:
-    xs = transform.transform_point(x,spacetime,chart,CH_SCH)
-    r = xs[1]
+    r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
+    err,r,rdot,rddot,p,lam_left = r_stuff
+    if err!=0:
+      THROW("error in r_stuff; this probably means we hit the singularity, adaptive RK not working right")
     # Pick coordinates that are well adapted to the region we're currently in.
     if r>1.1:
       optimal_chart = CH_SCH
@@ -87,8 +88,8 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
           optimal_chart = CH_KEP
           APPEND_TO_ARRAY(triggers,([1.0,1, 0.2,0.3]))
           # ... only relevant for a spacelike world-line
-          # It's not useful to try to make a trigger that prevents hitting the singularity. Triggers are
-          # too crude for that purpose, don't work reliably because the coordinate velocities diverge.
+          # It's not useful to try to make a trigger that prevents or detects hitting the singularity. Triggers
+          # are too crude for that purpose, don't work reliably because the coordinate velocities diverge.
     if chart!=optimal_chart:
       x2 = transform.transform_point(x,spacetime,chart,optimal_chart)
       v2 = transform.transform_vector(v,x,spacetime,chart,optimal_chart)
@@ -98,8 +99,6 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     opt['triggers'] = triggers
     # Use heuristics to pick a step size:
     # fixme -- the following only really applies at small r
-    r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
-    r,rdot,rddot,p,lam_left = r_stuff
     # fixme -- sanity checks on lam_left
     # fixme: don't hardcode parameters here
     alpha = 0.5
@@ -150,7 +149,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     # Check for incomplete geodesic:
     if r<EPS or opt['dlambda']<EPS:
       r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
-      r,rdot,rddot,p,lam_left = r_stuff
+      err,r,rdot,rddot,p,lam_left = r_stuff
       #PRINT("quitting because r<10*EPS or opt['dlambda']<10*EPS")
       return final_helper(RK_INCOMPLETE,final_x,final_v,final_a,final_lambda+lam_left,\
                           {'message':'incomplete geodesic'},\

@@ -202,18 +202,22 @@
         return false;
       };
       runge_kutta.r_stuff = function(spacetime, chart, x, v, acc, pt, acc_p, pt_p) {
-        var ndim, ndim2, x2, v2, pt, i, ok, christoffel_function, name, r, rdot, rddot, p, lam_left;
+        var ndim, ndim2, x2, r, v2, pt, i, ok, christoffel_function, name, rdot, rddot, p, lam_left;
 
         /*
-        Returns [r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
+        Returns [err,r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
         p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
         left before the singularity in terms of the affine parameter.
-        The arrays acc_p and pt_p are pointers to arrays that have already been allocated, or
-        None if this is the js implementation.
+        The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
+        or None if this is the js implementation. If r<0, err=1.
         */
         ndim = 5;
         ndim2 = 10;
         x2 = transform.transform_point(x, spacetime, chart, 1);
+        r = x2[1];
+        if ((isNaN(r)) || r < 0.0) {
+          return [1, r, 0.0, 0.0, 0.0, 0.0];
+        }
         v2 = transform.transform_vector(v, x, spacetime, chart, 1);
         for (var i = 0; i < ndim; i++) {
           pt[i] = x2[i];
@@ -231,7 +235,6 @@
           })();
           runge_kutta.apply_christoffel(christoffel_function, pt, acc, 1.0, ndim);
         }
-        r = x2[1];
         rdot = v2[1];
         rddot = acc[1];
         p = 1.0 / (1 - r * rddot / (rdot * rdot));
@@ -242,7 +245,7 @@
           p = 1.0;
         }
         lam_left = -p * r / rdot; /* estimate of when we'd hit the singularity */
-        return [r, rdot, rddot, p, lam_left];
+        return [0, r, rdot, rddot, p, lam_left];
       };
       runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda) {
         var x2, v2, proper_accel2, proper_accel, a, i;

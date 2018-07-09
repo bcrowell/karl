@@ -157,16 +157,19 @@ def c_available(spacetime,chart):
 
 def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   """
-  Returns [r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
+  Returns [err,r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
   p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
   left before the singularity in terms of the affine parameter.
 
-  The arrays acc_p and pt_p are pointers to arrays that have already been allocated, or
-  None if this is the js implementation.
+  The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
+  or None if this is the js implementation. If r<0, err=1.
   """
   ndim = 5
   ndim2 = 10
   x2 = transform.transform_point(x,spacetime,chart,CH_SCH)
+  r = x2[1]
+  if IS_NAN(r) or r<0.0:
+    return [1,r,0.0,0.0,0.0,0.0]
   v2 = transform.transform_vector(v,x,spacetime,chart,CH_SCH)
   for i in range(ndim):
     pt[i] = x2[i]
@@ -179,7 +182,6 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   else:
     ok,ndim,christoffel_function,name = transform.chart_info(SP_SCH|CH_SCH)
     apply_christoffel(christoffel_function,pt,acc,1.0,ndim)
-  r = x2[1]
   rdot = v2[1]
   rddot = acc[1]
   p = 1.0/(1-r*rddot/(rdot*rdot))
@@ -188,7 +190,7 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   if p>1.0:
     p=1.0
   lam_left = -p*r/rdot # estimate of when we'd hit the singularity
-  return [r,rdot,rddot,p,lam_left]
+  return [0,r,rdot,rddot,p,lam_left]
 
 def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda):
   # The API says that force_function does not need to clone its output vector before returning it, so

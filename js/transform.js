@@ -49,6 +49,7 @@
       karl.load("kruskal");
       karl.load("keplerian");
       karl.load("schwarzschild");
+      karl.load("io_util");
       transform.chart_info = function(spacetime_and_chart) {
         var recognized;
 
@@ -69,11 +70,12 @@
         return [(false), None, None, ''];
       };
       transform.transform_point = function(x, spacetime, chart, chart2) {
-        var ok, ndim, christoffel_function, name, ndim2, x2, done, a, b, t, r;
+        var ok, ndim, christoffel_function, name, ndim2, x2, i, done, a, b, t, r;
 
         /*
         Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
-        It's legal to have chart==chart2.
+        It's legal to have chart==chart2. If the input point is not in the domain of the relevant functions,
+        returns an array whose elements are all NaN.
         */
         if (chart == chart2) {
           return (karl.clone_array1d(x));
@@ -102,6 +104,12 @@
           throw io_util.strcat((["unrecognized chart, spacetime=", spacetime, "chart=", chart2]));;
         }
         x2 = karl.array1d((ndim2));
+        if ((chart == 1 || chart == 3) && x[1] < 0.0) {
+          for (var i = 0; i < ndim2; i++) {
+            x2[i] = (NaN);
+          }
+          return (karl.clone_array1d(x2)); /* cloning not really needed in this case, but be consistent */
+        }
         done = (false);
         /* The following assumes, as is true for 1, 2, and 3, that coords 2,3,4 are (i,j,k). */
         x2[2] = x[2];

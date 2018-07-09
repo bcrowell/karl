@@ -15,7 +15,7 @@ not document the math or the definitions of the variables.)
 #include "spacetimes.h"
 
 import math_util
-import kruskal,keplerian,schwarzschild
+import kruskal,keplerian,schwarzschild,io_util
 
 def chart_info(spacetime_and_chart):
   """
@@ -35,7 +35,8 @@ def chart_info(spacetime_and_chart):
 def transform_point(x,spacetime,chart,chart2):
   """
   Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
-  It's legal to have chart==chart2.
+  It's legal to have chart==chart2. If the input point is not in the domain of the relevant functions,
+  returns an array whose elements are all NaN.
   """
   if chart==chart2:
     return CLONE_ARRAY_OF_FLOATS(x)
@@ -48,6 +49,10 @@ def transform_point(x,spacetime,chart,chart2):
   if not ok:
     THROW_ARRAY((["unrecognized chart, spacetime=",spacetime,"chart=",chart2]))
   x2=EMPTY1DIM(ndim2)
+  if (chart==CH_SCH or chart==CH_KEP) and x[1]<0.0:
+    for i in range(ndim2):
+      x2[i] = NAN
+    return CLONE_ARRAY_OF_FLOATS(x2) # cloning not really needed in this case, but be consistent
   done = FALSE
   # The following assumes, as is true for CH_SCH, CH_AKS, and CH_KEP, that coords 2,3,4 are (i,j,k).
   x2[2]=x[2]
