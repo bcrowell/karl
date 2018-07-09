@@ -168,16 +168,16 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   ndim2 = 10
   x2 = transform.transform_point(x,spacetime,chart,CH_SCH)
   v2 = transform.transform_vector(v,x,spacetime,chart,CH_SCH)
+  for i in range(ndim):
+    pt[i] = x2[i]
+    pt[i+5] = v2[i]
   if c_available(SP_SCH,CH_SCH):
     # use faster C implementation:
 #if "LANG" eq "python"
-    for i in range(ndim):
-      pt[i] = x2[i]
-      pt[i+5] = v2[i]
     c_libs.karl_c_lib.apply_christoffel(SP_SCH,CH_SCH,pt_p,acc_p,ctypes.c_double(1.0))
 #endif
   else:
-    ok,ndim,christoffel_function,name = transform.chart_info(spacetime|chart)
+    ok,ndim,christoffel_function,name = transform.chart_info(SP_SCH|CH_SCH)
     apply_christoffel(christoffel_function,pt,acc,1.0,ndim)
   r = x2[1]
   rdot = v2[1]

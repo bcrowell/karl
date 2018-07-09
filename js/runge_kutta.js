@@ -13,6 +13,7 @@
       /* ... https://stackoverflow.com/q/26738943/1142217 */
       /* ... usage: throw io_util.strcat(([...])); ... extra parens required by filepp so it believes it's a single argument */
       /*           ... see notes above about usage with array literals */
+      /*                 ... works in rhino */
       if (!(typeof window !== 'undefined') && (typeof Math.karl === 'undefined')) {
         /* load() works in rhino,  !  sure about other engines */
         load("lib/math.js");
@@ -201,10 +202,12 @@
         return false;
       };
       runge_kutta.r_stuff = function(spacetime, chart, x, v, acc, pt, acc_p, pt_p) {
-        var ndim, ndim2, x2, v2, ok, christoffel_function, name;
+        var ndim, ndim2, x2, v2, pt, i, ok, christoffel_function, name, r, rdot, rddot, p, lam_left;
 
         /*
-        Returns [r,r',r''], where the primes represent derivatives with respect to affine parameter.
+        Returns [r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
+        p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
+        left before the singularity in terms of the affine parameter.
         The arrays acc_p and pt_p are pointers to arrays that have already been allocated, or
         None if this is the js implementation.
         */
@@ -212,11 +215,15 @@
         ndim2 = 10;
         x2 = transform.transform_point(x, spacetime, chart, 1);
         v2 = transform.transform_vector(v, x, spacetime, chart, 1);
+        for (var i = 0; i < ndim; i++) {
+          pt[i] = x2[i];
+          pt[i + 5] = v2[i];
+        }
         if (runge_kutta.c_available(256, 1)) {
           /* use faster C implementation: */
         } else {
           (function() {
-            var temp = transform.chart_info(spacetime | chart);
+            var temp = transform.chart_info(256 | 1);
             ok = temp[0];
             ndim = temp[1];
             christoffel_function = temp[2];
@@ -224,7 +231,18 @@
           })();
           runge_kutta.apply_christoffel(christoffel_function, pt, acc, 1.0, ndim);
         }
-        return [x2[1], v2[1], acc[1]];
+        r = x2[1];
+        rdot = v2[1];
+        rddot = acc[1];
+        p = 1.0 / (1 - r * rddot / (rdot * rdot));
+        if (p < 0.4) {
+          p = 0.4;
+        }
+        if (p > 1.0) {
+          p = 1.0;
+        }
+        lam_left = -p * r / rdot; /* estimate of when we'd hit the singularity */
+        return [r, rdot, rddot, p, lam_left];
       };
       runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda) {
         var x2, v2, proper_accel2, proper_accel, a, i;

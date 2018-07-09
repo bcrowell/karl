@@ -29,6 +29,7 @@
 #define FALSE (False)
 #define LEN(x) len(x)
 #define CEIL(x) int(math.ceil(x))
+#define EXIT(err) os._exit(err)
 #endif
 
 #if "LANG" eq "js"
@@ -60,6 +61,8 @@ karl.load("lib/array");
 #define FALSE (false)
 #define LEN(x) ((x).length)
 #define CEIL(x) math.ceil(x)
+#define EXIT(err) (quit(err))
+#                 ... works in rhino
 #endif
 
 #endif

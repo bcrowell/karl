@@ -631,21 +631,24 @@ affine parameter to the singularity as
   \lambda_s-\lambda = p\frac{r}{\dot{r}},
 \end{equation*}
 but if this estimate violates the strict bounds found above, force it into that range.
-If $r>r_\text{min}$, take the step size to be
+If $r>r_\text{min}=\delta^{1/p}$, take the step size to be
 \begin{equation*}
   \Delta\lambda=k\delta^{1/4}(\lambda_s-\lambda)^\alpha
 \end{equation*}
-(but never greater than $\lambda_s-\lambda$).
+(but never greater than $\lambda_s-\lambda$, and never take $r_\text{min}<10^{-8}$, because
+smaller values don't seem to help).
 If $r<r_\text{min}$, terminate the integration, taking the above estimate for $\lambda_s$
 as the final $\lambda$, and freezing $t$ and the angular coordinates. (Note that
 $(1-1/r)\dot{t}$ is conserved, so we're guaranteed that $\dot{t}$ goes to zero. It seems
 that since $r^2 d\phi/d\tau$ is conserved, $\phi$ has to go crazy if $L\ne0$, but there's
 not much we can do about that.)
 
-The adjustable parameters are $k$, $\alpha$, and $r_\text{min}$. Tune these up so that
+The adjustable parameters are $k$ and $\alpha$. Tune these up so that
 the desired precision $\delta$ is achieved with minimum computational effort.
-From my previous empirical studies, I think $\alpha\approx 1$, $k\approx 10$,
-$r_\text{min}\approx 10^{-8}$.
+From my previous empirical studies, it seemed like $\alpha\approx 1$, $k\approx 10$.
+Playing around with the actual running algorithm, it seems like $\alpha\approx 0.5$, $k\approx 0.25$
+is better. With these parameters, I seem to get precision in $\lambda_s$ of as good as
+$\sim 10^{-12}$.
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 

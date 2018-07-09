@@ -103,8 +103,11 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     # fixme -- sanity checks on lam_left
     # fixme: don't hardcode parameters here
     alpha = 0.5
-    k = 0.3
-    r_min = 1.0e-16
+    k = 0.25
+    #r_min = 1.0e-16
+    r_min = tol**(1.0/p)
+    if r_min<1.0e-8:
+      r_min=1.0e-8
     # time to quit?
     if r<r_min:
       #PRINT("quitting because r<r_min")
@@ -113,7 +116,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     # set step size
     dlambda = k*tol**0.25*lam_left**alpha
     n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
-    safety = 0.7 # margin of safety so that we never hit singularity
+    safety = 0.3 # margin of safety so that we never hit singularity
     if n*dlambda>safety*lam_left:
       # ...fixme -- can this be improved?
       n=safety*lam_left/dlambda
@@ -122,7 +125,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
         dlambda = safety*lam_left
     opt['dlambda'] = dlambda
     opt['lambda_max'] = lambda0+n*dlambda
-#if 1
+#if 0
     PRINT("r=",io_util.fl(r),", r'=",io_util.fl(rdot),", r''=",io_util.fl(rddot),\
             ", lam=",io_util.fl(lambda0),\
             ", dlam=",io_util.fl(dlambda),", lam_max=",io_util.fl(opt['lambda_max']))
