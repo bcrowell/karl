@@ -22,11 +22,11 @@ Current features:
 * test suite
 * implementation in both python and javascript, with time-critical code written in C for speed in the python version
 * user-defined triggers to stop the computation when a specified coordinate or velocity reaches a set value
+* automatic switching between coordinate charts for better numerical behavior
+* automatic handling of the case where a geodesic is terminating
 
 Features I plan to add:
 
-* automatic switching between coordinate charts for better numerical behavior
-* automatic handling of the case where a geodesic is terminating
 * other black-hole spacetimes such as Reissner-Nordstrom
 
 Documentation for the math is in the file doc.tex, which can be
@@ -68,13 +68,6 @@ constant of proportionality than I'd imagined, or is it a bug or a sign of numer
 instability in Kruskal coordinates?
 
 ## To do
-
-Wrap the simple Runge-Kutta routine in a fancier one that is adaptive, so that we can,
-e.g., accurately determine the affine parameter at which we hit the singularity.
-Also, the adaptive routine should automatically switch coordinate systems when
-appropriate. Kruskal coordinates should be used only near the horizon.
-(Disadvantages of Kruskal coordinates: computationally expensive, computationally
-expensive in arcsinh-Kruskal to determine when we've hit the singularity.)
 
 Allow sanity tests for whether the geodesic maintains its timelike, null, or
 spacelike character, and in the timelike case for whether it stays in the future
