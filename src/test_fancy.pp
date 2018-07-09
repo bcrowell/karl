@@ -9,7 +9,9 @@
 #include "runge_kutta.h"
 #include "precision.h"
 
+#if "LANG" eq "python"
 import os,os.path
+#endif
 import runge_kutta,fancy,angular,vector
 
 csv=FALSE
@@ -69,8 +71,10 @@ def debug_function(iter,lam,dlambda,x,v,name):
                       " v[1]=",io_util.fl_n_decimals(v[1],5))
 
 def main():
+#if "LANG" eq "python"
   if csv and os.path.isfile(csv_file):
     os.remove(csv_file)
+#endif
   test_hitting_singularity()
 
 main()

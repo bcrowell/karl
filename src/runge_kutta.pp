@@ -69,14 +69,9 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
   #-- initial setup
   n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function = \
            runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart)
-#if "LANG" eq "js"
-  use_c = false; __NO_TRANSLATION__
-#endif
-#if "LANG" eq "python"
-  use_c = spacetime==SP_SCH and (chart==CH_SCH or chart==CH_AKS or chart==CH_KEP)
-#endif
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
+  use_c = c_available(spacetime,chart)
   ndim2 = ndim*2 # Reduce 2nd-order ODE to ndim2 coupled 1st-order ODEs.
   if LEN(x)!=ndim or LEN(v)!=ndim:
     return [RK_ERR,x,v,0.0,mess(["x or v has wrong length"])]
@@ -151,6 +146,38 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
       x[i] += tot_est[i]
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
               debug_function,spacetime|chart)
+
+def c_available(spacetime,chart):
+#if "LANG" eq "js"
+  return false; __NO_TRANSLATION__
+#endif
+#if "LANG" eq "python"
+  return (spacetime==SP_SCH and (chart==CH_SCH or chart==CH_AKS or chart==CH_KEP))
+#endif
+
+def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
+  """
+  Returns [r,r',r''], where the primes represent derivatives with respect to affine parameter.
+
+  The arrays acc_p and pt_p are pointers to arrays that have already been allocated, or
+  None if this is the js implementation.
+  """
+  ndim = 5
+  ndim2 = 10
+  x2 = transform.transform_point(x,spacetime,chart,CH_SCH)
+  v2 = transform.transform_vector(v,x,spacetime,chart,CH_SCH)
+  if c_available(SP_SCH,CH_SCH):
+    # use faster C implementation:
+#if "LANG" eq "python"
+    for i in range(ndim):
+      pt[i] = x2[i]
+      pt[i+5] = v2[i]
+    c_libs.karl_c_lib.apply_christoffel(SP_SCH,CH_SCH,pt_p,acc_p,ctypes.c_double(1.0))
+#endif
+  else:
+    ok,ndim,christoffel_function,name = transform.chart_info(spacetime|chart)
+    apply_christoffel(christoffel_function,pt,acc,1.0,ndim)
+  return [x2[1],v2[1],acc[1]]
 
 def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda):
   # The API says that force_function does not need to clone its output vector before returning it, so

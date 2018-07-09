@@ -478,7 +478,7 @@ For $L\ne0$, the proper time $\tau$ to move along a timelike geodesic from $r=R$
 \begin{equation*}
   \tau|L| = \int_0^R r^{3/2}(1-r+ar^2+br^3)^{-1/2} dr,
 \end{equation*}
-where $a=L^{-2}$ and $b=L^{-2}(E^2-1)$. I think $b$ can have either sign.
+where $a=L^{-2}$ and $b=L^{-2}(E^2-1)$.
 Let $\epsilon=r-ar^2-br^3$, $-\infty < \epsilon<1$. (Can't have $\epsilon\ge1$, because
 then the integral becomes complex.) If we get close enough to the singularity, $0<\epsilon<1$,
 so that the Taylor series of $(1-\epsilon)^{-1/2}$ converges and has only positive terms.
@@ -544,6 +544,26 @@ numerically. May want to treat such cases as null geodesics.
 For a null geodesic with $L=0$, the solution is $r=\lambda$, $t=\lambda+\ln(1-\lambda)$
 (or any affine reparametrization).
 
+For a null geodesic with $L\ne0$, it looks from a numerical example
+like maybe $r\propto \lambda^{1/2}$, but it's
+hard to be sure about the exponent with this technique, possibly $r$ behaves
+worse than any power near $\lambda=0$, maybe like a log or something.
+A quick and sloppy analysis of $\tau(r)$ in the limit $E\rightarrow\infty$
+gives $\propto \tau^{2/5}$, i.e., the same as for $m\ne0$, since the same term in
+the integrand for $\tau{r}$ still dominates.
+
+Summary of exponents $p$ in $r\propto \lambda^p$:
+
+\begin{tabular}{lll}
+  & $L\ne0$ & $L=0$ \\
+$m\ne0$ & 2/5 & 2/3 \\
+$m=0$   & 2/5 & 1
+\end{tabular}
+
+A possible simple algorithm for event location is the following. Estimate
+$\lambda_s-\lambda > -(2/5)r/\dot{r}$, since all the exponents are at least
+as big as 2/5.
+
 \section{Choice of step size}
 
 I tried an empirical study of the optimal step size, using a massive
@@ -597,12 +617,35 @@ this is correct for general $M$, since my calculation assumes that some of the b
 I observed holds regardless of $M$.) For $M=4$, this is $\alpha=-1.1$, which is kind
 of a trivial difference from just taking $\alpha=-1$.
 
-Try an empirical rule with three parameters:
-$\Delta\lambda=k(\lambda_s-\lambda)^{-\alpha}$, starting when $\epsilon>0$
-and ending at $\lambda_s-\lambda=\lambda_\text{min}$. Goal is to get
-to 16-digit precision with minimum computation.  For massive particles
-in the non-ultrarelativistic regime ($E$ not $\gg 1$), it seems
-reasonable to hope that there would be some universal value of $k$. 
+Try an empirical rule, applying it to timelike and null world-lines.
+Let $\delta$ be the maximum relative error.
+First, estimate
+\begin{equation*}
+  p = \left(1-\frac{r \ddot{r}}{\dot{r}^2}\right)^{-1},
+\end{equation*}
+but if $p$ lies outside $[2/5,1]$, bring it into that range.
+(At the very beginning, we don't know $\ddot{r}$ yet, so take $p=2/5$.)
+Estimate the distance in
+affine parameter to the singularity as
+\begin{equation*}
+  \lambda_s-\lambda = p\frac{r}{\dot{r}},
+\end{equation*}
+but if this estimate violates the strict bounds found above, force it into that range.
+If $r>r_\text{min}$, take the step size to be
+\begin{equation*}
+  \Delta\lambda=k\delta^{1/4}(\lambda_s-\lambda)^\alpha
+\end{equation*}
+(but never greater than $\lambda_s-\lambda$).
+If $r<r_\text{min}$, terminate the integration, taking the above estimate for $\lambda_s$
+as the final $\lambda$, and freezing $t$ and the angular coordinates. (Note that
+$(1-1/r)\dot{t}$ is conserved, so we're guaranteed that $\dot{t}$ goes to zero. It seems
+that since $r^2 d\phi/d\tau$ is conserved, $\phi$ has to go crazy if $L\ne0$, but there's
+not much we can do about that.)
+
+The adjustable parameters are $k$, $\alpha$, and $r_\text{min}$. Tune these up so that
+the desired precision $\delta$ is achieved with minimum computational effort.
+From my previous empirical studies, I think $\alpha\approx 1$, $k\approx 10$,
+$r_\text{min}\approx 10^{-8}$.
 
 \section{Reissner-Nordstrom black hole (charge, no spin)}
 

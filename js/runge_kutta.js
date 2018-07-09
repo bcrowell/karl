@@ -44,7 +44,7 @@
       karl.load("angular");
       karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, ndim2, order, acc, y0, i, y, est, step, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, i, y, est, step, tot_est;
 
         /*
         Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
@@ -117,10 +117,10 @@
           ndim = temp[5];
           christoffel_function = temp[6]
         })();
-        use_c = false;
         if (!ok) {
           return [1, x, v, 0.0, runge_kutta.mess(["unrecognized spacetime or chart: ", spacetime, " ", chart])];
         }
+        use_c = runge_kutta.c_available(spacetime, chart);
         ndim2 = ndim * 2; /* Reduce 2nd-order ODE to ndim2 coupled 1st-order ODEs. */
         if (((x).length) != ndim || ((v).length) != ndim) {
           return [1, x, v, 0.0, runge_kutta.mess(["x or v has wrong length"])];
@@ -196,6 +196,35 @@
           }
         }
         return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart);
+      };
+      runge_kutta.c_available = function(spacetime, chart) {
+        return false;
+      };
+      runge_kutta.r_stuff = function(spacetime, chart, x, v, acc, pt, acc_p, pt_p) {
+        var ndim, ndim2, x2, v2, ok, christoffel_function, name;
+
+        /*
+        Returns [r,r',r''], where the primes represent derivatives with respect to affine parameter.
+        The arrays acc_p and pt_p are pointers to arrays that have already been allocated, or
+        None if this is the js implementation.
+        */
+        ndim = 5;
+        ndim2 = 10;
+        x2 = transform.transform_point(x, spacetime, chart, 1);
+        v2 = transform.transform_vector(v, x, spacetime, chart, 1);
+        if (runge_kutta.c_available(256, 1)) {
+          /* use faster C implementation: */
+        } else {
+          (function() {
+            var temp = transform.chart_info(spacetime | chart);
+            ok = temp[0];
+            ndim = temp[1];
+            christoffel_function = temp[2];
+            name = temp[3]
+          })();
+          runge_kutta.apply_christoffel(christoffel_function, pt, acc, 1.0, ndim);
+        }
+        return [x2[1], v2[1], acc[1]];
       };
       runge_kutta.handle_force = function(a, lam, x, v, force_function, force_chart, ndim, spacetime, chart, dlambda) {
         var x2, v2, proper_accel2, proper_accel, a, i;

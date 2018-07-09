@@ -11,6 +11,12 @@ appropriate, and to accurately calculate the termination of incomplete geodesics
 #include "runge_kutta.h"
 #include "precision.h"
 
+#if "LANG" eq "python"
+import ctypes,numpy
+import c_libs
+from c_libs import c_double_p
+#endif
+
 from io_util import fl
 
 import schwarzschild,kruskal,angular,transform,runge_kutta
@@ -18,7 +24,7 @@ import schwarzschild,kruskal,angular,transform,runge_kutta
 def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
   """
   A specialized wrapper for trajectory_simple(), optimized for speed and numerical precision in the
-  Schwarzschild spacetime.
+  Schwarzschild spacetime, for causal world-lines.
   Inputs and outputs are the same as for runge_kutta.trajectory_simple(), plus the additional input sigma.
 
   Values of spacetime and chart are defined in spacetimes.h.
@@ -28,6 +34,22 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
              in the chosen coordinate chart
   returns [err,x,v,a,final_lambda,info,sigma]
   """
+  ndim = 5
+  ndim2 = 2*ndim
+  # The following are needed only by rddot().
+#if "LANG" eq "python"
+  acc = numpy.zeros((ndim,))
+  acc = acc.astype(numpy.float64)
+  pt = numpy.zeros((ndim2,))
+  pt = pt.astype(numpy.float64)
+  acc_p = acc.ctypes.data_as(c_double_p)
+  pt_p = pt.ctypes.data_as(c_double_p)
+#else
+  acc = EMPTY1DIM(ndim)
+  pt = EMPTY1DIM(ndim2)
+  acc_p = NONE
+  pt_p = NONE
+#endif
   if HAS_KEY(opt,'triggers'):
     user_triggers = CLONE_ARRAY_OF_FLOATS2DIM(opt['triggers'])
   else:
@@ -36,6 +58,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
   lambda0 = 0.0
   if HAS_KEY(opt,'lambda0'):
     lambda0 = opt['lambda0']
+  real_lambda_max = opt['lambda_max'] # as opposed to the shorter chunks we do with fixed step size
   x = CLONE_ARRAY_OF_FLOATS(x0)
   v = CLONE_ARRAY_OF_FLOATS(v0)
   user_chart = chart
@@ -61,14 +84,10 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
           # ... only relevant for a spacelike world-line
         else:
           optimal_chart = CH_KEP
-          eps_u = 0.5*r**1.5 # trigger on u becoming half its present value
-          eps_u_min = EPS**1.5 # corresponding to r=EPS
-          if eps_u<eps_u_min:
-            eps_u=eps_u_min
-          APPEND_TO_ARRAY(triggers,([-1.0,1, eps_u,0.1]))
-          # ... Trigger on hitting the singularity. Small alpha because it's really bad if we overshoot.
           APPEND_TO_ARRAY(triggers,([1.0,1, 0.2,0.3]))
           # ... only relevant for a spacelike world-line
+          # It's not useful to try to make a trigger that prevents hitting the singularity. Triggers are
+          # too crude for that purpose, don't work reliably because the coordinate velocities diverge.
     if chart!=optimal_chart:
       x2 = transform.transform_point(x,spacetime,chart,optimal_chart)
       v2 = transform.transform_vector(v,x,spacetime,chart,optimal_chart)
@@ -76,12 +95,50 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
       v = v2
     chart = optimal_chart
     opt['triggers'] = triggers
+    # Use heuristics to pick a step size:
+    # fixme -- the following only really applies at small r
+    r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
+    r,rdot,rddot = r_stuff
+    p = 0.4 # fixme, use actual algorithm
+    lam_left = -p*r/rdot # estimate of when we'd hit the singularity
+    # fixme -- sanity checks on lam_s
+    # fixme: don't hardcode parameters here
+    alpha = 1.0
+    k = 10.0
+    delta = 1.0e-16 # relative error desired
+    r_min = 1.0e-8
+    # time to quit?
+    if r<r_min:
+      # fixme -- correct final_lambda
+      return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
+    # set step size
+    dlambda = k*delta**0.25*lam_left**alpha
+    n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
+    if n*dlambda>0.1*lam_left:
+      # ...fixme -- can this be improved?
+      n=0.1*lam_left/dlambda
+      if n<1:
+        n=1
+        dlambda = 0.1*lam_left
+    opt['dlambda'] = dlambda
+    opt['lambda_max'] = lambda0+n*dlambda
+#if 0
+    PRINT("r=",io_util.fl(r),", r'=",io_util.fl(rdot),", r''=",io_util.fl(rddot),\
+            ", lam=",io_util.fl(lambda0),\
+            ", dlam=",io_util.fl(dlambda),", lam_max=",io_util.fl(opt['lambda_max']))
+#endif
+
     result = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
     err,final_x,final_v,final_a,final_lambda,info = result
+#if 0
+    PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16))
+#endif
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II
-    if final_lambda>=opt['lambda_max']:
+    if final_lambda>=real_lambda_max:
       return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
+
+    # fixme -- probably not needed anymore
     # Count consecutive iterations in which we didn't make any progress in terms of lambda:
     if final_lambda==lambda0:
       n_unproductive_iterations = n_unproductive_iterations+1
@@ -105,8 +162,6 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     opt['triggers'] = user_triggers
     lambda0 = final_lambda
     opt['lambda0'] = final_lambda
-    if chart==CH_KEP and r<1.0: # popped out of RK because we were about to hit singularity on the next step
-      opt['dlambda'] = opt['dlambda']*0.5
 
 def final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,desired_chart):
   x = transform.transform_point(final_x,spacetime,chart,desired_chart)
@@ -114,3 +169,4 @@ def final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,c
   a = transform.transform_vector(final_a,final_x,spacetime,chart,desired_chart)
   return [err,x,v,a,final_lambda,info,sigma]
 
+  
