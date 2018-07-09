@@ -183,6 +183,10 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   rdot = v2[1]
   rddot = acc[1]
   p = 1.0/(1-r*rddot/(rdot*rdot))
+  if p<0.4:
+    p=0.4
+  if p>1.0:
+    p=1.0
   lam_left = -p*r/rdot # estimate of when we'd hit the singularity
   return [r,rdot,rddot,p,lam_left]
 

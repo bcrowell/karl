@@ -107,7 +107,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     r_min = 1.0e-16
     # time to quit?
     if r<r_min:
-      PRINT("quitting because r<r_min") # qwe
+      #PRINT("quitting because r<r_min")
       final_lambda = final_lambda+lam_left
       return final_helper(RK_INCOMPLETE,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
     # set step size
@@ -136,7 +136,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II
     if final_lambda>=real_lambda_max:
-      PRINT("quitting because final_lambda>=real_lambda_max") # qwe
+      #PRINT("quitting because final_lambda>=real_lambda_max")
       return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
 
     x = final_x
@@ -145,10 +145,10 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     xs = transform.transform_point(x,spacetime,chart,CH_SCH)
     r = xs[1]
     # Check for incomplete geodesic:
-    if r<10*EPS or opt['dlambda']<10*EPS:
+    if r<EPS or opt['dlambda']<EPS:
       r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
       r,rdot,rddot,p,lam_left = r_stuff
-      PRINT("quitting because r<10*EPS or opt['dlambda']<10*EPS") # qwe
+      #PRINT("quitting because r<10*EPS or opt['dlambda']<10*EPS")
       return final_helper(RK_INCOMPLETE,final_x,final_v,final_a,final_lambda+lam_left,\
                           {'message':'incomplete geodesic'},\
                           sigma,spacetime,chart,user_chart)
