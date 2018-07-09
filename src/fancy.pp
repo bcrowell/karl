@@ -42,6 +42,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
       allow_transitions: boolean, should we allow transitions between coordinate systems?; default: true
   returns [err,x,v,a,final_lambda,info,sigma]
   """
+  #---------------- Initialize some data. ------------------
   ndim = 5
   ndim2 = 2*ndim
   # The following are needed only by rddot().
@@ -58,6 +59,10 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   acc_p = NONE
   pt_p = NONE
 #endif
+  x = CLONE_ARRAY_OF_FLOATS(x0)
+  v = CLONE_ARRAY_OF_FLOATS(v0)
+  user_chart = chart
+  #---------------- Read options. ------------------
   if HAS_KEY(opt,'allow_transitions'):
     allow_transitions = opt['allow_transitions']
   else:
@@ -75,9 +80,8 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   tol = opt['tol']
   sigma = opt['sigma']
   future_oriented = opt['future_oriented']
-  x = CLONE_ARRAY_OF_FLOATS(x0)
-  v = CLONE_ARRAY_OF_FLOATS(v0)
-  user_chart = chart
+  #---------------- Loop in which we check for coordinate transitions, then delegate the
+  #                 real work to the basic RK routine. ------------------
   while True: #js while (true)
     triggers = CLONE_ARRAY_OF_FLOATS2DIM(user_triggers)
     r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
@@ -105,12 +109,13 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
             ", lam=",io_util.fl(lambda0),\
             ", dlam=",io_util.fl(dlambda),", lam_max=",io_util.fl(opt['lambda_max']))
 #endif
-
+    #---------------- Do n iterations of RK. ------------------
     result = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
     err,final_x,final_v,final_a,final_lambda,info = result
 #if 0
     PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16))
 #endif
+    #---------------- Check the results. ------------------
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II
     if final_lambda>=real_lambda_max:
@@ -130,6 +135,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
     opt['triggers'] = user_triggers
     lambda0 = final_lambda
     opt['lambda0'] = final_lambda
+  #---------------- Return. ----------------
   if err==RK_INCOMPLETE:
     info['message'] = 'incomplete geodesic'
   return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
@@ -173,24 +179,32 @@ def final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,c
 def chart_and_triggers(r,triggers,sigma,future_oriented):
   # Pick coordinates that are well adapted to the region we're currently in.
   # Returns optimal chart and creates a list of triggers.
+  # fixme -- doesn't work correctly in region III or if not future oriented
   if r>1.1:
     optimal_chart = CH_SCH
     APPEND_TO_ARRAY(triggers,([-1.0,1,1.05,0.3])) # trigger on r<1.05, nearing horizon
   else:
     if r>0.9:
       optimal_chart = CH_AKS
-      APPEND_TO_ARRAY(triggers,([ 1.0,1, 0.0,0.3])) # trigger on b>0, entering region II
-      APPEND_TO_ARRAY(triggers,([-1.0,1, 0.0,0.3])) # trigger on b<0, leaving horizon for region I
+      # Trigger on a change of sign in either a or b, which means a change of region.
+      APPEND_TO_ARRAY(triggers,([ 1.0,0, 0.0,0.3])) # a becoming positive
+      APPEND_TO_ARRAY(triggers,([-1.0,0, 0.0,0.3])) # a becoming negative
+      APPEND_TO_ARRAY(triggers,([ 1.0,1, 0.0,0.3])) # b becoming positive
+      APPEND_TO_ARRAY(triggers,([-1.0,1, 0.0,0.3])) # b becoming negative
     else:
+      approaching_singularity = ((sigma>0.0 and future_oriented) or (sigma<0.0 and not future_oriented))
       if r>0.5:
         optimal_chart = CH_SCH
-        APPEND_TO_ARRAY(triggers,([-1.0,1,0.35,0.3])) # trigger on r<0.05, nearing singularity
-        APPEND_TO_ARRAY(triggers,([ 1.0,1,0.95,0.3]))
-        # ... only relevant for a spacelike world-line
+        if approaching_singularity:
+          # approaching the singularity
+          APPEND_TO_ARRAY(triggers,([-1.0,1,0.35,0.3])) # trigger on r<0.05, nearing singularity
+        else:
+          # receding from the singularity
+          APPEND_TO_ARRAY(triggers,([ 1.0,1,0.95,0.3]))
       else:
         optimal_chart = CH_KEP
-        APPEND_TO_ARRAY(triggers,([1.0,1, 0.2,0.3]))
-        # ... only relevant for a spacelike world-line
+        if not approaching_singularity:
+          APPEND_TO_ARRAY(triggers,([1.0,1, 0.2,0.3]))
         # It's not useful to try to make a trigger that prevents or detects hitting the singularity. Triggers
         # are too crude for that purpose, don't work reliably because the coordinate velocities diverge.
   return optimal_chart
