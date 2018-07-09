@@ -18,6 +18,8 @@
 #define THROW(message) raise RuntimeError(message)
 #define THROW_ARRAY(aaa) THROW((io_util.strcat(aaa)))
 # ... usage: THROW_ARRAY(([...])) ... extra parens required by filepp so it believes it's a single argument
+#define EXIT(err) os._exit(err)
+#define BREAK break
 #define MATH_E math.e
 #define MATH_PI math.pi
 #define CLONE_ARRAY_OF_FLOATS(x) copy.copy(x)
@@ -29,7 +31,6 @@
 #define FALSE (False)
 #define LEN(x) len(x)
 #define CEIL(x) int(math.ceil(x))
-#define EXIT(err) os._exit(err)
 #endif
 
 #if "LANG" eq "js"
@@ -51,6 +52,8 @@ karl.load("lib/array");
 #define THROW(message) throw message;
 #define THROW_ARRAY(aaa) THROW(io_util.strcat(aaa))
 # ... usage: THROW_ARRAY(([...])) ... extra parens required by filepp so it believes it's a single argument
+#define EXIT(err) (quit(err))
+#define BREAK break
 #define MATH_E Math.E
 #define MATH_PI Math.PI
 #define CLONE_ARRAY_OF_FLOATS(x) (karl.clone_array1d(x))
@@ -61,7 +64,6 @@ karl.load("lib/array");
 #define FALSE (false)
 #define LEN(x) ((x).length)
 #define CEIL(x) math.ceil(x)
-#define EXIT(err) (quit(err))
 #                 ... works in rhino
 #endif
 
