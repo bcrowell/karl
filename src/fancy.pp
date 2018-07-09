@@ -24,8 +24,9 @@ import schwarzschild,kruskal,angular,transform,runge_kutta
 def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
   """
   A specialized wrapper for trajectory_simple(), optimized for speed and numerical precision in the
-  Schwarzschild spacetime, for causal world-lines.
-  Inputs and outputs are the same as for runge_kutta.trajectory_simple(), plus the additional input sigma.
+  Schwarzschild spacetime, for causal, future-oriented world-lines.
+  Inputs and outputs are the same as for runge_kutta.trajectory_simple(), plus the additional input sigma,
+  and opt['tol'], which is a desired error tolerance.
 
   Values of spacetime and chart are defined in spacetimes.h.
   x0 and v0 = initial position and velocity, expressed in the chosen chart
@@ -54,11 +55,11 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     user_triggers = CLONE_ARRAY_OF_FLOATS2DIM(opt['triggers'])
   else:
     user_triggers = []
-  n_unproductive_iterations = 0
   lambda0 = 0.0
   if HAS_KEY(opt,'lambda0'):
     lambda0 = opt['lambda0']
   real_lambda_max = opt['lambda_max'] # as opposed to the shorter chunks we do with fixed step size
+  tol = opt['tol']
   x = CLONE_ARRAY_OF_FLOATS(x0)
   v = CLONE_ARRAY_OF_FLOATS(v0)
   user_chart = chart
@@ -103,23 +104,22 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     lam_left = -p*r/rdot # estimate of when we'd hit the singularity
     # fixme -- sanity checks on lam_s
     # fixme: don't hardcode parameters here
-    alpha = 1.0
-    k = 10.0
-    delta = 1.0e-16 # relative error desired
-    r_min = 1.0e-8
+    alpha = 0.5
+    k = 0.3
+    r_min = 1.0e-16
     # time to quit?
     if r<r_min:
       # fixme -- correct final_lambda
       return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
     # set step size
-    dlambda = k*delta**0.25*lam_left**alpha
+    dlambda = k*tol**0.25*lam_left**alpha
     n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
-    if n*dlambda>0.1*lam_left:
+    if n*dlambda>lam_left:
       # ...fixme -- can this be improved?
-      n=0.1*lam_left/dlambda
+      n=lam_left/dlambda
       if n<1:
         n=1
-        dlambda = 0.1*lam_left
+        dlambda = lam_left
     opt['dlambda'] = dlambda
     opt['lambda_max'] = lambda0+n*dlambda
 #if 0
@@ -138,16 +138,6 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt,sigma):
     if final_lambda>=real_lambda_max:
       return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
 
-    # fixme -- probably not needed anymore
-    # Count consecutive iterations in which we didn't make any progress in terms of lambda:
-    if final_lambda==lambda0:
-      n_unproductive_iterations = n_unproductive_iterations+1
-    else:
-      n_unproductive_iterations = 0
-    if n_unproductive_iterations>20:
-      return final_helper(RK_ERR,final_x,final_v,final_a,final_lambda,\
-                          {'message':'too many unproductive iterations'},\
-                          sigma,spacetime,chart,user_chart)
     x = final_x
     v = final_v
     # Find final Schwarzschild r:

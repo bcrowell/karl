@@ -47,12 +47,13 @@ def test_hitting_singularity():
     PRINT("tau_theory=",tau_theory)
     PRINT("x=",x)
     PRINT("v=",v)
-  opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'debug_function':debug_function}
+  tol = 1.0e-13
+  opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'debug_function':debug_function,'tol':tol}
   err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt,1)
   #err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
   if verbosity>=2:
     PRINT("final_x=",final_x,", final_lambda=",final_lambda,", tau_theory=",tau_theory,", err=",(final_lambda-tau_theory))
-  eps = 1.0e-9 # independent of n, because in Keplerian coords u' is constant
+  eps = tol
   if err!=0 and err!=RK_INCOMPLETE:
     THROW('error: '+info['message'])
   assert_rel_equal_eps(final_lambda,tau_theory,eps)
