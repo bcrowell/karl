@@ -38,38 +38,6 @@
       karl.load("schwarzschild");
       karl.load("angular");
       karl.load("kruskal");
-      vector.norm4 = function(spacetime, chart, p, v) {
-        var g, n;
-
-        /*
-        Returns the norm of the vector, in the standard 4-dimensional coordinates.
-        */
-        g = vector.get_metric4(spacetime, chart, p);
-        n = 0.0;
-        for (var i = 0; i < 4; i++) {
-          for (var j = 0; j < 4; j++) {
-            n += g[i][j] * v[i] * v[j];
-          }
-        }
-        return n;
-      };
-      vector.get_metric4 = function(spacetime, chart, p) {
-        var r, sin_theta;
-
-        /*
-        Returns the lower-index form of the metric at the point p, in the standard 4-dimensional
-        coordinates.
-        */
-        if ((spacetime | chart) == (256 | 1)) { /* Schwarzschild metric, in Schwarzschild coordinates */
-          r = p[1];
-          sin_theta = Math.sin(p[2]);
-          return schwarzschild.metric_sch4(r, sin_theta);
-        }
-        if ((spacetime | chart) == (256 | 2)) { /* Schwarzschild metric, in arcsinh-Kruskal coordinates */
-          return kruskal.metric_ks4(p);
-        }
-        throw io_util.strcat((["unrecognized spacetime or chart: ", spacetime, " ", chart]));;
-      };
       vector.scalar_mult = function(v0, s) {
         var v, i;
 

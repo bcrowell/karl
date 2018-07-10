@@ -46,7 +46,6 @@ def main():
         fancy
         angular
         math_util
-        vector
         exp
       """):
     add_target(targets,target,test)

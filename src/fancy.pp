@@ -164,7 +164,7 @@ def choose_step_size_exterior(r,tol,x,v,chart):
   """
   # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
   # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
-  # roughly the inverse time scale for motion by about one schwarzschild radius.
+  # roughly the inverse time scale for motion by a distance equal to the current r.
   vs = transform.transform_vector(v,x,SP_SCH,chart,CH_SCH) # find v vector in Sch coords
   scale = abs(vs[0]/r**1.5)+abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
   # The following parameters have to be tuned for optimal performance and only work for
@@ -176,29 +176,29 @@ def choose_step_size_exterior(r,tol,x,v,chart):
   return [n,dlambda,FALSE]
 
 def choose_step_size_interior(r,p,tol,lam_left):
-    # Use heuristics to pick a step size:
-    # fixme -- sanity checks on lam_left
-    # fixme: don't hardcode parameters here
-    alpha = 0.5
-    k = 0.25
-    #r_min = 1.0e-16
-    r_min = tol**(1.0/p)
-    if r_min<1.0e-8:
-      r_min=1.0e-8
-    # time to quit?
-    if r<r_min:
-      return [0,0.0,TRUE]
-    # set step size
-    dlambda = k*tol**0.25*lam_left**alpha
-    n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
-    safety = 0.3 # margin of safety so that we never hit singularity
-    if n*dlambda>safety*lam_left:
-      # ...fixme -- can this be improved?
-      n=safety*lam_left/dlambda
-      if n<1:
-        n=1
-        dlambda = safety*lam_left
-    return [n,dlambda,FALSE]
+  # Use heuristics to pick a step size:
+  # fixme -- sanity checks on lam_left
+  # fixme: don't hardcode parameters here
+  alpha = 0.5
+  k = 0.25
+  #r_min = 1.0e-16
+  r_min = tol**(1.0/p)
+  if r_min<1.0e-8:
+    r_min=1.0e-8
+  # time to quit?
+  if r<r_min:
+    return [0,0.0,TRUE]
+  # set step size
+  dlambda = k*tol**0.25*lam_left**alpha
+  n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
+  safety = 0.3 # margin of safety so that we never hit singularity
+  if n*dlambda>safety*lam_left:
+    # ...fixme -- can this be improved?
+    n=safety*lam_left/dlambda
+    if n<1:
+      n=1
+      dlambda = safety*lam_left
+  return [n,dlambda,FALSE]
 
 def final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,desired_chart):
   x = transform.transform_point(final_x,spacetime,chart,desired_chart)
