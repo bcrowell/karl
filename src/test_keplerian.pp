@@ -28,7 +28,7 @@ def test_hitting_singularity():
   aa = 1-1/r
   dt = 1.0
   dr = -sqrt(aa**2-aa**3) # the value that gives E=1=mc^2, i.e., falling from rest at infinity
-  v = vector.normalize(spacetime,CH_SCH,x,[dt,dr,0.0,0.0,0.0]) # normalize so that affine param is proper time
+  v = vector.normalize(spacetime,CH_SCH,{},x,[dt,dr,0.0,0.0,0.0]) # normalize so that affine param is proper time
   tau_theory = (2.0/3.0)*r**1.5
   # ... theoretical time to hit the singularity for a trajectory with E=1
   #     https://en.wikipedia.org/wiki/Schwarzschild_geodesics#Orbits_of_test_particles
@@ -43,7 +43,7 @@ def test_hitting_singularity():
     ndebug=n/10
   tol = 1.0e-5 # is exact up to rounding errors, regardless of n
   opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'tol':tol,'sigma':1,'future_oriented':TRUE}
-  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,{},x,v,opt)
   if verbosity>=2:
     PRINT("final_x=",final_x)
   assert_rel_equal_eps(final_lambda,tau_theory,tol) 

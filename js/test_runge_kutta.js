@@ -72,7 +72,7 @@
           'ndebug': ndebug
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -115,7 +115,7 @@
           'force_chart': 1
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -149,7 +149,7 @@
           'ndebug': 0
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -206,7 +206,7 @@
           'norm_final': (false)
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, 1, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 1, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -247,7 +247,7 @@
         v_phi = v_phi * a;
         v = [1.0, 0.0, 0.0, v_phi * Math.cos(direction), v_phi * Math.sin(direction)];
         v = angular.make_tangent(x, v);
-        v = vector.normalize(spacetime, chart, x, v);
+        v = vector.normalize(spacetime, chart, {}, x, v);
         /* Compute newtonian r_max: */
         q = ((-1.0) + (((0.5) * (Math.pow((a), (2.0))))));
         r_max = ((((1.0) / (2.0))) * (Math.pow((q), (-1.0))) * (((-1.0) + (((-1.0) * (Math.pow((((1.0) + (((2.0) * (Math.pow((a), (2.0))) * (q))))), (((1.0) / (2.0))))))))) * (r));
@@ -277,7 +277,7 @@
           'triggers': triggers
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(spacetime, chart, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(spacetime, chart, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -326,8 +326,8 @@
         tdot = Math.abs(rdot / aa); /* Either sign is actually possible. */
         v = [tdot, rdot, 0.0, 0.0, 0.0];
         if (chart != 1) {
-          x2 = transform.transform_point(x, spacetime, 1, chart);
-          v2 = transform.transform_vector(v, x, spacetime, 1, chart);
+          x2 = transform.transform_point(x, spacetime, 1, {}, chart);
+          v2 = transform.transform_vector(v, x, spacetime, 1, {}, chart);
           x = x2;
           v = v2;
         }
@@ -341,7 +341,7 @@
           'ndebug': ndebug
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, chart, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, chart, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -352,7 +352,7 @@
         if (err != 0) {
           throw "error: " + err;;
         }
-        final_x = transform.transform_point(final_x, spacetime, chart, 1); /* convert to Schwarzschild coords */
+        final_x = transform.transform_point(final_x, spacetime, chart, {}, 1); /* convert to Schwarzschild coords */
         if (verbosity >= 2) {
           print("final_x (Schwarzschild)=", final_x);
         }
@@ -380,8 +380,8 @@
         phidot = le * aa * (1 / (r * r)) * tdot;
         v = [tdot, rdot, 0.0, phidot, 0.0];
         if (chart != 1) {
-          x2 = transform.transform_point(x, spacetime, 1, chart);
-          v2 = transform.transform_vector(v, x, spacetime, 1, chart);
+          x2 = transform.transform_point(x, spacetime, 1, {}, chart);
+          v2 = transform.transform_vector(v, x, spacetime, 1, {}, chart);
           x = x2;
           v = v2;
         }
@@ -395,7 +395,7 @@
           'ndebug': ndebug
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, chart, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, chart, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -406,7 +406,7 @@
         if (err != 0) {
           throw "error: " + err;;
         }
-        final_x = transform.transform_point(final_x, spacetime, chart, 1); /* convert to Schwarzschild coords */
+        final_x = transform.transform_point(final_x, spacetime, chart, {}, 1); /* convert to Schwarzschild coords */
         if (verbosity >= 2) {
           print("final_x (Schwarzschild)=", final_x);
           print("final_v (Schwarzschild)=", final_v);

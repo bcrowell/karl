@@ -47,7 +47,7 @@ def simple_free_fall():
   v = [jac[0][0]*tdot,jac[1][0]*tdot,0.0,0.0,0.0]
   n = 100
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':0}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_AKS,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_AKS,{},x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   tf,rf = transform.kruskal_to_schwarzschild(final_x[0],final_x[1])
@@ -85,13 +85,13 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
   x0k = CLONE_ARRAY_OF_FLOATS(([a0,b0,i,j,k])) # ... in Kruskal
   # --- Find initial velocity vector in Schwarzschild coordinates: ---------------------------
   v0s = angular.make_tangent(x0s,v) # initial velocity in Schwarzschild coordinates
-  v0s = vector.normalize(SP_SCH,CH_SCH,x0s,v0s)
+  v0s = vector.normalize(SP_SCH,CH_SCH,{},x0s,v0s)
   # --- Find initial velocity vector in Kruskal coordinates: ---------------------------------
   jac = transform.jacobian_schwarzschild_to_kruskal(t0,r0)
   v0k = CLONE_ARRAY_OF_FLOATS(v0s)
   v0k[0] = jac[0][0]*v0s[0]+jac[0][1]*v0s[1]
   v0k[1] = jac[1][0]*v0s[0]+jac[1][1]*v0s[1]
-  v0k = vector.normalize(SP_SCH,CH_AKS,x0k,v0k)
+  v0k = vector.normalize(SP_SCH,CH_AKS,{},x0k,v0k)
   if flip:
     v0k[0] = -v0k[0]
     v0k[1] = -v0k[1]
@@ -118,7 +118,7 @@ def test_motion_kruskal_vs_schwarzschild(t0,r0,flip,theta,phi,v,duration):
       x=x0k
       v=v0k
       chart = CH_AKS
-    err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,chart,x,v,opt)
+    err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,chart,{},x,v,opt)
     if err & RK_ERR:
       THROW('error: '+info['message'])
     if i==0:

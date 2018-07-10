@@ -124,7 +124,7 @@
           'ndebug': 0
         };
         (function() {
-          var temp = runge_kutta.trajectory_simple(256, 2, x, v, opt);
+          var temp = runge_kutta.trajectory_simple(256, 2, {}, x, v, opt);
           err = temp[0];
           final_x = temp[1];
           final_v = temp[2];
@@ -191,13 +191,13 @@
         x0k = (karl.clone_array1d(([a0, b0, i, j, k]))); /* ... in Kruskal */
         /* --- Find initial velocity vector in Schwarzschild coordinates: --------------------------- */
         v0s = angular.make_tangent(x0s, v); /* initial velocity in Schwarzschild coordinates */
-        v0s = vector.normalize(256, 1, x0s, v0s);
+        v0s = vector.normalize(256, 1, {}, x0s, v0s);
         /* --- Find initial velocity vector in Kruskal coordinates: --------------------------------- */
         jac = transform.jacobian_schwarzschild_to_kruskal(t0, r0);
         v0k = (karl.clone_array1d(v0s));
         v0k[0] = jac[0][0] * v0s[0] + jac[0][1] * v0s[1];
         v0k[1] = jac[1][0] * v0s[0] + jac[1][1] * v0s[1];
-        v0k = vector.normalize(256, 2, x0k, v0k);
+        v0k = vector.normalize(256, 2, {}, x0k, v0k);
         if (flip) {
           v0k[0] = -v0k[0];
           v0k[1] = -v0k[1];
@@ -233,7 +233,7 @@
             chart = 2;
           }
           (function() {
-            var temp = runge_kutta.trajectory_simple(256, chart, x, v, opt);
+            var temp = runge_kutta.trajectory_simple(256, chart, {}, x, v, opt);
             err = temp[0];
             final_x = temp[1];
             final_v = temp[2];

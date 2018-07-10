@@ -21,7 +21,7 @@ def smoke_test():
   if verbosity>=3:
     ndebug=1
   opt = {'lambda_max':100.0,'dlambda':10.0,'ndebug':ndebug}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,{},x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   # Angular coordinates shouldn't have changed:
@@ -45,7 +45,7 @@ def test_force():
   f = lambda lam,x,v: force #js f = function(lam,x,v) {return force;}
   opt = {'lambda_max':100.0,'dlambda':10.0,'ndebug':ndebug,\
          'force_acts':TRUE,'force_function':f,'force_chart':CH_SCH}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,{},x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   # We're hovering, so r shouldn't have changed:
@@ -65,7 +65,7 @@ def simple_newtonian_free_fall():
   v = [1.0,0.0,0.0,0.0,0.0]
   n = 100
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':0}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,{},x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   rf = final_x[1]
@@ -104,7 +104,7 @@ def circular_orbit_period():
   n = 100
   period = 2.0*MATH_PI/v_phi
   opt = {'lambda_max':period,'dlambda':period/n,'ndebug':0,'norm_final':FALSE}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,{},x,v,opt)
   if verbosity>=2:
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
   if err & RK_ERR:
@@ -136,7 +136,7 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
   v_phi = v_phi*a
   v = [1.0,0.0,0.0,v_phi*cos(direction),v_phi*sin(direction)]
   v = angular.make_tangent(x,v)
-  v = vector.normalize(spacetime,chart,x,v)
+  v = vector.normalize(spacetime,chart,{},x,v)
   # Compute newtonian r_max:
   q=a**2/2.0-1.0
   r_max = r*((-1.0-sqrt(1.0+2.0*a**2*q))/(2*q))
@@ -154,7 +154,7 @@ def elliptical_orbit_period(r,a,direction,n,half_period):
       PRINT("testing half-period")
     ndebug=n/10
   opt = {'lambda_max':lambda_max,'dlambda':lambda_max/n,'ndebug':ndebug,'norm_final':FALSE,'triggers':triggers}
-  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(spacetime,chart,{},x,v,opt)
   if err & RK_ERR:
     THROW('error: '+info['message'])
   if verbosity>=2:
@@ -192,8 +192,8 @@ def test_radial_null_geodesic(r,rdot,lam,chart,n):
   tdot = abs(rdot/aa) # Either sign is actually possible.
   v = [tdot,rdot,0.0,0.0,0.0]
   if chart!=CH_SCH:
-    x2 = transform.transform_point(x,spacetime,CH_SCH,chart)
-    v2 = transform.transform_vector(v,x,spacetime,CH_SCH,chart)
+    x2 = transform.transform_point(x,spacetime,CH_SCH,{},chart)
+    v2 = transform.transform_vector(v,x,spacetime,CH_SCH,{},chart)
     x = x2
     v = v2
   ndebug=0
@@ -201,10 +201,10 @@ def test_radial_null_geodesic(r,rdot,lam,chart,n):
     ndebug=n/10
   opt = {'lambda_max':lam,'dlambda':lam/n,'ndebug':ndebug}
   err,final_x,final_v,final_a,final_lambda,info  = \
-              runge_kutta.trajectory_simple(SP_SCH,chart,x,v,opt)
+              runge_kutta.trajectory_simple(SP_SCH,chart,{},x,v,opt)
   if err!=0:
     THROW("error: "+err)
-  final_x = transform.transform_point(final_x,spacetime,chart,CH_SCH) # convert to Schwarzschild coords
+  final_x = transform.transform_point(final_x,spacetime,chart,{},CH_SCH) # convert to Schwarzschild coords
   if verbosity>=2:
     PRINT("final_x (Schwarzschild)=",final_x)
   # Test against the closed-form solution r=r0+rdot*lam, t=const+-(r+ln|r-1|).
@@ -229,8 +229,8 @@ def test_null_geodesic_ang_mom(r,rdot,le,lam,chart,n):
   phidot = le*aa*(1/(r*r))*tdot
   v = [tdot,rdot,0.0,phidot,0.0]
   if chart!=CH_SCH:
-    x2 = transform.transform_point(x,spacetime,CH_SCH,chart)
-    v2 = transform.transform_vector(v,x,spacetime,CH_SCH,chart)
+    x2 = transform.transform_point(x,spacetime,CH_SCH,{},chart)
+    v2 = transform.transform_vector(v,x,spacetime,CH_SCH,{},chart)
     x = x2
     v = v2
   ndebug=0
@@ -238,10 +238,10 @@ def test_null_geodesic_ang_mom(r,rdot,le,lam,chart,n):
     ndebug=n/10
   opt = {'lambda_max':lam,'dlambda':lam/n,'ndebug':ndebug}
   err,final_x,final_v,final_a,final_lambda,info  = \
-              runge_kutta.trajectory_simple(SP_SCH,chart,x,v,opt)
+              runge_kutta.trajectory_simple(SP_SCH,chart,{},x,v,opt)
   if err!=0:
     THROW("error: "+err)
-  final_x = transform.transform_point(final_x,spacetime,chart,CH_SCH) # convert to Schwarzschild coords
+  final_x = transform.transform_point(final_x,spacetime,chart,{},CH_SCH) # convert to Schwarzschild coords
   if verbosity>=2:
     PRINT("final_x (Schwarzschild)=",final_x)
     PRINT("final_v (Schwarzschild)=",final_v)

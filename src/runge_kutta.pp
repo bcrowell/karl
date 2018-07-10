@@ -17,7 +17,7 @@ from io_util import fl
 
 import schwarzschild,kruskal,keplerian,angular,transform
 
-def trajectory_simple(spacetime,chart,x0,v0,opt):
+def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   """
   Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
 
@@ -68,7 +68,7 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
         runge_kutta_get_options_helper(opt)
   #-- initial setup
   n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function = \
-           runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart)
+           runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart,pars)
   if not ok:
     return [RK_ERR,x,v,0.0,mess(["unrecognized spacetime or chart: ",spacetime," ",chart])]
   use_c = c_available(spacetime,chart)
@@ -127,14 +127,14 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
       else:
         apply_christoffel(christoffel_function,y,acc,dlambda,ndim)
       if force_acts:
-        handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda)
+        handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart,pars,dlambda)
       for i in range(ndim):
         est[step][ndim+i] = acc[i]
         est[step][i] = y[ndim+i]*dlambda
     if n_triggers>0 and \
             trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
       return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
-                     norm_final,debug_function,chart)
+                     norm_final,debug_function,spacetime|chart,pars)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)
@@ -145,7 +145,7 @@ def trajectory_simple(spacetime,chart,x0,v0,opt):
     for i in range(ndim):
       x[i] += tot_est[i]
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
-              debug_function,spacetime|chart)
+              debug_function,spacetime|chart,pars)
 
 def c_available(spacetime,chart):
 #if "LANG" eq "js"
@@ -155,7 +155,7 @@ def c_available(spacetime,chart):
   return (spacetime==SP_SCH and (chart==CH_SCH or chart==CH_AKS or chart==CH_KEP))
 #endif
 
-def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
+def r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p):
   """
   Returns [err,r,r',r'',p,lam_left], where the primes represent derivatives with respect to affine parameter,
   and for small r,
@@ -168,11 +168,11 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
   """
   ndim = 5
   ndim2 = 10
-  x2 = transform.transform_point(x,spacetime,chart,CH_SCH)
+  x2 = transform.transform_point(x,spacetime,chart,pars,CH_SCH)
   r = x2[1]
   if IS_NAN(r) or r<0.0:
     return [1,r,0.0,0.0,0.0,0.0]
-  v2 = transform.transform_vector(v,x,spacetime,chart,CH_SCH)
+  v2 = transform.transform_vector(v,x,spacetime,chart,pars,CH_SCH)
   for i in range(ndim):
     pt[i] = x2[i]
     pt[i+5] = v2[i]
@@ -197,15 +197,15 @@ def r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p):
     lam_left = -p*r/rdot # estimate of when we'd hit the singularity
   return [0,r,rdot,rddot,p,lam_left]
 
-def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,dlambda):
+def handle_force(a,lam,x,v,force_function,force_chart,ndim,spacetime,chart,pars,dlambda):
   # The API says that force_function does not need to clone its output vector before returning it, so
   # we need to make sure to discard it here and never do anything with it later.
   # The vector a that we're modifying already has a factor of dlambda in it, so we multiply by dlambda here
   # as well.
-  x2 = transform.transform_point(x,spacetime,chart,force_chart)
-  v2 = transform.transform_vector(v,x,spacetime,chart,force_chart)
+  x2 = transform.transform_point(x,spacetime,chart,pars,force_chart)
+  v2 = transform.transform_vector(v,x,spacetime,chart,pars,force_chart)
   proper_accel2 = force_function(lam,x2,v2)
-  proper_accel = transform.transform_vector(proper_accel2,x2,spacetime,force_chart,chart)
+  proper_accel = transform.transform_vector(proper_accel2,x2,spacetime,force_chart,pars,chart)
   for i in range(ndim):
     a[i] = a[i]+proper_accel[i]*dlambda
 
@@ -227,7 +227,7 @@ def runge_kutta_get_options_helper(opt):
                    n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha, \
                    force_acts,force_function,force_chart]
 
-def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart):
+def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart,pars):
   n = CEIL((lambda_max-lambda0)/dlambda) # dlambda will be adjusted slightly in order to deal with the rounding
   if ndebug==0:
     steps_between_debugging=n*2 # debugging will never happen
@@ -265,13 +265,13 @@ def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_thres
       return TRUE
   return FALSE
 
-def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,debug_function,spacetime_and_chart):
+def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,debug_function,spacetime_and_chart,pars):
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,debug_function,spacetime_and_chart)
   # ... always do a printout for the final iteratation
   if norm_final:
     x = angular.renormalize(x)
     v = angular.make_tangent(x,v)
-  return [0,x,v,acc,lam,{}]
+  return [0,x,v,acc,lam,pars]
 
 def runge_kutta_get_par_helper(opt,name,default_val):
   val = default_val

@@ -16,8 +16,8 @@ def conserved(chart,x,v):
   of implementing this is for estimating asymptotics of trajectories that hit the singularity,
   and for that application I don't care about the orientation.
   """
-  x2 = transform.transform_point(x,SP_SCH,CH_SCH,chart)
-  v2 = transform.transform_vector(v,x,SP_SCH,CH_SCH,chart)
+  x2 = transform.transform_point(x,SP_SCH,CH_SCH,{},chart)
+  v2 = transform.transform_vector(v,x,SP_SCH,CH_SCH,{},chart)
   r = x2[1]
   aa = 1-1/r
   # Conserved energy is xi^a v_a, where xi^a=(partial_t), so 1/E=(dtau/dt)(1/A), where A=g_tt=1-1/r.

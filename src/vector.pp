@@ -14,38 +14,38 @@ def scalar_mult(v0,s):
     v[i] = v[i]*s
   return v
 
-def normalize(spacetime,chart,p,v):
+def normalize(spacetime,chart,pars,p,v):
   """
   Returns a copy of v, which has been normalized. Works for 4 or 5 dimensions.
   The vector has to be timelike.
   """
-  n = norm(spacetime,chart,p,v)
+  n = norm(spacetime,chart,pars,p,v)
   s = 1/sqrt(n)
   return scalar_mult(v,s)
 
-def norm(spacetime,chart,p,v):
+def norm(spacetime,chart,pars,p,v):
   """
   Returns the norm of the vector, in 5-dimensional coordinates.
   """
-  g = get_metric(spacetime,chart,p)
+  g = get_metric(spacetime,chart,pars,p)
   n = 0.0
   for i in range(5):
     for j in range(5):
       n += g[i][j]*v[i]*v[j]
   return n
 
-def inner_product(spacetime,chart,p,u,v):
+def inner_product(spacetime,chart,pars,p,u,v):
   """
   Returns the norm of the vector, in 5-dimensional coordinates.
   """
-  g = get_metric(spacetime,chart,p)
+  g = get_metric(spacetime,chart,pars,p)
   result = 0.0
   for i in range(5):
     for j in range(5):
       result += g[i][j]*u[i]*v[j]
   return result
 
-def get_metric(spacetime,chart,p):
+def get_metric(spacetime,chart,pars,p):
   """
   Returns the lower-index form of the metric at the point p, in 5-dimensional
   coordinates.

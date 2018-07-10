@@ -32,7 +32,7 @@ def chart_info(spacetime_and_chart):
     return [TRUE,5,keplerian.christoffel,"KEP"]
   return [FALSE,None,None,'']
 
-def transform_point(x,spacetime,chart,chart2):
+def transform_point(x,spacetime,chart,pars,chart2):
   """
   Transforms a point x from chart to chart2. Return value is an array, which is automatically cloned.
   It's legal to have chart==chart2. If the input point is not in the domain of the relevant functions,
@@ -94,7 +94,7 @@ def transform_point(x,spacetime,chart,chart2):
   else:
     THROW_ARRAY((["don't know how to transform, spacetime=",spacetime,", chart=",chart,", chart2=",chart2]))
 
-def transform_vector(v,x,spacetime,chart,chart2):
+def transform_vector(v,x,spacetime,chart,pars,chart2):
   """
   Transforms a vector v from chart to chart2 in the tangent space at x (x being described in chart, not chart2).
   Return value is an array, which is

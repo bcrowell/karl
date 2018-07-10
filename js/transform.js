@@ -69,7 +69,7 @@
         }
         return [(false), None, None, ''];
       };
-      transform.transform_point = function(x, spacetime, chart, chart2) {
+      transform.transform_point = function(x, spacetime, chart, pars, chart2) {
         var ok, ndim, christoffel_function, name, ndim2, x2, i, done, a, b, t, r;
 
         /*
@@ -174,7 +174,7 @@
           throw io_util.strcat((["don't know how to transform, spacetime=", spacetime, ", chart=", chart, ", chart2=", chart2]));;
         }
       };
-      transform.transform_vector = function(v, x, spacetime, chart, chart2) {
+      transform.transform_vector = function(v, x, spacetime, chart, pars, chart2) {
         var ok, ndim, christoffel_function, name, ndim2, v2, found_jac, t, r, jac, u;
 
         /*

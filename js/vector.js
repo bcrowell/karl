@@ -50,24 +50,24 @@
         }
         return v;
       };
-      vector.normalize = function(spacetime, chart, p, v) {
+      vector.normalize = function(spacetime, chart, pars, p, v) {
         var n, s;
 
         /*
         Returns a copy of v, which has been normalized. Works for 4 or 5 dimensions.
         The vector has to be timelike.
         */
-        n = vector.norm(spacetime, chart, p, v);
+        n = vector.norm(spacetime, chart, pars, p, v);
         s = 1 / Math.sqrt(n);
         return vector.scalar_mult(v, s);
       };
-      vector.norm = function(spacetime, chart, p, v) {
+      vector.norm = function(spacetime, chart, pars, p, v) {
         var g, n;
 
         /*
         Returns the norm of the vector, in 5-dimensional coordinates.
         */
-        g = vector.get_metric(spacetime, chart, p);
+        g = vector.get_metric(spacetime, chart, pars, p);
         n = 0.0;
         for (var i = 0; i < 5; i++) {
           for (var j = 0; j < 5; j++) {
@@ -76,13 +76,13 @@
         }
         return n;
       };
-      vector.inner_product = function(spacetime, chart, p, u, v) {
+      vector.inner_product = function(spacetime, chart, pars, p, u, v) {
         var g, result;
 
         /*
         Returns the norm of the vector, in 5-dimensional coordinates.
         */
-        g = vector.get_metric(spacetime, chart, p);
+        g = vector.get_metric(spacetime, chart, pars, p);
         result = 0.0;
         for (var i = 0; i < 5; i++) {
           for (var j = 0; j < 5; j++) {
@@ -91,7 +91,7 @@
         }
         return result;
       };
-      vector.get_metric = function(spacetime, chart, p) {
+      vector.get_metric = function(spacetime, chart, pars, p) {
         var r;
 
         /*

@@ -33,7 +33,7 @@ def test_hitting_singularity():
   aa = 1-1/r
   dt = 1.0
   dr = -sqrt(aa**2-aa**3) # the value that gives E=1=mc^2, i.e., falling from rest at infinity
-  v = vector.normalize(spacetime,chart,x,[dt,dr,0.0,0.0,0.0])
+  v = vector.normalize(spacetime,chart,{},x,[dt,dr,0.0,0.0,0.0])
   # ...Normalize so that affine param is proper time.
   #    Since E=(1-1/r)t', I think this means we're using t->-t inside the horizon...?
   tau_theory = (2.0/3.0)*r**1.5
@@ -50,8 +50,7 @@ def test_hitting_singularity():
   tol = 1.0e-6
   opt = {'lambda_max':tau_max,'dlambda':tau_max/n,'ndebug':ndebug,'debug_function':debug_function,'tol':tol,\
              'sigma':1,'future_oriented':TRUE}
-  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,x,v,opt)
-  #err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,{},x,v,opt)
   if verbosity>=2:
     PRINT("final_x=",final_x,", final_lambda=",final_lambda,", tau_theory=",tau_theory,", err=",(final_lambda-tau_theory))
   eps = tol
@@ -87,7 +86,7 @@ def circular_orbit_period(tol):
   period = 2.0*MATH_PI/v_phi
   opt = {'lambda_max':period,'ndebug':0,'norm_final':FALSE,'tol':tol,\
              'sigma':1,'future_oriented':TRUE}
-  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(SP_SCH,CH_SCH,x,v,opt)
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(SP_SCH,CH_SCH,{},x,v,opt)
   if verbosity>=2:
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
   if err & RK_ERR:

@@ -21,7 +21,7 @@ from io_util import fl
 
 import schwarzschild,kruskal,angular,transform,runge_kutta,conserved
 
-def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
+def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
   """
   A specialized wrapper for trajectory_simple(), optimized for speed and numerical precision in the
   Schwarzschild spacetime, for causal world-lines.
@@ -85,15 +85,15 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   #                 real work to the basic RK routine. ------------------
   while True: #js while (true)
     triggers = CLONE_ARRAY_OF_FLOATS2DIM(user_triggers)
-    r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
+    r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
     err,r,rdot,rddot,p,lam_left = r_stuff
     if err!=0:
       THROW("error in r_stuff; this probably means we hit the singularity, adaptive RK not working right")
     if allow_transitions:
       optimal_chart = chart_and_triggers(r,triggers,sigma,future_oriented)
       if chart!=optimal_chart:
-        x2 = transform.transform_point(x,spacetime,chart,optimal_chart)
-        v2 = transform.transform_vector(v,x,spacetime,chart,optimal_chart)
+        x2 = transform.transform_point(x,spacetime,chart,pars,optimal_chart)
+        v2 = transform.transform_vector(v,x,spacetime,chart,pars,optimal_chart)
         x = x2
         v = v2
       chart = optimal_chart
@@ -111,7 +111,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
             ", dlam=",io_util.fl(dlambda),", lam_max=",io_util.fl(opt['lambda_max']))
 #endif
     #---------------- Do n iterations of RK. ------------------
-    result = runge_kutta.trajectory_simple(spacetime,chart,x,v,opt)
+    result = runge_kutta.trajectory_simple(spacetime,chart,pars,x,v,opt)
     err,final_x,final_v,final_a,final_lambda,info = result
 #if 0
     PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16))
@@ -124,11 +124,11 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
     x = final_x
     v = final_v
     # Find final Schwarzschild r:
-    xs = transform.transform_point(x,spacetime,chart,CH_SCH)
+    xs = transform.transform_point(x,spacetime,chart,pars,CH_SCH)
     r = xs[1]
     # Check for incomplete geodesic:
     if r<EPS or opt['dlambda']<EPS:
-      r_stuff = runge_kutta.r_stuff(spacetime,chart,x,v,acc,pt,acc_p,pt_p)
+      r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
       err,r,rdot,rddot,p,lam_left = r_stuff
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
@@ -139,7 +139,7 @@ def trajectory_schwarzschild(spacetime,chart,x0,v0,opt):
   #---------------- Return. ----------------
   if err==RK_INCOMPLETE:
     info['message'] = 'incomplete geodesic'
-  return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,user_chart)
+  return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,pars,user_chart)
 
 def choose_step_size(r,p,tol,lam_left,x,v,chart,user_lambda_max):
   """
@@ -165,7 +165,7 @@ def choose_step_size_exterior(r,tol,x,v,chart):
   # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
   # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
   # roughly the inverse time scale for motion by a distance equal to the current r.
-  vs = transform.transform_vector(v,x,SP_SCH,chart,CH_SCH) # find v vector in Sch coords
+  vs = transform.transform_vector(v,x,SP_SCH,chart,{},CH_SCH) # find v vector in Sch coords
   scale = abs(vs[0]/r**1.5)+abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
   # The following parameters have to be tuned for optimal performance and only work for
   # a particular order of RK.
@@ -200,10 +200,10 @@ def choose_step_size_interior(r,p,tol,lam_left):
       dlambda = safety*lam_left
   return [n,dlambda,FALSE]
 
-def final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,desired_chart):
-  x = transform.transform_point(final_x,spacetime,chart,desired_chart)
-  v = transform.transform_vector(final_v,final_x,spacetime,chart,desired_chart)
-  a = transform.transform_vector(final_a,final_x,spacetime,chart,desired_chart)
+def final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,pars,desired_chart):
+  x = transform.transform_point(final_x,spacetime,chart,pars,desired_chart)
+  v = transform.transform_vector(final_v,final_x,spacetime,chart,pars,desired_chart)
+  a = transform.transform_vector(final_a,final_x,spacetime,chart,pars,desired_chart)
   return [err,x,v,a,final_lambda,info,sigma]
 
 def chart_and_triggers(r,triggers,sigma,future_oriented):
