@@ -25,6 +25,8 @@ js_all:
 	cp src/lib/*.js js/lib
 	cp src/lib/*.js browser/lib # except  ...
 	rm -f browser/lib/loader.js # ... loader.js
+	cp js/*.js browser/physics # except ...
+	rm -f browser/physics/test* # ... tests
 	cp src/browser/*.js browser
 	cp src/browser/*.html browser
 	cp src/browser/util/*.js browser/util
