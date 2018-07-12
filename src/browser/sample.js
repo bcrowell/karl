@@ -20,7 +20,7 @@
     v_phi = v_phi * a;
     v = [1.0, 0.0, 0.0, v_phi * Math.cos(direction), v_phi * Math.sin(direction)];
     v = angular.make_tangent(x, v);
-    v = vector.normalize(spacetime, chart, x, v);
+    v = vector.normalize(spacetime, chart, {}, x, v);
     /* Compute newtonian r_max: */
     q = a * a / 2.0 - 1
     r_max = r * ((-1.0 - Math.sqrt(1.0 + 2.0 * a * a * q)) / (2 * q))
@@ -58,7 +58,7 @@
       var v   = state.data[2];
       opt.lambda0 = lam;
       opt.lambda_max = lam+delta_lambda_per_chunk;
-      var temp = runge_kutta.trajectory_simple(spacetime, chart, x, v, opt); // returns [0,x,v,lam,{}]
+      var temp = runge_kutta.trajectory_simple(spacetime, chart, {}, x, v, opt); // returns [0,x,v,lam,{}]
       err = temp[0];
       x = temp[1];
       v = temp[2];
