@@ -129,6 +129,13 @@
         order = 4; /* 4th order Runge-Kutta */
         acc = karl.array1d((ndim));
         y0 = karl.array1d((ndim2));
+        if (use_c) {
+          /* use faster C implementation: */
+        } else {
+          runge_kutta.find_acc = function(acc, y, dlambda) {
+            runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
+          }
+        }
         for (var iter = 0; iter < n; iter++) {
           dlambda = (lambda_max - lam) / (n - iter); /* small readjustment so we land on the right final lambda */
           est = karl.array2d(ndim2, order);
@@ -167,11 +174,7 @@
             for (var i = 0; i < ndim2; i++) {
               est[step][i] = 0.0;
             }
-            if (use_c) {
-              /* use faster C implementation: */
-            } else {
-              runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
-            }
+            runge_kutta.find_acc(acc, y, dlambda);
             if (force_acts) {
               runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart, pars, dlambda);
             }
