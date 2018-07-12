@@ -177,13 +177,10 @@
                 y[i] = y0[i] + est[2][i];
               }
             }
-            for (var i = 0; i < ndim2; i++) {
-              est[step][i] = 0.0;
-            }
             runge_kutta.find_acc_with_force(acc, y, dlambda);
             for (var i = 0; i < ndim; i++) {
-              est[step][ndim + i] = acc[i];
               est[step][i] = y[ndim + i] * dlambda;
+              est[step][ndim + i] = acc[i];
             }
           }
           if (n_triggers > 0 && runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim)) {

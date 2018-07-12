@@ -134,12 +134,10 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
       if step==3:
         for i in range(ndim2):
           y[i] = y0[i]+est[2][i]
-      for i in range(ndim2):
-        est[step][i]=0.0
       find_acc_with_force(acc,y,dlambda)
       for i in range(ndim):
-        est[step][ndim+i] = acc[i]
         est[step][i] = y[ndim+i]*dlambda
+        est[step][ndim+i] = acc[i]
     if n_triggers>0 and \
             trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
       return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
