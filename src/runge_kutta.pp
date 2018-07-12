@@ -84,6 +84,10 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   pt = pt.astype(numpy.float64)
   acc_p = acc.ctypes.data_as(c_double_p)
   pt_p = pt.ctypes.data_as(c_double_p)
+  pars_array = numpy.zeros((3,))
+  pars_array = pars_array.astype(numpy.float64)
+  unpack_pars(pars_array,spacetime,chart)
+  pars_array_p = pars_array.ctypes.data_as(c_double_p)
 #else
   acc = EMPTY1DIM(ndim)
 #endif
@@ -122,7 +126,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
 #if "LANG" eq "python"
         for i in range(ndim2):
           pt[i]=y[i]
-        c_libs.karl_c_lib.apply_christoffel(spacetime,chart,pt_p,acc_p,ctypes.c_double(dlambda))
+        c_libs.karl_c_lib.apply_christoffel(spacetime,chart,pt_p,acc_p,ctypes.c_double(dlambda),pars_array_p)
 #endif
       else:
         apply_christoffel(christoffel_function,y,acc,dlambda,ndim)
@@ -154,6 +158,16 @@ def c_available(spacetime,chart):
 #if "LANG" eq "python"
   return (spacetime==SP_SCH and (chart==CH_SCH or chart==CH_AKS or chart==CH_KEP))
 #endif
+
+def unpack_pars(pars_array,spacetime,chart):
+  """
+  I'm trying to keep the interface to the C code simple, so for its use, the parameters in the pars
+  hash are unpacked into an array of floats. The array of floats is allocated by the calling code
+  as a C array with a fixed size.
+  """
+  if spacetime==SP_SCH:
+    return # Schwarzschild spacetime has no adjustable parameters.
+  THROW("unimplemented spacetime: "+str(spacetime))
 
 def r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p):
   """

@@ -201,6 +201,18 @@
       runge_kutta.c_available = function(spacetime, chart) {
         return false;
       };
+      runge_kutta.unpack_pars = function(pars_array, spacetime, chart) {
+
+        /*
+        I'm trying to keep the interface to the C code simple, so for its use, the parameters in the pars
+        hash are unpacked into an array of floats. The array of floats is allocated by the calling code
+        as a C array with a fixed size.
+        */
+        if (spacetime == 256) {
+          return; /* Schwarzschild spacetime has no adjustable parameters. */
+        }
+        throw "unimplemented spacetime: " + str(spacetime);;
+      };
       runge_kutta.r_stuff = function(spacetime, chart, pars, x, v, acc, pt, acc_p, pt_p) {
         var ndim, ndim2, x2, r, v2, pt, i, ok, christoffel_function, name, rdot, rddot, p, lam_left;
 

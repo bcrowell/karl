@@ -16,7 +16,7 @@ void sum_christoffel_sch_kep(double *,double *);
 
 // Given a position and velocity (both packed into the 10 elements of p),
 // find the dv based on the Christoffel symbols and dlambda.
-void apply_christoffel(int spacetime,int chart,double *p,double *a,double dlambda) {
+void apply_christoffel(int spacetime,int chart,double *p,double *a,double dlambda,double *pars) {
   int m,ok;
   ok = 0;
   for (m=0; m<NDIM; m++) {a[m]=0.0;}
