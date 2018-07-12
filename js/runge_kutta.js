@@ -136,6 +136,12 @@
             runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
           }
         }
+        runge_kutta.find_acc_with_force = function(acc, y, dlambda) {
+          runge_kutta.find_acc(acc, y, dlambda);
+          if (force_acts) {
+            runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart, pars, dlambda);
+          }
+        }
         for (var iter = 0; iter < n; iter++) {
           dlambda = (lambda_max - lam) / (n - iter); /* small readjustment so we land on the right final lambda */
           est = karl.array2d(ndim2, order);
@@ -174,10 +180,7 @@
             for (var i = 0; i < ndim2; i++) {
               est[step][i] = 0.0;
             }
-            runge_kutta.find_acc(acc, y, dlambda);
-            if (force_acts) {
-              runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart, pars, dlambda);
-            }
+            runge_kutta.find_acc_with_force(acc, y, dlambda);
             for (var i = 0; i < ndim; i++) {
               est[step][ndim + i] = acc[i];
               est[step][i] = y[ndim + i] * dlambda;

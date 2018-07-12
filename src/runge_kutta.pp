@@ -103,6 +103,10 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   else:
     def find_acc(acc,y,dlambda):
       apply_christoffel(christoffel_function,y,acc,dlambda,ndim)
+  def find_acc_with_force(acc,y,dlambda):
+    find_acc(acc,y,dlambda)
+    if force_acts:
+      handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart,pars,dlambda)
   for iter in range(n):
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
@@ -132,9 +136,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
           y[i] = y0[i]+est[2][i]
       for i in range(ndim2):
         est[step][i]=0.0
-      find_acc(acc,y,dlambda)
-      if force_acts:
-        handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart,pars,dlambda)
+      find_acc_with_force(acc,y,dlambda)
       for i in range(ndim):
         est[step][ndim+i] = acc[i]
         est[step][i] = y[ndim+i]*dlambda
