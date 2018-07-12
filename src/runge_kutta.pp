@@ -103,10 +103,13 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   else:
     def find_acc(acc,y,dlambda):
       apply_christoffel(christoffel_function,y,acc,dlambda,ndim)
-  def find_acc_with_force(acc,y,dlambda):
+  def next_est(est,acc,step,y,dlambda):
     find_acc(acc,y,dlambda)
     if force_acts:
       handle_force(acc,lam,x,v,force_function,force_chart,ndim,spacetime,chart,pars,dlambda)
+    for i in range(ndim):
+      est[step][i] = y[ndim+i]*dlambda
+      est[step][ndim+i] = acc[i]
   for iter in range(n):
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
@@ -134,10 +137,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
       if step==3:
         for i in range(ndim2):
           y[i] = y0[i]+est[2][i]
-      find_acc_with_force(acc,y,dlambda)
-      for i in range(ndim):
-        est[step][i] = y[ndim+i]*dlambda
-        est[step][ndim+i] = acc[i]
+      next_est(est,acc,step,y,dlambda)
     if n_triggers>0 and \
             trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
       return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\

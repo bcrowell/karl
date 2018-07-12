@@ -45,7 +45,7 @@
       karl.load("angular");
       karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, pars, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, i, y, est, step, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, est, step, i, y, tot_est;
 
         /*
         Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
@@ -136,10 +136,14 @@
             runge_kutta.apply_christoffel(christoffel_function, y, acc, dlambda, ndim);
           }
         }
-        runge_kutta.find_acc_with_force = function(acc, y, dlambda) {
+        runge_kutta.next_est = function(est, acc, step, y, dlambda) {
           runge_kutta.find_acc(acc, y, dlambda);
           if (force_acts) {
             runge_kutta.handle_force(acc, lam, x, v, force_function, force_chart, ndim, spacetime, chart, pars, dlambda);
+          }
+          for (var i = 0; i < ndim; i++) {
+            est[step][i] = y[ndim + i] * dlambda;
+            est[step][ndim + i] = acc[i];
           }
         }
         for (var iter = 0; iter < n; iter++) {
@@ -177,11 +181,7 @@
                 y[i] = y0[i] + est[2][i];
               }
             }
-            runge_kutta.find_acc_with_force(acc, y, dlambda);
-            for (var i = 0; i < ndim; i++) {
-              est[step][i] = y[ndim + i] * dlambda;
-              est[step][ndim + i] = acc[i];
-            }
+            runge_kutta.next_est(est, acc, step, y, dlambda);
           }
           if (n_triggers > 0 && runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim)) {
             return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars);
