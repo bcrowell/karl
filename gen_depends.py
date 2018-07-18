@@ -23,7 +23,6 @@ def main():
         angular        
         vector
         conserved
-        test_math
       """):
     add_target(targets,target,physics_and_math)
 
@@ -46,7 +45,7 @@ def main():
         fancy
         angular
         math_util
-        exp
+        math
       """):
     add_target(targets,target,test)
 
@@ -60,7 +59,7 @@ def main():
   all_js_modules = []
   all_py_modules = []
   individual = ""
-  include_files = "src/*.h"
+  include_files = "src/include/*.h"
   for npass in range(2):
     if npass==1:
       js_modules = ' '.join(all_js_modules)
@@ -72,10 +71,13 @@ def main():
       for target in targets[pat_name]:
         pat = targets[pat_name][target]
         is_test = ("test" in pat and pat["test"])
-        prefix = ""
         if is_test:
           prefix = "test_"
-        pp = "src/"+prefix+target+".pp"
+          src_dir = "test/"
+        else:
+          prefix = ""
+          src_dir = "physics/"
+        pp = "src/"+src_dir+prefix+target+".pp"
         py = "obj/"+prefix+target+".py"
         js = "js/"+prefix+target+".js"
         jsi = "js/"+prefix+target+".jsi"
@@ -92,10 +94,10 @@ def main():
         if npass==1:
           print("#--------- "+target+" ("+pat_name+")")
           print(py+": "+pp+" "+include_files)
-          print("	filepp -DLANG=python "+pp+" -o "+py)
+          print("	filepp $(FILEPP_OPTIONS) -DLANG=python "+pp+" -o "+py)
           print("	@chmod +x "+py)
           print(js+": "+pp+" "+include_files)
-          print("	filepp -DLANG=js "+pp+" -o "+jsi)
+          print("	filepp $(FILEPP_OPTIONS) -DLANG=js "+pp+" -o "+jsi)
           print("	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js)
           print("	@rm "+jsi)
           print("	@-js-beautify --replace -n -s 2 "+js)

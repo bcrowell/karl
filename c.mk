@@ -2,10 +2,10 @@
 
 c: $(OBJ)/karl.so
 
-$(OBJ)/%.o: $(SRC)/%.c $(SRC)/*.h
+$(OBJ)/%.o: $(SRC)/physics/%.c $(SRC)/include/*.h
 	gcc -c -Wall -Werror -fpic $< -o $@
 
-$(OBJ)/lambert_w.o: $(SRC)/lambert_w.cpp
+$(OBJ)/lambert_w.o: $(SRC)/physics/lambert_w.cpp
 	gcc -c -Wall -Werror -fpic $< -o $@
 
 veberic_lambert_w/LambertW.o: veberic_lambert_w/LambertW.cc

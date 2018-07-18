@@ -889,10 +889,92 @@ involve computing $r$ anyway, so if we want to see how close to are to a singula
 use that. Accurately handling incomplete geodesics turned out to be very tricky on my first try.
 I'm probably best off just using someone else's adaptive Runge-Kutta code.
 
-\section{Choice of language for second try}
-Clojure: Has the advantage of dual implementation. I hate java. There is runge-kutta, e.g.,
-\url{https://github.com/mobius-eng/numerics}. Doesn't support infix arithmetic, so no.
+\section{Simulating images from near a black hole}
 
+What is published in the literature seems to be mostly weak-field approximations for an observer
+at infinity. I want the exact results for an observer at any r, even, e.g., inside the horizon of
+the Schwarzschild spacetime.
+
+We can't assume the observer is stationary, since, e.g., there are no stationary observers inside a
+black hole's horizon. If we wish, we can pick some standard state of motion for the observer, but this state
+of motion would have to depend on r. Given the aberration and Doppler shift for this observer,
+we can always do an SR transformation of the frequency covector or the momentum vector to get
+the view from other states of motion. For a spacetime with spherical symmetry,
+a pretty natural reference state of motion would be
+the motion of an observer infalling radially from rest at infinity.
+
+Let $P_u p=p-[(p\cdot u)/(u\cdot u)]u$ be the projection of the vector $p$ perpendicular to $u$,
+where $u$ is future timelike. In the rest of this discussion, consider the Schwarzschild spacetime.
+An observer in the reference state of motion, with four-velocity $u$,
+has no tangential motion, so if they've inertially transported their radial vector with them, then
+that vector lies in the $t-r$ plane, and it can be found by taking $P_u$ on any vector that is not
+parallel to $u$, which works with either $\hat{t}$ or $\hat{r}$. Call this (inward) radial
+vector $\rho$, so, e.g.,
+$\rho=-\widehat{P_u\hat{t}}$. For a ray of light that we observe with momentum vector $p$, we have
+the spacelike part $P_u p$. The observer then sees this ray coming in at an angle given by
+$\cos\alpha=\rho \cdot \widehat{P_u p}$.
+
+This angle $\alpha$ connects to some angle $\beta$ on the celestial
+sphere at infinity. Because solutions of the geodesic equation are
+unique, we can express $\beta$ as a function of $\alpha$, as in
+reverse ray-tracing. We then have a function of two variables
+$f_r(\alpha)=\beta-\alpha$, where $f$'s dependence on the observer's
+state of motion is subsumed in the choice of a standard state of
+motion. $f$ is odd and has domain probably smaller than $(-\pi,\pi)$. We can
+also define a similar function for the Doppler shift, but this is trivial
+to compute because we have a conserved energy in this spacetime.
+
+If I wanted to compile tabular data as a function of both $r$ and $\alpha$,
+for interpolation, it would only be necessary in principle to compute a
+one-parameter family of geodesics, because every point on such a geodesic
+is an $(r,\alpha)$ combination. However, this would not give a nice evenly spaced
+grid.
+
+To test my computations of $f$, I could find $f_r(\pi/2)$ for large $r$, and
+compare with weak-field approximations for the deflection of light.
+
+Because pixels don't map one-to-one to pixels, intensities need to be
+adjusted by the jacobian or something, i.e., it would be helpful to
+know not just $f$ but $\partial f/\partial\alpha$. This probably happens for
+free if I find a polynomial approximation or something. Also probably want
+input image to be high resolution or have good interpolation on it.
+
+Because the domain of $f$ is not obvious, and $f$ may oscillate wildly as it
+approaches the endpoints of its domain, it's not obvious in advance what
+kind of interpolating or approximating scheme to use, e.g., Chebyshev polynomials
+may not be the best choice.
+
+To calculate the $u$ vector for the observer in the standard state of motion, use
+\begin{equation*}
+  -\frac{dt}{dr} = r^{1/2}+r^{-1/2}+\frac{2r^{1/2}(1+r^{1/2})^2}{r^{1/2}-1}.
+\end{equation*}
+(Misbehaves at the horizon.)
+
+Even without numerical integration, there is a lot we can say about the Schwarzschild case.
+The tangent vector is determined by $L/E$ and $r$:
+\begin{equation*}
+  \frac{d\phi}{dr} = \pm r^{-1}\left[r^2\left(\frac{L}{E}\right)^{-2}-A\right]^{-1/2}
+\end{equation*}
+and
+\begin{equation*}
+  \frac{d\phi}{dt} = \left(\frac{L}{E}\right)Ar^{-2}.
+\end{equation*}
+(At infinity, these simplify because we have $dr/dt=\pm 1$ and $A=1$.) So if we know that a ray
+moves from $(r,\phi)$ to $(r',\phi')$, we pretty much know the aberration angle, except that there
+can be a sign ambiguity because trajectories in 3-space can be self-intersecting.
+These two equations are also a convenient way to set up initial conditions for a ray in terms
+of the well-behaved parameter $L/E$.
+For rays that don't pass in through the horizon, the radius of perihelion is $r_0=|L/E|A^{1/2}$, where
+$A=1-1/r$. For $r \ll 1$, it seems like $\phi$ goes crazy, although I'm not sure if I'm interpreting that
+correctly.
+
+Plan: Pick an $r$ for the observer and determine their velocity vector $u$.
+Start from $L/E=0$ and then iterate through higher and higher values.
+If $r>1$, then $|L/E| \le rA^{-1/2}$ for
+straightforward reasons. For $r<1$, there is no maximum, but large values don't
+get to null infinity (?).
+Interpolate between geodesics that I simulate, until I get to angles that are
+either outside of the projection screen or that intersect the horizon.
 
 \section{Literature}
 

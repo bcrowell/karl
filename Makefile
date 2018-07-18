@@ -6,6 +6,8 @@ SRC = src
 OBJ = obj
 JS = js
 
+FILEPP_OPTIONS = -Isrc/include
+
 VPATH = src
 
 .PHONY: clean clean_js js js_all py c all doc
@@ -38,7 +40,7 @@ clean_py:
 	rm -f obj/*.py
 
 clean:
-	rm -f *~ src/*~ obj/*~ pj/*~ js/*~ js/*.jsi obj/*.pyc
+	rm -f *~ src/*/*~ obj/*~ pj/*~ js/*~ js/*.jsi obj/*.pyc
 	cd doc && make clean && cd -
 
 doc: doc/doc.pdf
