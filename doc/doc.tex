@@ -908,9 +908,9 @@ where $u$ is future timelike. In the rest of this discussion, consider the Schwa
 An observer in the reference state of motion, with four-velocity $u$,
 has no tangential motion, so if they've inertially transported their radial vector with them, then
 that vector lies in the $t-r$ plane, and it can be found by taking $P_u$ on any vector that is not
-parallel to $u$, which works with either $\hat{t}$ or $\hat{r}$. Call this (inward) radial
+parallel to $u$, which works with either $\hat{t}$ or $\hat{r}$. Call this (outward) radial
 vector $\rho$, so, e.g.,
-$\rho=-\widehat{P_u\hat{t}}$. For a ray of light that we observe with momentum vector $p$, we have
+$\rho=\widehat{P_u\hat{t}}$. For a ray of light that we observe with momentum vector $p$, we have
 the spacelike part $P_u p$. The observer then sees this ray coming in at an angle given by
 $\cos\alpha=\rho \cdot \widehat{P_u p}$.
 
@@ -944,16 +944,10 @@ approaches the endpoints of its domain, it's not obvious in advance what
 kind of interpolating or approximating scheme to use, e.g., Chebyshev polynomials
 may not be the best choice.
 
-To calculate the $u$ vector for the observer in the standard state of motion, use
-\begin{equation*}
-  -\frac{dt}{dr} = r^{1/2}+r^{-1/2}+\frac{2r^{1/2}(1+r^{1/2})^2}{r^{1/2}-1}.
-\end{equation*}
-(Misbehaves at the horizon.)
-
 Even without numerical integration, there is a lot we can say about the Schwarzschild case.
 The tangent vector is determined by $L/E$ and $r$:
 \begin{equation*}
-  \frac{d\phi}{dr} = \pm r^{-1}\left[r^2\left(\frac{L}{E}\right)^{-2}-A\right]^{-1/2}
+  \frac{d\phi}{dr} = \pm r^{-2}\left[\left(\frac{L}{E}\right)^{-2}-A\right]^{-1/2}
 \end{equation*}
 and
 \begin{equation*}

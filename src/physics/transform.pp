@@ -119,11 +119,11 @@ def transform_vector(v,x,spacetime,chart,pars,chart2):
   # Find the Jacobian.
   if chart==CH_SCH and chart2==CH_AKS:
     t,r = [x[0],x[1]]
-    jac = transform.jacobian_schwarzschild_to_kruskal(t,r)
+    jac = jacobian_schwarzschild_to_kruskal(t,r)
     found_jac = TRUE
   if chart==CH_AKS and chart2==CH_SCH:
     t,r = kruskal_to_schwarzschild(x[0],x[1])
-    jac = transform.jacobian_kruskal_to_schwarzschild(t,r)
+    jac = jacobian_kruskal_to_schwarzschild(t,r)
     found_jac = TRUE
   if chart==CH_SCH and chart2==CH_KEP:
     t,r = [x[0],x[1]]

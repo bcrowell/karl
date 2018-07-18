@@ -19,6 +19,11 @@ all:
 	make c
 	make test
 
+optics: src/app/optics.pp
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/optics.pp -o obj/optics.py
+	@chmod +x obj/optics.py
+	obj/optics.py
+
 depend: gen_depends.py
 	@python3 gen_depends.py >depend
 

@@ -50,6 +50,18 @@
         }
         return v;
       };
+      vector.add = function(u, v) {
+        var w, i;
+
+        /*
+        Returns the sum of vectors u and v.
+        */
+        w = (karl.clone_array1d(u));
+        for (var i = 0; i < u.length; i++) {
+          w[i] = w[i] + v[i];
+        }
+        return w;
+      };
       vector.normalize = function(spacetime, chart, pars, p, v) {
         var n, s;
 
@@ -90,6 +102,16 @@
           }
         }
         return result;
+      };
+      vector.proj = function(spacetime, chart, pars, p, u, v) {
+        var s;
+
+        /*
+        Returns P_u(v)=v-[(v.u)/(u.u)]u, the part of v that is perpendicular to u.
+        The vector u should be future timelike.
+        */
+        s = vector.inner_product(spacetime, chart, pars, p, u, v) / vector.norm(spacetime, chart, pars, p, u);
+        return vector.add(v, vector.scalar_mult(u, -s));
       };
       vector.get_metric = function(spacetime, chart, pars, p) {
         var r;

@@ -28,6 +28,7 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
   Inputs are the same as for runge_kutta.trajectory_simple(), except that dlambda is not to be specified,
   and there are  three additional pieces of data that are required in the options hash.
   Outputs are the same except for the additional output sigma.
+  Although this function may switch charts internally, it always converts the result back to the original chart.
 
   Values of spacetime and chart are defined in spacetimes.h.
   x0 and v0 = initial position and velocity, expressed in the chosen chart
