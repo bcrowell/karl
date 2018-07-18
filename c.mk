@@ -3,7 +3,7 @@
 c: $(OBJ)/karl.so
 
 $(OBJ)/%.o: $(SRC)/physics/%.c $(SRC)/include/*.h
-	gcc -c -Wall -Werror -fpic $< -o $@
+	gcc -I$(SRC)/include -c -Wall -Werror -fpic $< -o $@
 
 $(OBJ)/lambert_w.o: $(SRC)/physics/lambert_w.cpp
 	gcc -c -Wall -Werror -fpic $< -o $@
