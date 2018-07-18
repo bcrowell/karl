@@ -25,6 +25,9 @@ depend: gen_depends.py
 js_all:
 	make js
 	mkdir -p js/lib
+	mkdir -p browser/physics
+	mkdir -p browser/lib
+	mkdir -p browser/util
 	cp src/lib/*.js js/lib
 	cp src/lib/*.js browser/lib # except  ...
 	rm -f browser/lib/loader.js # ... loader.js
