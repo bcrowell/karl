@@ -2,8 +2,8 @@
 
 c: $(OBJ)/karl.so
 
-$(OBJ)/%.o: $(SRC)/physics/%.c $(SRC)/include/*.h
-	gcc -I$(SRC)/include -c -Wall -Werror -fpic $< -o $@
+$(OBJ)/%.o: $(SRC)/physics/%.c $(SRC)/physics/spacetimes_c.h
+	gcc -c -Wall -Werror -fpic $< -o $@
 
 $(OBJ)/lambert_w.o: $(SRC)/physics/lambert_w.cpp
 	gcc -c -Wall -Werror -fpic $< -o $@
