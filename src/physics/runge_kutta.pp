@@ -182,6 +182,7 @@ def r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p):
 
   The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
   or None if this is the js implementation. If r<0, err=1.
+  If r==1, then we return [0,r,NAN,NAN,NAN,NAN].
   """
   ndim = 5
   ndim2 = 10
@@ -189,6 +190,9 @@ def r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p):
   r = x2[1]
   if IS_NAN(r) or r<0.0:
     return [1,r,0.0,0.0,0.0,0.0]
+  if r==1.0:
+    # We'd get an error below in transforming the vector to Schwarzschild.
+    return [0,r,NAN,NAN,NAN,NAN]
   v2 = transform.transform_vector(v,x,spacetime,chart,pars,CH_SCH)
   for i in range(ndim):
     pt[i] = x2[i]

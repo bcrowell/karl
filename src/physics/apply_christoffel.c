@@ -115,6 +115,10 @@ void sum_christoffel_sch_aks(double *p,double *a) {
   aux(&t,&r,&mu,aa,bb);
   tanha = tanh(aa);
   tanhb = tanh(bb);
+  if (r!=r) { // test for NaN
+    fprintf(stderr,"coordinates beyond the singularity, a=%lf, b=%lf, in apply_christoffel.c\n",aa,bb);
+    exit(-1);
+  }
   q = 0.5*mu*(1.0+1.0/r);
   q2 = -0.5*mu/r;
   APPLY(a,p,  0,0,0,tanha+q*tanhb);
@@ -145,7 +149,8 @@ void sum_christoffel_sch_aks(double *p,double *a) {
   }
 }
 
-// A C implementation of kruskal.aux. See comments there.
+
+// A C implementation of kruskal.aux(). See comments there.
 // Inputs are Kruskal arcsinh coords (a,b), outputs are t,r,mu.
 // Unlike the python implementation, this one doesn't check for
 // coordinate values past the singularity, and doesn't try hard
@@ -169,6 +174,7 @@ void aux(double *t,double *r,double *mu,double a,double b) {
   }
   else {
     // region II
+    if (u>-1.0) {*t=NAN; *r=NAN; *mu=NAN; return;}
     *r = 1.0+veberic_lambert_w(-exp(u));
   }
   // Compute mu:

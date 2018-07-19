@@ -59,19 +59,22 @@ def aux(a,b):
   e2b = math_util.safe_exp(-2*abs(b))
   # From now on, we know we're in region I or II, a>0.
   f = (1.0-e2a)*(1.0-e2b)
-  u = a+abs(b)+log(f/4.0)-1.0
-  if b<0:
-    # region I
-    r = 1.0+lambert_w_stuff.lambert_w_of_exp(u)
+  if f==0.0:
+    r=1.0
   else:
-    # region II
-    if u>-1:
-      return [NONE,NONE,NONE] # beyond the singularity
-    r = 1.0+lambert_w(-math_util.safe_exp(u))
+    u = a+abs(b)+log(f/4.0)-1.0
+    if b<0:
+      # region I
+      r = 1.0+lambert_w_stuff.lambert_w_of_exp(u)
+    else:
+      # region II
+      if u>-1:
+        return [NONE,NONE,NONE] # beyond the singularity
+      r = 1.0+lambert_w(-math_util.safe_exp(u))
   # Compute mu:
   mu = (1.0+e2a)*(1.0+e2b)*(1/(2*MATH_E*r))*exp(a+abs(b)-(r-1))
   # Compute t:
-  if a!=0 and b!=0 and IS_REAL(r):
+  if a!=0 and b!=0 and f!=0.0 and IS_REAL(r):
     t = a-abs(b)+log((1-e2a)/(1-e2b))
   else:
     t = NONE

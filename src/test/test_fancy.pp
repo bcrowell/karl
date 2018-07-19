@@ -91,6 +91,7 @@ def circular_orbit_period(tol):
     PRINT("final x=",io_util.vector_to_str_n_decimals(final_x,16))
   if err & RK_ERR:
     THROW('error: '+info['message'])
+  # Failing one of the following tests typically means that we need to readjust k in fancy.choose_step_size_exterior().
   test.assert_equal_eps(x[2],final_x[2],tol)
   test.assert_equal_eps(x[3],final_x[3],tol)
   test.assert_equal_eps(x[4],final_x[4],tol)

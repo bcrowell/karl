@@ -20,6 +20,7 @@ all:
 	make test
 
 optics: src/app/optics.pp
+	make py
 	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/optics.pp -o obj/optics.py
 	@chmod +x obj/optics.py
 	obj/optics.py

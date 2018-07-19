@@ -82,14 +82,18 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
   tol = opt['tol']
   sigma = opt['sigma']
   future_oriented = opt['future_oriented']
+  fallback_dlambda = NAN
   #---------------- Loop in which we check for coordinate transitions, then delegate the
   #                 real work to the basic RK routine. ------------------
+  n_unproductive = 0
   while True: #js while (true)
     triggers = CLONE_ARRAY_OF_FLOATS2DIM(user_triggers)
     r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
     err,r,rdot,rddot,p,lam_left = r_stuff
-    if err!=0:
-      THROW("error in r_stuff; this probably means we hit the singularity, adaptive RK not working right")
+    if err!=0 and r!=1.0:
+      THROW(strcat([\
+            "error in r_stuff; this probably means we hit the singularity, adaptive RK not working right, r=",\
+            r,", x=",x,", chart=",chart]))
     if allow_transitions:
       optimal_chart = chart_and_triggers(r,triggers,sigma,future_oriented)
       if chart!=optimal_chart:
@@ -97,9 +101,15 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
         v2 = transform.transform_vector(v,x,spacetime,chart,pars,optimal_chart)
         x = x2
         v = v2
+#if 0
+        PRINT(strcat(["changing from chart ",chart," to ",optimal_chart,\
+                " x=",io_util.vector_to_str(x)," x2=",io_util.vector_to_str(x2)]))
+#endif
       chart = optimal_chart
     opt['triggers'] = triggers
-    n,dlambda,terminate = choose_step_size(r,p,tol,lam_left,x,v,chart,real_lambda_max-lambda0)
+    n,dlambda,terminate = choose_step_size(r,rdot,rddot,p,tol,lam_left,x,v,chart,real_lambda_max-lambda0,fallback_dlambda)
+    if r!=1.0:
+      fallback_dlambda = dlambda
     if terminate:
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
@@ -118,6 +128,12 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16))
 #endif
     #---------------- Check the results. ------------------
+    if final_lambda==lambda0:
+      n_unproductive = n_unproductive+1
+    else:
+      n_unproductive = 0
+    if n_unproductive>2:
+      THROW("more than 2 unproductive iterations in a row; if this happens, it's a bug")
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II
     if final_lambda>=real_lambda_max:
@@ -142,15 +158,15 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     info['message'] = 'incomplete geodesic'
   return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,pars,user_chart)
 
-def choose_step_size(r,p,tol,lam_left,x,v,chart,user_lambda_max):
+def choose_step_size(r,rdot,rddot,p,tol,lam_left,x,v,chart,user_lambda_max,fallback_dlambda):
   """
   Choose step size.
   Returns [n,dlambda,terminate]
   """
-  if r<=1.0:
-    z = choose_step_size_interior(r,p,tol,lam_left)
+  if r<1.0:
+    z = choose_step_size_interior(r,p,tol,lam_left) # fails if r==1
   else:
-    z = choose_step_size_exterior(r,tol,x,v,chart)
+    z = choose_step_size_exterior(r,rdot,rddot,tol,x,v,chart,fallback_dlambda)
   n,dlambda,terminate = z
   if n*dlambda>user_lambda_max:
     n = CEIL(user_lambda_max/dlambda)
@@ -158,21 +174,37 @@ def choose_step_size(r,p,tol,lam_left,x,v,chart,user_lambda_max):
     z = [n,dlambda,terminate]
   return z
 
-def choose_step_size_exterior(r,tol,x,v,chart):
+def choose_step_size_exterior(r,rdot,rddot,tol,x,v,chart,fallback_dlambda):
   """
   Choose step size.
   Returns [n,dlambda,terminate]
   """
-  # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
-  # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
-  # roughly the inverse time scale for motion by a distance equal to the current r.
-  vs = transform.transform_vector(v,x,SP_SCH,chart,{},CH_SCH) # find v vector in Sch coords
-  scale = abs(vs[0]/r**1.5)+abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
   # The following parameters have to be tuned for optimal performance and only work for
   # a particular order of RK.
   n = 100
-  k = 1.0 # tuned so that it passes the version of circular_orbit_period() in test_fancy
+  k = 0.5 # tuned so that it passes the version of circular_orbit_period() in test_fancy
   order = 4.0 # order of RK
+  if r==1.0:
+    if IS_NAN(fallback_dlambda):
+      THROW('r=1 in fancy.choose_step_size(), and fallback_dlambda is NaN; did you start at the horizon?')
+    return [n,fallback_dlambda,FALSE]
+  # Try to estimate an inverse affine-parameter scale for the motion. This is independent of the choice
+  # of affine parameter, but in the case of an affine parameter equal to the proper time, this is
+  # roughly the inverse time scale for motion by a distance equal to the current r.
+  # We need this to work well in the case where we're instantaneously at rest and also when we're
+  # close to the horizon.
+  vs = transform.transform_vector(v,x,SP_SCH,chart,{},CH_SCH) # find v vector in Sch coords
+  scale = abs(vs[1]/r)+abs(vs[2])+abs(vs[3])+abs(vs[4])
+  if r>1:
+    # If we're outside the horizon, then we could be instantaneously at rest, and then the value of scale
+    # calculated so far would be zero. Add something to it that estimates how long it will take us to
+    # accelerate and move significantly. I originally tried abs(vs[0]/r**1.5), but that blows up near
+    # the horizon.
+    scale = scale+sqrt(abs(rddot)/r)
+    # ...estimate of the inverse time for r to have a significant fractional change, accelerating radially
+    # from rest.
+    # In the Newtonian limit, we have rddot~1/r^2, and this becomes r^(-3/2), which is a sensible
+    # Keplerian value for the inverse period.
   dlambda = k*tol**(1.0/order)/scale
   return [n,dlambda,FALSE]
 
@@ -217,27 +249,15 @@ def chart_and_triggers(r,triggers,sigma,future_oriented):
   else:
     if r>=1.0:
       optimal_chart = CH_AKS
-      # Trigger on a change of sign in either a or b, which means a change of region.
-      APPEND_TO_ARRAY(triggers,([ 1.0,0, 0.0,0.3])) # a becoming positive
-      APPEND_TO_ARRAY(triggers,([-1.0,0, 0.0,0.3])) # a becoming negative
-      APPEND_TO_ARRAY(triggers,([ 1.0,1, 0.0,0.3])) # b becoming positive
-      APPEND_TO_ARRAY(triggers,([-1.0,1, 0.0,0.3])) # b becoming negative
+      # This chart covers the whole spacetime, so we don't need triggers.
     else:
       approaching_singularity = ((sigma>0.0 and future_oriented) or (sigma<0.0 and not future_oriented))
-      if r>0.5:
-        optimal_chart = CH_SCH
-        if approaching_singularity:
-          # approaching the singularity
-          APPEND_TO_ARRAY(triggers,([-1.0,1,0.35,0.3])) # trigger on r<0.05, nearing singularity
-        else:
-          # receding from the singularity
-          APPEND_TO_ARRAY(triggers,([ 1.0,1,0.95,0.3]))
-      else:
-        optimal_chart = CH_KEP
-        if not approaching_singularity:
-          APPEND_TO_ARRAY(triggers,([1.0,1, 0.2,0.3]))
-        # It's not useful to try to make a trigger that prevents or detects hitting the singularity. Triggers
-        # are too crude for that purpose, don't work reliably because the coordinate velocities diverge.
+      # It's not useful to try to make a trigger that prevents or detects hitting the singularity. Triggers
+      # are too crude for that purpose, don't work reliably because the coordinate velocities diverge.
+      optimal_chart = CH_SCH
+      if not approaching_singularity:
+        # receding from the singularity
+        APPEND_TO_ARRAY(triggers,([ 1.0,1,0.95,0.3]))
   return optimal_chart
 
   

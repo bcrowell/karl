@@ -227,6 +227,7 @@
         the p and lam_left outputs would be meaningless, and are returned as NaN.
         The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
         or None if this is the js implementation. If r<0, err=1.
+        If r==1, then we return [0,r,(NaN),(NaN),(NaN),(NaN)].
         */
         ndim = 5;
         ndim2 = 10;
@@ -234,6 +235,10 @@
         r = x2[1];
         if ((isNaN(r)) || r < 0.0) {
           return [1, r, 0.0, 0.0, 0.0, 0.0];
+        }
+        if (r == 1.0) {
+          /* We'd get an error below in transforming the vector to Schwarzschild. */
+          return [0, r, (NaN), (NaN), (NaN), (NaN)];
         }
         v2 = transform.transform_vector(v, x, spacetime, chart, pars, 1);
         for (var i = 0; i < ndim; i++) {

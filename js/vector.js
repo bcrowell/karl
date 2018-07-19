@@ -67,17 +67,28 @@
 
         /*
         Returns a copy of v, which has been normalized. Works for 4 or 5 dimensions.
-        The vector has to be timelike.
+        The vector has to be timelike. To normalize a spacelike vector, see normalize_spacelike().
         */
         n = vector.norm(spacetime, chart, pars, p, v);
         s = 1 / Math.sqrt(n);
+        return vector.scalar_mult(v, s);
+      };
+      vector.normalize_spacelike = function(spacetime, chart, pars, p, v) {
+        var n, s;
+
+        /*
+        Returns a copy of v, which has been normalized so that |v|^2=-1. Works for 4 or 5 dimensions.
+        The vector has to be spacelike.
+        */
+        n = vector.norm(spacetime, chart, pars, p, v);
+        s = 1 / Math.sqrt(-n);
         return vector.scalar_mult(v, s);
       };
       vector.norm = function(spacetime, chart, pars, p, v) {
         var g, n;
 
         /*
-        Returns the norm of the vector, in 5-dimensional coordinates.
+        Returns the squared norm of the vector, which should be supplied in 5-dimensional coordinates.
         */
         g = vector.get_metric(spacetime, chart, pars, p);
         n = 0.0;
