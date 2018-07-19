@@ -117,7 +117,7 @@ def test_chart_transitions():
                 fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
   if err!=RK_INCOMPLETE:
     THROW('return status was not RK_INCOMPLETE')
-  test.assert_equal_eps(final_lambda,6.74657323085,0.01) # should actually be much more accurate than this
+  test.assert_equal_eps(final_lambda,6.74657323085,0.01) # should actually be much more accurate than this?
 
 def main():
 #if "LANG" eq "python"

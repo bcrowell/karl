@@ -52,7 +52,22 @@ def optics(r,tol):
   else:
     max_le = 10.0
   done = FALSE
-  n_angles = 10
+  n_angles = 100
+  def count_winding(lam,x,v,spacetime,chart,pars):
+    if lam==0.0:
+      count_winding.winding = 0
+      count_winding.last_angle = 0.0
+    else:
+      angle = atan2(x[3],x[2]) # returns an angle from -pi to pi
+      if angle<0.0:
+        angle = angle+2.0*MATH_PI
+      if count_winding.last_angle>5.0 and angle<1.0:
+        count_winding.winding = count_winding.winding+1
+      if count_winding.last_angle<1.0 and angle>5.0:
+        count_winding.winding = count_winding.winding-1
+      count_winding.last_angle = angle
+    return count_winding.winding
+  count_winding(0.0,[],[],0,0,{})
   for in_n_out in range(2): # 0=outward, 1=inward
     for i in range(n_angles):
       z = (float(i)/float(n_angles))
@@ -87,8 +102,10 @@ def optics(r,tol):
         ndebug=n/10
       ri = r
       lambda_max = 10.0 # fixme, sort of random
+      info = {}
       while True:
-        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol}
+        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,
+              'user_function':count_winding}
         err,final_x,final_v,final_a,final_lambda,info,sigma  = \
                 fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
         if err!=0:
@@ -112,9 +129,19 @@ def optics(r,tol):
         ri = rf
       if done:
         break
-      beta = atan2(final_x[3],final_x[2])
+      w = info['user_data'] # winding number
+      beta = atan2(final_x[3],final_x[2]) # returns an angle from -pi to pi
+      if beta<0.0:
+        beta = beta+2.0*MATH_PI
+      beta = beta+w*2.0*MATH_PI
+#if "LANG" eq "python"
+      if csv:
+        with open(csv_file, 'a') as f:
+          f.write(io_util.fl_n_decimals(alpha,12)+","+io_util.fl_n_decimals(beta,12)+","+\
+                  io_util.fl_n_decimals(beta-alpha,12)+"\n")
+#endif
       if verbosity>=1:
-        PRINT("r=",r,", alpha=",alpha*180.0/math.pi," deg, beta=",beta*180.0/math.pi," deg")
+        PRINT("r=",r,", alpha=",alpha*180.0/math.pi," deg, beta=",beta*180.0/math.pi," deg, f=",beta-alpha)
         #PRINT("final_x=",final_x)
         #PRINT("final_v=",final_v)
     if done:

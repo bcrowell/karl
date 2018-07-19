@@ -43,6 +43,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
                              given (lambda,x,v) as inputs; its output will be used and immediately discarded,
                              so the function does not need to clone it before returning it
     force_chart = chart that the function wants for its inputs and outputs
+    user_function = an optional user-defined function that is called on every iteration
   triggers
     These allow the integration to be halted when it appears that in the next iteration,
     a certain coordinate or velocity would cross a certain threshold.
@@ -56,15 +57,14 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   where
     err = 0 if normal, or bitwise or of codes such as RK_ERR, RK_INCOMPLETE, defined in runge_kutta.h
     final_x,final_v,final_a,final_lambda = final values of position, velocity, acceleration, and affine param
-    info = hash with keys below
-      message = error message
+    info = hash with misc. info
   """
   x=CLONE_ARRAY_OF_FLOATS(x0)
   v=CLONE_ARRAY_OF_FLOATS(v0)
   #-- process input options
   lambda_max,dlambda,ndebug,debug_function,lambda0,norm_final,\
         n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,\
-        force_acts,force_function,force_chart =\
+        force_acts,force_function,user_function,force_chart =\
         runge_kutta_get_options_helper(opt)
   #-- initial setup
   n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function = \
@@ -110,6 +110,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
     for i in range(ndim):
       est[step][i] = y[ndim+i]*dlambda
       est[step][ndim+i] = acc[i]
+  user_data = NONE
   for iter in range(n):
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
@@ -141,7 +142,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
     if n_triggers>0 and \
             trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
       return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
-                     norm_final,debug_function,spacetime|chart,pars)
+                     norm_final,debug_function,spacetime|chart,pars,user_data)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)
@@ -151,8 +152,11 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
       v[i] += tot_est[ndim+i]
     for i in range(ndim):
       x[i] += tot_est[i]
+    #-- Call user function:
+    if not IS_NONE(user_function):
+      user_data = user_function(lam,x,v,spacetime,chart,pars)
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
-              debug_function,spacetime|chart,pars)
+              debug_function,spacetime|chart,pars,user_data)
 
 def c_available(spacetime,chart):
 #if "LANG" eq "js"
@@ -241,12 +245,15 @@ def runge_kutta_get_options_helper(opt):
   trigger_s,trigger_on,trigger_threshold,trigger_alpha = [[],[],[],[]]
   if HAS_KEY(opt,"triggers"):
     n_triggers = runge_kutta_get_trigger_options_helper(opt,trigger_s,trigger_on,trigger_threshold,trigger_alpha)
+  user_function = NONE
+  if HAS_KEY(opt,"user_function"):
+    user_function = opt['user_function']
   force_acts     =runge_kutta_get_par_helper(opt,"force_acts",FALSE)
   force_function =runge_kutta_get_par_helper(opt,"force_function",0)
   force_chart     =runge_kutta_get_par_helper(opt,"force_chart",0)
   return [lambda_max,dlambda,ndebug,debug_function,lambda0,norm_final, \
                    n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha, \
-                   force_acts,force_function,force_chart]
+                   force_acts,force_function,user_function,force_chart]
 
 def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart,pars):
   n = CEIL((lambda_max-lambda0)/dlambda) # dlambda will be adjusted slightly in order to deal with the rounding
@@ -286,13 +293,17 @@ def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_thres
       return TRUE
   return FALSE
 
-def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,debug_function,spacetime_and_chart,pars):
+def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
+             debug_function,spacetime_and_chart,pars,user_data):
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,debug_function,spacetime_and_chart)
   # ... always do a printout for the final iteratation
   if norm_final:
     x = angular.renormalize(x)
     v = angular.make_tangent(x,v)
-  return [0,x,v,acc,lam,pars]
+  info = {}
+  if not IS_NONE(user_data):
+    info['user_data'] = user_data
+  return [0,x,v,acc,lam,info]
 
 def runge_kutta_get_par_helper(opt,name,default_val):
   val = default_val
