@@ -16,7 +16,7 @@ import runge_kutta,fancy,angular,vector
 
 csv=FALSE
 csv_file = 'a.csv'
-verbosity=1
+verbosity=0
 
 #--------------------------------------------------------------------------------------------------
 
@@ -52,7 +52,7 @@ def test_hitting_singularity():
              'sigma':1,'future_oriented':TRUE}
   err,final_x,final_v,final_a,final_lambda,info,sigma  = fancy.trajectory_schwarzschild(spacetime,chart,{},x,v,opt)
   if verbosity>=2:
-    PRINT("final_x=",final_x,", final_lambda=",final_lambda,", tau_theory=",tau_theory,", err=",(final_lambda-tau_theory))
+    PRINT("in test_hitting_singularity(), final_x=",final_x,", final_lambda=",final_lambda,", tau_theory=",tau_theory,", err=",(final_lambda-tau_theory))
   eps = tol
   if err!=0 and err!=RK_INCOMPLETE:
     THROW('error: '+info['message'])
@@ -96,12 +96,36 @@ def circular_orbit_period(tol):
   test.assert_equal_eps(x[3],final_x[3],tol)
   test.assert_equal_eps(x[4],final_x[4],tol)
 
+def test_chart_transitions():
+  """
+  Test a null geodesic that originates outside the horizon and ends at the singularity. This should
+  cause two transitions between coordinate charts. This is an example that caused a crash, is now
+  a smoke test; if it doesn't crash, the test succeeded.
+  """
+  x = [0.0, 2.0, 1.0, 0.0, 0.0]
+  v = [1.0, -0.21794494717703375, 0.0, 0.31819805153394637, 0.0]
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  lambda_max = 10.0 # terminates near 6.8
+  tol = 1.0e-6
+  ndebug=0
+  if verbosity>=3:
+    ndebug=10
+  opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol}
+  err,final_x,final_v,final_a,final_lambda,info,sigma  = \
+                fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
+  if err!=RK_INCOMPLETE:
+    THROW('return status was not RK_INCOMPLETE')
+  test.assert_equal_eps(final_lambda,6.74657323085,0.01) # should actually be much more accurate than this
+
 def main():
 #if "LANG" eq "python"
   if csv and os.path.isfile(csv_file):
     os.remove(csv_file)
 #endif
   circular_orbit_period(1.0e-3)
-  test_hitting_singularity() # qwe -- uncomment
+  test_hitting_singularity()
+  test_chart_transitions()
 
 main()

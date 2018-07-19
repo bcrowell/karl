@@ -88,8 +88,7 @@ def optics(r,tol):
       ri = r
       lambda_max = 10.0 # fixme, sort of random
       while True:
-        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,
-                  'future_oriented':FALSE,'tol':tol}
+        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol}
         err,final_x,final_v,final_a,final_lambda,info,sigma  = \
                 fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
         if err!=0:

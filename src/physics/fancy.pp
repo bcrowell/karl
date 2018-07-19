@@ -91,7 +91,7 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
     err,r,rdot,rddot,p,lam_left = r_stuff
     if err!=0 and r!=1.0:
-      THROW(strcat([\
+      THROW_ARRAY(([\
             "error in r_stuff; this probably means we hit the singularity, adaptive RK not working right, r=",\
             r,", x=",x,", chart=",chart]))
     if allow_transitions:
@@ -102,8 +102,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
         x = x2
         v = v2
 #if 0
-        PRINT(strcat(["changing from chart ",chart," to ",optimal_chart,\
-                " x=",io_util.vector_to_str(x)," x2=",io_util.vector_to_str(x2)]))
+        PRINT("changing from chart ",chart," to ",optimal_chart,\
+                " x=",io_util.vector_to_str(x)," x2=",io_util.vector_to_str(x2))
 #endif
       chart = optimal_chart
     opt['triggers'] = triggers
@@ -114,6 +114,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
       BREAK
+    if n_unproductive>0:
+      dlambda = dlambda*2**(-n_unproductive)
     opt['dlambda'] = dlambda
     opt['lambda_max'] = lambda0+n*dlambda
 #if 0
@@ -132,8 +134,9 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
       n_unproductive = n_unproductive+1
     else:
       n_unproductive = 0
-    if n_unproductive>2:
-      THROW("more than 2 unproductive iterations in a row; if this happens, it's a bug")
+    if n_unproductive>10:
+      PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16)) # qwe
+      THROW("more than 10 unproductive iterations in a row; if this happens, it's a bug")
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II
     if final_lambda>=real_lambda_max:
