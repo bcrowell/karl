@@ -10,6 +10,9 @@ FILEPP_OPTIONS = -Isrc/include
 
 VPATH = src
 
+KARL_DATA = /usr/share/karl
+STAR_CATALOG = $(KARL_DATA)/star_catalog.sqlite
+
 .PHONY: clean clean_js js js_all py c all doc
 
 all:
@@ -53,6 +56,10 @@ clean:
 	rm -f *~ src/*/*~ obj/*~ pj/*~ js/*~ js/*.jsi obj/*.pyc
 	cd doc && make clean && cd -
 
+uninstall:
+	rm -f $(STAR_CATALOG)
+	rmdir $(KARL_DATA)
+
 doc: doc/doc.pdf
 	#
 
@@ -62,4 +69,10 @@ doc/doc.pdf: doc/doc.tex
 include depend
 include c.mk
 # ... rules for C code
+
+$(STAR_CATALOG): /usr/share/kstars/stars.dat
+	ruby star_catalog/build_star_catalog.rb
+	mkdir -p $(KARL_DATA)
+	mv star_catalog.sqlite $(STAR_CATALOG)
+
 

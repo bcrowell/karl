@@ -937,7 +937,12 @@ Because pixels don't map one-to-one to pixels, intensities need to be
 adjusted by the jacobian or something, i.e., it would be helpful to
 know not just $f$ but $\partial f/\partial\alpha$. This probably happens for
 free if I find a polynomial approximation or something. Also probably want
-input image to be high resolution or have good interpolation on it.
+input image to be high resolution or have good interpolation on it. 
+Further thoughts on this: A lot of this is thoroughly covered in Riazuelo.
+I think the idea is that by Liouville's theorem, surface brightness is conserved,
+and therefore brightness is amplified by a factor $f=(\sin\alpha d\alpha)/(\sin\beta d\beta)$,
+which Riazuelo says includes the Doppler shift of intensity. We get a discrete approximation
+to $f$ simply from our table of $\beta$ as a function of $\alpha$.
 
 Because the domain of $f$ is not obvious, and $f$ may oscillate wildly as it
 approaches the endpoints of its domain, it's not obvious in advance what
@@ -969,6 +974,74 @@ straightforward reasons. For $r<1$, there is no maximum, but large values don't
 get to null infinity (?).
 Interpolate between geodesics that I simulate, until I get to angles that are
 either outside of the projection screen or that intersect the horizon.
+
+To do on optics: See if I can get any nice interpolation scheme.
+
+\section{Literature on ray tracing}
+
+Riazuelo
+\url{https://arxiv.org/abs/1511.06025} He never mentions anything about the code itself; presumably
+it's not open source. Paper says he only did Schwarzschild, a forthcoming paper will
+do other spherically symmetric spacetimes.
+Informational page about the image he put on WP: \url{http://www2.iap.fr/users/riazuelo/bh/APOD.php}
+His faculty page: \url{http://www2.iap.fr/users/riazuelo/index.php}
+
+James et al., \url{https://arxiv.org/abs/1502.03808} DNGR, the code used for Interstellar.
+Handles spacetimes without spherical symmetry. DNEG's web site
+\url{http://www.dneg.com/black-holes/} . It appears to be a collaboration between Kip Thorne and
+DNEG, which is apparently a commercial special-effects company?
+Am J Phys paper \url{https://aapt.scitation.org/doi/full/10.1119/1.4916949}
+
+Karimi et al., \url{https://arxiv.org/abs/1001.2177}
+
+Mueller and Weiskopf, \url{https://pdfs.semanticscholar.org/db54/08caceaabf1d5086accabfe9102c57ca80e5.pdf} ,
+copy hoarded in \url{Papers/mueller_2011.pdf}.
+
+Kuchelmeister, GpuRay4D: \url{http://cpc.cs.qub.ac.uk/summaries/AEMV_v1_0.html}
+Code that uses GPU, something called CUDA (a library?). GPL licensed.
+
+\section{Star fields}
+
+For simulated black hole views, I need a full-sky image, because rays that graze the horizon
+get deflected through arbitrarily large angles.
+
+The best-known open-source planetarium software seems to be Celestia, but its FAQ
+seems to say that it can't really analyze colors or wavelengths quantitatively.
+
+There's a set of large-solid angle views of the plane of the Milky way at a variety
+of wavelengths: \url{https://asd.gsfc.nasa.gov/archive/mwmw/mmw_allsky.html} They had
+a poster, which is out of print, but which you can download at 300 dpi, 8x10. Unclear
+copyright status. These are probably not that useful for my purposes, because they
+aren't whole-sky.
+
+ESO high-resolution panorama of the milky way:
+\url{https://en.wikipedia.org/wiki/File:ESO_-_The_Milky_Way_panorama_(by).jpg}
+``For copyright reasons, we cannot provide here the full 800-million-pixel original image, which can be requested from Serge Brunier.''
+
+Three whole-sky images with false color:
+\url{https://apod.nasa.gov/apod/ap100709.html}
+\url{https://apod.nasa.gov/apod/ap050925.html}
+\url{https://apod.nasa.gov/apod/ap101227.html}
+Copyrights owned by authors of the research, have to contact them for permissions.
+
+Javascript simulation of SR Doppler shifts using a star catalog:
+\url{http://specialrelativity.net/animations/starfield/starfield.html?beta=0.8&color=on&circles=on&avgstellardensity=0.11&starpopulation=yalebsc&limitingMag=5&projection=stereographic&anim=on&runningTime=8}
+Scroll down for info and options.
+More physics explanation: \url{http://specialrelativity.net/part2.html#Starfield}
+Simulation was written by John O'Hanley, software appears not to be open-source licensed.
+References this AJP paper by McKinley and Doherty, which I can't find without a paywall:
+\url{https://aapt.scitation.org/doi/10.1119/1.11834} Doherty sounds like a cool guy, rock
+climber, Exploratorium employee; is dead; his web page: \url{http://www.exo.net/~pauld/index.html}
+Doherty's still images: \url{http://www.exo.net/~pauld/stars/PD_images_relativ.html}
+
+Work by Alain Riazuelo: Animation of lensing,
+distant observer: \url{https://commons.wikimedia.org/wiki/File:BlackHole_Lensing.gif}
+His wikimedia commons page says he has a permanent job at CNRS, but he may be dead or
+may have left or retired, because all the links are broken.
+Simulated view from $r=9r_s$: \url{https://commons.wikimedia.org/wiki/File:BH_LMC.png}
+Since $r/r_s$ is large, it's possible that this just doesn't include any Doppler shifts.
+Would nevertheless be useful as a check on whether an image I produce is correct.
+
 
 \section{Literature}
 
