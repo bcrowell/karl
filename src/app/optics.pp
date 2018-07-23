@@ -26,7 +26,7 @@ star_catalog = '/usr/share/karl/star_catalog.sqlite'
 def main():
   r = 9.0
   aberration_table = make_aberration_table(r,1.0e-6,csv,csv_file)
-  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,0.0,0.0,2.0)
+  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,0.0,0.0,2.0,csv,csv_file)
 
 #--------------------------------------------------------------------------------------------------
 
@@ -176,12 +176,15 @@ def make_aberration_table(r,tol,csv,csv_file):
     with open(csv_file, 'w') as f:
       for x in table2:
         # x = [r,alpha,beta,beta-alpha,f]
-        f.write(",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))+"\n")
+        f.write(array_to_csv(x)+"\n")
     print("table of aberration data written to "+csv_file)
 #endif
   return table2
 
-def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag):
+def array_to_csv(x):
+  return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
+
+def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,csv,csv_file):
   """
   Make a table of stars seen by on observer in the vicinity of a black hole, in a standard state of motion,
   which is free fall from rest at infinity.
@@ -194,6 +197,8 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   """
   db = sqlite3.connect(star_catalog)
   m = rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
+  m_inv = rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
+  table = []
   for i in range(len(aberration_table)-1):
     ab1 = aberration_table[i]
     ab2 = aberration_table[i+1]
@@ -245,8 +250,20 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
       all_rows = cursor.fetchall()
       for row in all_rows:
         ra,dec,mag,bv = row
-        PRINT("ra,dec,mag,bv=",ra,dec,mag,bv)
+        beta,phi = celestial_to_beta(ra,dec,m_inv)
+        alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
+        f = ab1[4]+((ab2[4]-ab1[4])/(beta2-beta1))*(beta-beta1) # amplification factor
+        brightness = exp(-(mag/2.5)*log(10.0)+log(f))
+        table.append([alpha,phi,brightness,bv])
   db.close()
+#if "LANG" eq "python"
+  if csv:
+    with open(csv_file, 'w') as f:
+      for x in table:
+        # x = [alpha,phi,brightness,bv]
+        f.write(array_to_csv(x)+"\n")
+    print("table of star data written to "+csv_file)
+#endif
 
 def beta_to_celestial(beta,phi,m):
   """
@@ -259,20 +276,39 @@ def beta_to_celestial(beta,phi,m):
   # Compute the cartesian vector of the point in the observer's frame.
   p = [sin(beta)*cos(phi),sin(beta)*sin(phi),cos(beta)]
   # Rotate to celestial frame:
-  p2 =   [m[0][0]*p[0]+m[0][1]*p[1]+m[0][2]*p[2],\
-          m[1][0]*p[0]+m[1][1]*p[1]+m[1][2]*p[2],\
-          m[2][0]*p[0]+m[2][1]*p[1]+m[2][2]*p[2]\
-         ]
+  p2 = apply_matrix(m,p)
   ncp = [0.0,0.0,1.0] # north celestial pole
   cx = [1.0,0.0,0.0] # x axis in celestial coords
   cy = [0.0,1.0,0.0] # x axis in celestial coords
   theta = acos(dot(p2,ncp))
   phi = atan2(dot(p2,cy),dot(p2,cx))
   dec = 0.5*MATH_PI-theta
-  ra = phi
+  ra = copy.copy(phi)
   if ra<0.0:
     ra = ra + 2.0*MATH_PI
   return [ra,dec]
+
+def celestial_to_beta(ra,dec,m_inv):
+  """
+  Do the inverse of the transformation done by beta_to_celestial().
+  """
+  phi = copy.copy(ra)
+  theta = 0.5*MATH_PI-dec
+  p = [sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
+  p2 = apply_matrix(m_inv,p)
+  zenith = [0.0,0.0,1.0]
+  ox = [1.0,0.0,0.0] # x axis in obs. coords
+  oy = [0.0,1.0,0.0] # x axis in obs. coords
+  beta = 0.5*MATH_PI-acos(dot(p2,zenith))
+  phi = atan2(dot(p2,oy),dot(p2,ox))
+  if beta<0.0:
+    beta = -beta
+    phi = phi+MATH_PI
+  if phi>2.0*MATH_PI:
+    phi = phi-2.0*MATH_PI
+  if phi<0.0:
+    phi = phi+2.0*MATH_PI
+  return [beta,phi]
 
 def rotation_matrix_observer_to_celestial(ra,dec,direction):
   # See beta_to_celestial() for explanation of what's going on.
@@ -303,6 +339,11 @@ def rotation_matrix_from_axis_and_angle(theta,u):
     [uz*ux*(1-c)-uy*s,  uz*uy*(1-c)+ux*s,    c+uz*uz*(1-c)] \
   ]
 
+def apply_matrix(m,p):
+  return [m[0][0]*p[0]+m[0][1]*p[1]+m[0][2]*p[2],\
+          m[1][0]*p[0]+m[1][1]*p[1]+m[1][2]*p[2],\
+          m[2][0]*p[0]+m[2][1]*p[1]+m[2][2]*p[2]\
+         ]
 
 def dot(a,b):
   return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]

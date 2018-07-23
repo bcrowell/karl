@@ -4,7 +4,7 @@ require 'sqlite3'
 require "fileutils"
 
 infile = '/usr/share/kstars/stars.dat'
-outfile = 'star_catalog.sqlite'
+outfile = 'mag7.sqlite'
 
 def hms_to_radians(ss)
   if ss=~/(\d\d)(\d\d)(\d\d\.\d\d)/ then
@@ -43,7 +43,9 @@ File.readlines(infile).each { |line|
   if nlines%100==0 then print "." end
   if line=~/^(.{9,9}) (.{9,9}) [^ ]* (.{5,5})(.{5,5})/ then
     ra,dec,mag,bv = hms_to_radians($1),dec_to_radians($2),$3.to_f,$4.to_f
-    db.execute("INSERT INTO stars VALUES(#{nlines},#{ra},#{dec},#{mag},#{bv})")
+    if mag<7.0 then
+      db.execute("INSERT INTO stars VALUES(#{nlines},#{ra},#{dec},#{mag},#{bv})")
+    end
   end
 }
 print "\n"

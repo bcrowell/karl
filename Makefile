@@ -73,6 +73,6 @@ include c.mk
 $(STAR_CATALOG): /usr/share/kstars/stars.dat
 	ruby star_catalog/build_star_catalog.rb
 	mkdir -p $(KARL_DATA)
-	mv star_catalog.sqlite $(STAR_CATALOG)
+	mv mag7.sqlite $(STAR_CATALOG)
 
 
