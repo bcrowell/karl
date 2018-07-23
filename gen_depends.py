@@ -23,6 +23,7 @@ def main():
         angular        
         vector
         conserved
+        euclidean
       """):
     add_target(targets,target,physics_and_math)
 
@@ -46,6 +47,7 @@ def main():
         angular
         math_util
         math
+        euclidean
       """):
     add_target(targets,target,test)
 

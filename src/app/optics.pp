@@ -20,14 +20,14 @@ verbosity=1
 write_csv=TRUE
 csv_file = 'a.csv'
 
-star_catalog = '/usr/share/karl/star_catalog.sqlite'
+#star_catalog = '/usr/share/karl/star_catalog.sqlite'
+star_catalog = '/usr/share/karl/mag7.sqlite'
 # Star catalog is built by a script in the directory star_catalog, see README in that directory.
 
 def main():
   r = 100.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
-  ra_out = ((5.0+14.5/60.0)/24.0)*2*MATH_PI
-  dec_out = (-8.2/360.0)*2*MATH_PI
+  ra_out,dec_out = rigel_ra_dec()
   aberration_table = make_aberration_table(r,1.0e-6,write_csv,csv_file)
   star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,5.0,write_csv,csv_file)
 
@@ -155,7 +155,7 @@ def make_aberration_table(r,tol,write_csv,csv_file):
         beta = beta+2.0*MATH_PI
       beta = beta+w*2.0*MATH_PI
       table.append([r,alpha,beta])
-      if verbosity>=1:
+      if verbosity>=2:
         PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg")
     if done:
       break
@@ -173,8 +173,9 @@ def make_aberration_table(r,tol,write_csv,csv_file):
     beta  = 0.5*(table[ii][2]+table[jj][2])
     dalpha = table[jj][1]-table[ii][1]
     dbeta  = table[jj][2]-table[ii][2]
-    print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
     f = abs(sin(alpha)*dalpha/(sin(beta)*dbeta))
+    if verbosity>=2:
+      print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
     # =dOmega(obs)/dOmega(infinity)=amplification, by Liouville's thm (?)
     # is abs() right?; beta can be >pi
     x.append(beta-alpha)
@@ -217,8 +218,8 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   cursor.execute('''select max(id) from stars where mag<=?''',(max_mag,))
   n_stars = cursor.fetchone()[0]
   print("n_stars=",n_stars)
-  m = rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
-  m_inv = rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
+  m = euclidean.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
+  m_inv = euclidean.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
   drawn = {}
   count_drawn = 0
@@ -291,6 +292,9 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
         id,ra,dec,mag,bv = row
         if id in drawn:
           continue
+        is_rigel = abs(ra-rigel_ra_dec()[0])<0.01 and abs(dec-rigel_ra_dec()[1])<0.01 and mag<1.0
+        if not is_rigel:
+          continue # qwe
         drawn[id] = TRUE
         count_drawn = count_drawn+1
         beta,phi = celestial_to_beta(ra,dec,m_inv)
@@ -322,12 +326,12 @@ def beta_to_celestial(beta,phi,m):
   # Compute the cartesian vector of the point in the observer's frame.
   p = [sin(beta)*cos(phi),sin(beta)*sin(phi),cos(beta)]
   # Rotate to celestial frame:
-  p2 = apply_matrix(m,p)
+  p2 = euclidean.apply_matrix(m,p)
   ncp = [0.0,0.0,1.0] # north celestial pole
   cx = [1.0,0.0,0.0] # x axis in celestial coords
   cy = [0.0,1.0,0.0] # x axis in celestial coords
-  theta = acos(dot(p2,ncp))
-  phi = atan2(dot(p2,cy),dot(p2,cx))
+  theta = acos(euclidean.dot(p2,ncp))
+  phi = atan2(euclidean.dot(p2,cy),euclidean.dot(p2,cx))
   dec = 0.5*MATH_PI-theta
   ra = copy.copy(phi)
   if ra<0.0:
@@ -341,12 +345,12 @@ def celestial_to_beta(ra,dec,m_inv):
   phi = copy.copy(ra)
   theta = 0.5*MATH_PI-dec
   p = [sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
-  p2 = apply_matrix(m_inv,p)
+  p2 = euclidean.apply_matrix(m_inv,p)
   zenith = [0.0,0.0,1.0]
   ox = [1.0,0.0,0.0] # x axis in obs. coords
   oy = [0.0,1.0,0.0] # x axis in obs. coords
-  beta = 0.5*MATH_PI-acos(dot(p2,zenith))
-  phi = atan2(dot(p2,oy),dot(p2,ox))
+  beta = 0.5*MATH_PI-acos(euclidean.dot(p2,zenith))
+  phi = atan2(euclidean.dot(p2,oy),euclidean.dot(p2,ox))
   if beta<0.0:
     beta = -beta
     phi = phi+MATH_PI
@@ -364,51 +368,23 @@ def rotation_matrix_observer_to_celestial(ra,dec,direction):
   # North celestial pole:
   ncp = [0.0,0.0,1.0]
   # Angle of rotation:
-  rot = direction*acos(dot(ncp,zenith))
+  rot = direction*acos(euclidean.dot(ncp,zenith))
   # Axis of rotation:
   if rot==0.0:
     axis = ncp # doesn't matter, just avoid division by zero that would otherwise happen in this case
   else:
-    axis = normalize(cross_prod(zenith,ncp))
-  return rotation_matrix_from_axis_and_angle(rot,axis)
+    axis = euclidean.normalize(euclidean.cross_prod(zenith,ncp))
+  return euclidean.rotation_matrix_from_axis_and_angle(rot,axis)
 
-def rotation_matrix_from_axis_and_angle(theta,u):
-  # https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
-  ux = u[0]
-  uy = u[1]
-  uz = u[2]
-  c = cos(theta)
-  s = sin(theta)
-  return [ \
-    [c+ux*ux*(1-c),     ux*uy*(1-c)-uz*s,    ux*uz*(1-c)+uy*s], \
-    [uy*ux*(1-c)+uz*s,  c+uy*uy*(1-c),       uy*uz*(1-c)-ux*s], \
-    [uz*ux*(1-c)-uy*s,  uz*uy*(1-c)+ux*s,    c+uz*uz*(1-c)] \
-  ]
-
-def apply_matrix(m,p):
-  return [m[0][0]*p[0]+m[0][1]*p[1]+m[0][2]*p[2],\
-          m[1][0]*p[0]+m[1][1]*p[1]+m[1][2]*p[2],\
-          m[2][0]*p[0]+m[2][1]*p[1]+m[2][2]*p[2]\
-         ]
-
-def dot(a,b):
-  return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
-
-def normalize(v):
-  n = norm(v)
-  v[0] = v[0]/n
-  v[1] = v[1]/n
-  v[2] = v[2]/n
-  return v
-
-def norm(v):
-  return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2])
-
-def cross_prod(a,b):
-  c = [0.0,0.0,0.0]
-  c[0] = a[1]*b[2]-a[2]*b[1]
-  c[1] = a[2]*b[0]-a[0]*b[2]
-  c[2] = a[0]*b[1]-a[1]*b[0]
-  return c
+def rigel_ra_dec():
+  """
+  Returns the RA and dec of Rigel, in radians. Used for testing.
+  """
+  # 051432.27 -081205.9 +000001.9-000000.600004.2 00.18-0.03B8 0 0.05   2.07, bet Ori, Rigel
+  # https://en.wikipedia.org/wiki/Rigel
+  ra = ((5.0+14.0/60.0+32.27/3600.0)/24.0)*2*MATH_PI
+  dec = (-(8+12/60.0+5.9/3600.)/360.0)*2*MATH_PI
+  return [ra,dec]
+  
 
 main()
