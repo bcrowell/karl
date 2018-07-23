@@ -12,32 +12,35 @@
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild
 #if "LANG" eq "python"
-import sys,os,copy,sqlite3
+import sys,os,copy,sqlite3,csv
 #endif
 
 verbosity=1
 
-csv=TRUE
+write_csv=TRUE
 csv_file = 'a.csv'
 
 star_catalog = '/usr/share/karl/star_catalog.sqlite'
 # Star catalog is built by a script in the directory star_catalog, see README in that directory.
 
 def main():
-  r = 9.0
-  aberration_table = make_aberration_table(r,1.0e-6,csv,csv_file)
-  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,0.0,0.0,2.0,csv,csv_file)
+  r = 100.0
+  # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
+  ra_out = ((5.0+14.5/60.0)/24.0)*2*MATH_PI
+  dec_out = (-8.2/360.0)*2*MATH_PI
+  aberration_table = make_aberration_table(r,1.0e-6,write_csv,csv_file)
+  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,5.0,write_csv,csv_file)
 
 #--------------------------------------------------------------------------------------------------
 
-def make_aberration_table(r,tol,csv,csv_file):
+def make_aberration_table(r,tol,write_csv,csv_file):
   """
   Determine a table of optical aberration angles for an observer in the Schwarzschild spacetime.
   Each line of the table is in the format [r,alpha,beta,beta-alpha,f], where r is observer's coordinate
   in units of Schwarzschild radius, alpha is angle as seen by observer if they're in a standard
   state of motion (free fall from rest at infinity), beta is angle on the celestial sphere,
   and f is the factor by which intensities are amplified by lensing. If this is the python version
-  running, and csv is true, then we write a copy of the data to csv_file.
+  running, and write_csv is true, then we write a copy of the data to csv_file.
   """
   spacetime = SP_SCH
   chart = CH_SCH
@@ -94,8 +97,10 @@ def make_aberration_table(r,tol,csv,csv_file):
         v = [1.0,aa,0.0,0.0,0.0]
       else:
         z = r*r/(le*le)-aa
+        if z<EPS and z>-10.0*EPS:
+          z=EPS # tiny neg z happens due to rounding; make z big enough so it doesn't cause div by zero below
         if z<0.0:
-          break # a photon with angular momentum this big can't exist at this r
+          break # a photon with angular momentum this big can't exist at this r; won't happen with current algorithm
         dphi_dr = (1.0/r)/sqrt(z)
         if in_n_out==1:
           dphi_dr = -dphi_dr
@@ -142,6 +147,7 @@ def make_aberration_table(r,tol,csv,csv_file):
         v = final_v
         ri = rf
       if done:
+        PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete, done.")
         break
       w = info['user_data'] # winding number
       beta = atan2(final_x[3],final_x[2]) # returns an angle from -pi to pi
@@ -150,7 +156,7 @@ def make_aberration_table(r,tol,csv,csv_file):
       beta = beta+w*2.0*MATH_PI
       table.append([r,alpha,beta])
       if verbosity>=1:
-        PRINT("r=",r,", alpha=",alpha*180.0/math.pi," deg, beta=",beta*180.0/math.pi," deg, f=",beta-alpha)
+        PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg")
     if done:
       break
   table2 = []
@@ -167,12 +173,15 @@ def make_aberration_table(r,tol,csv,csv_file):
     beta  = 0.5*(table[ii][2]+table[jj][2])
     dalpha = table[jj][1]-table[ii][1]
     dbeta  = table[jj][2]-table[ii][2]
-    f = sin(alpha)*dalpha/(sin(beta)*dbeta) # =dOmega(obs)/dOmega(infinity)=amplification, by Liouville's thm (?)
+    print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
+    f = abs(sin(alpha)*dalpha/(sin(beta)*dbeta))
+    # =dOmega(obs)/dOmega(infinity)=amplification, by Liouville's thm (?)
+    # is abs() right?; beta can be >pi
     x.append(beta-alpha)
     x.append(f)
     table2.append(x)
 #if "LANG" eq "python"
-  if csv:
+  if write_csv:
     with open(csv_file, 'w') as f:
       for x in table2:
         # x = [r,alpha,beta,beta-alpha,f]
@@ -184,7 +193,15 @@ def make_aberration_table(r,tol,csv,csv_file):
 def array_to_csv(x):
   return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
 
-def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,csv,csv_file):
+def read_csv_file(filename):
+  with open(filename, 'r') as f:
+    data = []
+    reader = csv.reader(f)
+    for row in reader:
+      data.append(row)
+    return data
+
+def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,write_csv,csv_file):
   """
   Make a table of stars seen by on observer in the vicinity of a black hole, in a standard state of motion,
   which is free fall from rest at infinity.
@@ -196,9 +213,15 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   Max_mag gives the maximum apparent magnitude to include.
   """
   db = sqlite3.connect(star_catalog)
+  cursor = db.cursor()
+  cursor.execute('''select max(id) from stars where mag<=?''',(max_mag,))
+  n_stars = cursor.fetchone()[0]
+  print("n_stars=",n_stars)
   m = rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
   m_inv = rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
+  drawn = {}
+  count_drawn = 0
   for i in range(len(aberration_table)-1):
     ab1 = aberration_table[i]
     ab2 = aberration_table[i+1]
@@ -243,21 +266,44 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             min_dec = dec
           if dec>max_dec:
             max_dec = dec
+      # Because the dec and RA windows are not quite rectangular, widen them a tiny bit to make sure
+      # we don't miss any stars:
+      k = 1.0+3.0/len(aberration_table)
+      # more of a fudge factor if table is shorter; the 3 is empirical; we still miss 1 star out of 1600
+      # with this fudge factor, and increasing the 3 to 20 doesn't fix that
+      ddec = max_dec-min_dec
+      dec = 0.5*(min_dec+max_dec)
+      min_dec = dec-0.5*k*ddec
+      max_dec = dec+0.5*k*ddec
+      dra = max_ra-min_ra
+      ra = 0.5*(min_ra+max_ra)
+      min_ra = ra-0.5*k*dra
+      max_ra = ra+0.5*k*dra
+      # Estimate cut-off for brightness:
+      f_approx = ab1[4]
+      mag_corr = 2.5*log(f_approx)/log(10.0) # for f_approx<1, this is negative
       # Do a database search within this range of RA and dec.
       cursor = db.cursor()
-      cursor.execute('''SELECT ra,dec,mag,bv FROM stars WHERE mag<=? AND ra>=? AND ra<=? AND dec>=? AND dec<=?''',\
-                      (max_mag,min_ra,max_ra,min_dec,max_dec))
+      cursor.execute('''SELECT id,ra,dec,mag,bv FROM stars WHERE mag<=? AND ra>=? AND ra<=? AND dec>=? AND dec<=?''',\
+                      (max_mag+mag_corr,min_ra,max_ra,min_dec,max_dec))
       all_rows = cursor.fetchall()
       for row in all_rows:
-        ra,dec,mag,bv = row
+        id,ra,dec,mag,bv = row
+        if id in drawn:
+          continue
+        drawn[id] = TRUE
+        count_drawn = count_drawn+1
         beta,phi = celestial_to_beta(ra,dec,m_inv)
         alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
-        f = ab1[4]+((ab2[4]-ab1[4])/(beta2-beta1))*(beta-beta1) # amplification factor
+        f = ab1[4]+((ab2[4]-ab1[4])/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
+        if f<EPS: # can have f<0 due to interpolation
+          f=EPS
         brightness = exp(-(mag/2.5)*log(10.0)+log(f))
         table.append([alpha,phi,brightness,bv])
   db.close()
 #if "LANG" eq "python"
-  if csv:
+  print("stars processed=",count_drawn," out of ",n_stars," with magnitudes under ",max_mag)
+  if write_csv:
     with open(csv_file, 'w') as f:
       for x in table:
         # x = [alpha,phi,brightness,bv]

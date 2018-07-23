@@ -135,7 +135,6 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     else:
       n_unproductive = 0
     if n_unproductive>10:
-      PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16)) # qwe
       THROW("more than 10 unproductive iterations in a row; if this happens, it's a bug")
     if chart==CH_AKS:
       sigma = kruskal.sigma(x[0],x[1]) # e.g., could have moved from III to II

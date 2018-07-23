@@ -58,7 +58,15 @@ def aux(a,b):
   e2a = math_util.safe_exp(-2*a)
   e2b = math_util.safe_exp(-2*abs(b))
   # From now on, we know we're in region I or II, a>0.
-  f = (1.0-e2a)*(1.0-e2b)
+  if abs(a)>1000.0*EPS:
+    f1 = 1.0-e2a
+  else:
+    f1 = 2*a
+  if abs(b)>1000.0*EPS:
+    f2 = 1.0-e2b
+  else:
+    f2 = 2*abs(b)
+  f = f1*f2
   if f==0.0:
     r=1.0
   else:
@@ -75,7 +83,7 @@ def aux(a,b):
   mu = (1.0+e2a)*(1.0+e2b)*(1/(2*MATH_E*r))*exp(a+abs(b)-(r-1))
   # Compute t:
   if a!=0 and b!=0 and f!=0.0 and IS_REAL(r):
-    t = a-abs(b)+log((1-e2a)/(1-e2b))
+    t = a-abs(b)+log(f1/f2)
   else:
     t = NONE
   return [t,r,mu]
