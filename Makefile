@@ -27,7 +27,6 @@ optics: src/app/optics.pp
 	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/optics.pp -o obj/optics.py
 	@chmod +x obj/optics.py
 	obj/optics.py
-	mv a.csv stars.csv
 	src/render/render.rb
 	display stars.png
 

@@ -20,10 +20,7 @@ import PIL,ephem
 from PIL import Image
 #endif
 
-verbosity=1
-
-write_csv=TRUE
-csv_file = 'a.csv'
+verbosity=2
 
 star_catalog_max_mag = 7
 star_catalog = '/usr/share/karl/mag7.sqlite'
@@ -33,10 +30,11 @@ def main():
   r = 9.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
   ra_out,dec_out = celestial.rigel_ra_dec()
-  aberration_table = make_aberration_table(r,1.0e-6,write_csv,csv_file)
+  tol = 1.0e-3
+  aberration_table = make_aberration_table(r,tol,TRUE,"aberration.csv")
   max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
               # in addition to the ones bright enough to be in the catalog
-  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,max_mag,write_csv,csv_file)
+  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,max_mag,TRUE,"stars.csv")
 
 #--------------------------------------------------------------------------------------------------
 
@@ -75,7 +73,6 @@ def make_aberration_table(r,tol,write_csv,csv_file):
   else:
     max_le = 10.0
   done = FALSE
-  n_angles = 100
   def count_winding(lam,x,v,spacetime,chart,pars):
     if lam==0.0:
       count_winding.winding = 0
@@ -92,8 +89,19 @@ def make_aberration_table(r,tol,write_csv,csv_file):
     return count_winding.winding
   count_winding(0.0,[],[],0,0,{})
   table = []
+  last_deflection = 0.0
+  s1 = 5 # for moderate deflections, reduce step size by this factor
+  s2 = 20 # ... additional factor for large deflections
+  n_angles = 10*s1*s2 # we actually skip most of these angles
   for in_n_out in range(2): # 0=outward, 1=inward
     for i in range(n_angles):
+      frac_skip = s1*s2 # normally we skip most of of the angles, don't need the resolution
+      if last_deflection>0.5:
+        frac_skip = frac_skip//s1
+      if last_deflection>2.0:
+        frac_skip = frac_skip//s2
+      if not (i%frac_skip==0):
+        continue
       z = (float(i)/float(n_angles))
       if in_n_out==1:
         z = 1.0-z
@@ -130,7 +138,13 @@ def make_aberration_table(r,tol,write_csv,csv_file):
       lambda_max = 10.0 # fixme, sort of random
       info = {}
       while True:
-        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,
+        # need more precision for rays that are greatly deflected
+        tt = tol
+        if last_deflection>0.3:
+          tt = tt*0.001 
+        if last_deflection>1.0:
+          tt = tt*0.001 
+        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tt,
               'user_function':count_winding}
         err,final_x,final_v,final_a,final_lambda,info,sigma  = \
                 fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
@@ -148,8 +162,6 @@ def make_aberration_table(r,tol,write_csv,csv_file):
           f = (rf-ri)/ri # fractional change in r from the iteration we just completed
           if f<0.1:
             lambda_max = lambda_max*(0.1/f) # try to get at least a 10% change in r with each iteration
-        if verbosity>=2:
-          PRINT("x=",final_x)
         x = final_x
         v = final_v
         ri = rf
@@ -162,6 +174,7 @@ def make_aberration_table(r,tol,write_csv,csv_file):
         beta = beta+2.0*MATH_PI
       beta = beta+w*2.0*MATH_PI
       table.append([r,alpha,beta])
+      last_deflection = abs(alpha-beta)
       if verbosity>=2:
         PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg")
     if done:
@@ -338,7 +351,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             beta = beta1+((beta2-beta1)/(alpha2-alpha1))*(alpha-alpha1)
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
             bv = 0.0 # fixme
-            if brightness>1.0e-3 and alpha <1.5: # qwe
+            if brightness>1.0e-3 and alpha <1.5:
               print("very bright fake star at low alpha, alpha,phi,brightness,mag=",alpha,phi,brightness,mag)
             table.append([alpha,phi,brightness,bv])
   db.close()
@@ -358,6 +371,11 @@ def uniform_random(a,b):
 
 def poisson_random(mean):
   # rough approximation to a Poisson random variable
+  if mean<0.3:
+    if random.random()<mean:
+      return 1
+    else:
+      return 0
   if mean<3.0:
     # https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
     l = exp(-mean)
@@ -370,11 +388,11 @@ def poisson_random(mean):
       if p<l:
         break
     return k-1
-  else:
-    x = int(random.gauss(mean,sqrt(mean))+0.5)
-    if x<0:
-      x=0
-    return x
+  # large mean
+  x = int(random.gauss(mean,sqrt(mean))+0.5)
+  if x<0:
+    x=0
+  return x
 
 def brightness_helper(beta,mag,f1,f2,beta1,beta2):
   f = f1+((f2-f1)/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
