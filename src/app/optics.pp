@@ -25,9 +25,9 @@ verbosity=1
 write_csv=TRUE
 csv_file = 'a.csv'
 
-#star_catalog = '/usr/share/karl/star_catalog.sqlite'
+star_catalog_max_mag = 7
 star_catalog = '/usr/share/karl/mag7.sqlite'
-# Star catalog is built by a script in the directory star_catalog, see README in that directory.
+# Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
 
 def main():
   r = 9.0
@@ -298,21 +298,18 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
                       (max_mag+mag_corr,min_ra,max_ra,min_dec,max_dec))
       all_rows = cursor.fetchall()
       count_found = 0
-      max_mag_found = 0
       for row in all_rows:
         id,ra,dec,mag,bv = row
         if id in drawn:
           continue
         count_found = count_found+1
-        if mag>max_mag_found:
-          max_mag_found=mag
         drawn[id] = TRUE
         count_drawn = count_drawn+1
         beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
         alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
         brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
         table.append([alpha,phi,brightness,bv])
-      if max_mag_found<max_mag+mag_corr:
+      if star_catalog_max_mag<max_mag+mag_corr:
         # Fill in fake random stars too dim to have been in the catalog.
         # Seares, 1925, http://adsbit.harvard.edu//full/1925ApJ....62..320S/0000320.000.html
         # Frequency of magnitude m is propto exp(am), where a=0.86 (my estimate from their graphs).
@@ -327,9 +324,9 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
         # ... normalization of GAIA density map, found empirically by matching to results from
         #     star atlas
         solid_angle = abs(dphi*sin(beta)*dbeta)
-        k=CEIL(max_mag+mag_corr-max_mag_found) # number of missing magnitudes to simulate
         #n = count_found
         n = get_star_density(ra,dec)*nn*solid_angle
+        k=CEIL(max_mag+mag_corr-star_catalog_max_mag) # number of missing magnitudes to simulate
         for i in range(k):
           dn = 1.36*n
           n = n+dn
@@ -337,10 +334,12 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             count_fake = count_fake+1
             alpha = uniform_random(alpha1,alpha2)
             phi = uniform_random(phi1,phi2)
-            mag = uniform_random(max_mag_found+i,max_mag_found+i+1)
+            mag = uniform_random(star_catalog_max_mag+i,star_catalog_max_mag+i+1)
             beta = beta1+((beta2-beta1)/(alpha2-alpha1))*(alpha-alpha1)
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
             bv = 0.0 # fixme
+            if brightness>1.0e-3 and alpha <1.5: # qwe
+              print("very bright fake star at low alpha, alpha,phi,brightness,mag=",alpha,phi,brightness,mag)
             table.append([alpha,phi,brightness,bv])
   db.close()
 #if "LANG" eq "python"
