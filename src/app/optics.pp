@@ -1,6 +1,9 @@
 #!/usr/bin/python3
 #####################
 
+# This is only going to work in python, not javascript.
+# Requires debian packages python3-pil python3-ephem
+
 #include "language.h"
 #include "math.h"
 #include "io_util.h"
@@ -12,7 +15,9 @@
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial
 #if "LANG" eq "python"
-import sys,os,copy,sqlite3,csv
+import sys,os,copy,sqlite3,csv,random
+import PIL,ephem
+from PIL import Image
 #endif
 
 verbosity=1
@@ -25,11 +30,13 @@ star_catalog = '/usr/share/karl/mag7.sqlite'
 # Star catalog is built by a script in the directory star_catalog, see README in that directory.
 
 def main():
-  r = 100.0
+  r = 9.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
   ra_out,dec_out = celestial.rigel_ra_dec()
   aberration_table = make_aberration_table(r,1.0e-6,write_csv,csv_file)
-  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,5.0,write_csv,csv_file)
+  max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
+              # in addition to the ones bright enough to be in the catalog
+  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,max_mag,write_csv,csv_file)
 
 #--------------------------------------------------------------------------------------------------
 
@@ -223,6 +230,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   table = []
   drawn = {}
   count_drawn = 0
+  count_fake = 0
   for i in range(len(aberration_table)-1):
     ab1 = aberration_table[i]
     ab2 = aberration_table[i+1]
@@ -234,6 +242,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
     beta1 = ab1[2]
     beta2 = ab2[2]
     beta = 0.5*(beta1+beta2) # midpoint
+    dbeta = beta2-beta1
     # Break up the 2pi range of azimuthal angles into n_az chunks, so that each chunk within this
     # strip is approximately square.
     n_az = CEIL(2.0*MATH_PI*sin(alpha)/dalpha)
@@ -288,23 +297,55 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
       cursor.execute('''SELECT id,ra,dec,mag,bv FROM stars WHERE mag<=? AND ra>=? AND ra<=? AND dec>=? AND dec<=?''',\
                       (max_mag+mag_corr,min_ra,max_ra,min_dec,max_dec))
       all_rows = cursor.fetchall()
+      count_found = 0
+      max_mag_found = 0
       for row in all_rows:
         id,ra,dec,mag,bv = row
         if id in drawn:
           continue
-        is_rigel = abs(ra-celestial.rigel_ra_dec()[0])<0.01 and abs(dec-celestial.rigel_ra_dec()[1])<0.01 and mag<1.0
+        count_found = count_found+1
+        if mag>max_mag_found:
+          max_mag_found=mag
         drawn[id] = TRUE
         count_drawn = count_drawn+1
         beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
         alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
-        f = ab1[4]+((ab2[4]-ab1[4])/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
-        if f<EPS: # can have f<0 due to interpolation
-          f=EPS
-        brightness = exp(-(mag/2.5)*log(10.0)+log(f))
+        brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
         table.append([alpha,phi,brightness,bv])
+      if max_mag_found<max_mag+mag_corr:
+        # Fill in fake random stars too dim to have been in the catalog.
+        # Seares, 1925, http://adsbit.harvard.edu//full/1925ApJ....62..320S/0000320.000.html
+        # Frequency of magnitude m is propto exp(am), where a=0.86 (my estimate from their graphs).
+        # This means that if the number of stars up to magnitude m0 is N, then the number from
+        # m0 to m0+1 is (e^a-1)N=1.36N.
+        # Could also use GAIA full sky maps, either to estimate the density of stars or
+        # to provide a pretty milky way background, but the latter would not be something we could
+        # easily simulate doppler shifts of.
+        #   http://sci.esa.int/gaia/60196-gaia-s-sky-in-colour-equirectangular-projection/
+        #   http://sci.esa.int/gaia/60170-gaia-s-new-map-of-star-density/
+        nn = 27.1
+        # ... normalization of GAIA density map, found empirically by matching to results from
+        #     star atlas
+        solid_angle = abs(dphi*sin(beta)*dbeta)
+        k=CEIL(max_mag+mag_corr-max_mag_found) # number of missing magnitudes to simulate
+        #n = count_found
+        n = get_star_density(ra,dec)*nn*solid_angle
+        for i in range(k):
+          dn = 1.36*n
+          n = n+dn
+          for j in range(poisson_random(dn)):
+            count_fake = count_fake+1
+            alpha = uniform_random(alpha1,alpha2)
+            phi = uniform_random(phi1,phi2)
+            mag = uniform_random(max_mag_found+i,max_mag_found+i+1)
+            beta = beta1+((beta2-beta1)/(alpha2-alpha1))*(alpha-alpha1)
+            brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
+            bv = 0.0 # fixme
+            table.append([alpha,phi,brightness,bv])
   db.close()
 #if "LANG" eq "python"
-  print("stars processed=",count_drawn," out of ",n_stars," with magnitudes under ",max_mag)
+  print("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag,\
+            ", plus ",count_fake," fake stars")
   if write_csv:
     with open(csv_file, 'w') as f:
       for x in table:
@@ -313,6 +354,79 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
     print("table of star data written to "+csv_file)
 #endif
 
-  
+def uniform_random(a,b):
+  return a+(b-a)*random.random()
+
+def poisson_random(mean):
+  # rough approximation to a Poisson random variable
+  if mean<3.0:
+    # https://en.wikipedia.org/wiki/Poisson_distribution#Generating_Poisson-distributed_random_variables
+    l = exp(-mean)
+    k=0
+    p=1
+    while TRUE:
+      k = k+1
+      u = random.random()
+      p = p*u
+      if p<l:
+        break
+    return k-1
+  else:
+    x = int(random.gauss(mean,sqrt(mean))+0.5)
+    if x<0:
+      x=0
+    return x
+
+def brightness_helper(beta,mag,f1,f2,beta1,beta2):
+  f = f1+((f2-f1)/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
+  if f<EPS: # can have f<0 due to interpolation
+    f=EPS
+  brightness = exp(-(mag/2.5)*log(10.0)+log(f))
+  return brightness
+
+def get_star_density(ra,dec):
+  # Normalized to 1 for densest part of map.
+  # This is for use with the GAIA map, which is downloaded and chopped up by scripts in data/star_density.
+  lon,lat = to_galactic_lon_lat(ra,dec)
+  x_res = 4000 # pixels
+  y_res = 2000
+  x = CEIL((lon/(2*MATH_PI))*x_res)+x_res//2 # I assume they put zero galactic lon in the center.
+  y = CEIL((lat/(MATH_PI/2.0))*y_res)+y_res//2
+  if x>x_res-1:
+    x = x-x_res
+  x = force_into_range(x,0,x_res-1)
+  y = force_into_range(y,0,y_res-1)
+  # Filenames are like gaia_color_equirect_medium_part_08_07.png
+  # Here, i=8, j=7. See data/star_density/split_gaia.rb.
+  # Blocks are 100x100 pixels. The files are in equirectangular projection, https://en.wikipedia.org/wiki/Equirectangular_projection ,
+  # which basically means that the lat-lon conversion is trivial.
+  ww = 200
+  hh = 200
+  i = x//ww
+  j = y//hh
+  ii = "%02d" % i
+  jj = "%02d" % j
+  png = '/usr/share/karl'+'/gaia_color_equirect_medium_part_'+ii+'_'+jj+'.jpg'
+  image = Image.open(png)
+  pixels = image.load()
+  r,g,b = pixels[x%ww,y%hh]
+  image.close()
+  result = float(r+g+b)/(255.0*3.0)
+  return result
+
+def to_galactic_lon_lat(ra,dec):
+  """
+  Inputs are RA and declination in equatorial coordinates, outputs are galactic lon and lat.
+  Inputs and outputs are in radians.
+  """
+  g = ephem.Galactic(ephem.Equatorial(ra, dec))
+  return [g.lon+0.0,g.lat+0.0]
+
+def force_into_range(x,a,b):
+  if x<a:
+    return a
+  if x>b:
+    return b
+  return x
 
 main()
