@@ -10,7 +10,7 @@
 #include "runge_kutta.h"
 #include "precision.h"
 
-import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild
+import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial
 #if "LANG" eq "python"
 import sys,os,copy,sqlite3,csv
 #endif
@@ -27,7 +27,7 @@ star_catalog = '/usr/share/karl/mag7.sqlite'
 def main():
   r = 100.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
-  ra_out,dec_out = rigel_ra_dec()
+  ra_out,dec_out = celestial.rigel_ra_dec()
   aberration_table = make_aberration_table(r,1.0e-6,write_csv,csv_file)
   star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,5.0,write_csv,csv_file)
 
@@ -218,8 +218,8 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   cursor.execute('''select max(id) from stars where mag<=?''',(max_mag,))
   n_stars = cursor.fetchone()[0]
   print("n_stars=",n_stars)
-  m = euclidean.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
-  m_inv = euclidean.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
+  m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
+  m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
   drawn = {}
   count_drawn = 0
@@ -258,7 +258,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             beta_c = beta1
           else:
             beta_c = beta2
-          ra,dec = beta_to_celestial(beta_c,phi_c,m)
+          ra,dec = celestial.beta_to_celestial(beta_c,phi_c,m)
           if ra<min_ra:
             min_ra = ra
           if ra>max_ra:
@@ -292,12 +292,10 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
         id,ra,dec,mag,bv = row
         if id in drawn:
           continue
-        is_rigel = abs(ra-rigel_ra_dec()[0])<0.01 and abs(dec-rigel_ra_dec()[1])<0.01 and mag<1.0
-        if not is_rigel:
-          continue # qwe
+        is_rigel = abs(ra-celestial.rigel_ra_dec()[0])<0.01 and abs(dec-celestial.rigel_ra_dec()[1])<0.01 and mag<1.0
         drawn[id] = TRUE
         count_drawn = count_drawn+1
-        beta,phi = celestial_to_beta(ra,dec,m_inv)
+        beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
         alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
         f = ab1[4]+((ab2[4]-ab1[4])/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
         if f<EPS: # can have f<0 due to interpolation
@@ -315,76 +313,6 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
     print("table of star data written to "+csv_file)
 #endif
 
-def beta_to_celestial(beta,phi,m):
-  """
-  An observer is inside the celestial sphere at a certain RA and dec (in radians). They have
-  a coordinate system in which beta=0 is the zenith and phi is an azimuthal angle, with phi=0
-  being toward the north celestial pole.
-  Given a beta and phi, compute the RA and dec of a point below the zenith.
-  The matrix m is to have been precomputed using rotation_matrix_observer_to_celestial().
-  """
-  # Compute the cartesian vector of the point in the observer's frame.
-  p = [sin(beta)*cos(phi),sin(beta)*sin(phi),cos(beta)]
-  # Rotate to celestial frame:
-  p2 = euclidean.apply_matrix(m,p)
-  ncp = [0.0,0.0,1.0] # north celestial pole
-  cx = [1.0,0.0,0.0] # x axis in celestial coords
-  cy = [0.0,1.0,0.0] # x axis in celestial coords
-  theta = acos(euclidean.dot(p2,ncp))
-  phi = atan2(euclidean.dot(p2,cy),euclidean.dot(p2,cx))
-  dec = 0.5*MATH_PI-theta
-  ra = copy.copy(phi)
-  if ra<0.0:
-    ra = ra + 2.0*MATH_PI
-  return [ra,dec]
-
-def celestial_to_beta(ra,dec,m_inv):
-  """
-  Do the inverse of the transformation done by beta_to_celestial().
-  """
-  phi = copy.copy(ra)
-  theta = 0.5*MATH_PI-dec
-  p = [sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
-  p2 = euclidean.apply_matrix(m_inv,p)
-  zenith = [0.0,0.0,1.0]
-  ox = [1.0,0.0,0.0] # x axis in obs. coords
-  oy = [0.0,1.0,0.0] # x axis in obs. coords
-  beta = 0.5*MATH_PI-acos(euclidean.dot(p2,zenith))
-  phi = atan2(euclidean.dot(p2,oy),euclidean.dot(p2,ox))
-  if beta<0.0:
-    beta = -beta
-    phi = phi+MATH_PI
-  if phi>2.0*MATH_PI:
-    phi = phi-2.0*MATH_PI
-  if phi<0.0:
-    phi = phi+2.0*MATH_PI
-  return [beta,phi]
-
-def rotation_matrix_observer_to_celestial(ra,dec,direction):
-  # See beta_to_celestial() for explanation of what's going on.
-  # direction = +-1; if direction is -1, compute the opposite transformation
-  # Find the zenith vector, in celestial coords.
-  zenith = [cos(dec)*cos(ra),cos(dec)*sin(ra),sin(dec)]
-  # North celestial pole:
-  ncp = [0.0,0.0,1.0]
-  # Angle of rotation:
-  rot = direction*acos(euclidean.dot(ncp,zenith))
-  # Axis of rotation:
-  if rot==0.0:
-    axis = ncp # doesn't matter, just avoid division by zero that would otherwise happen in this case
-  else:
-    axis = euclidean.normalize(euclidean.cross_prod(zenith,ncp))
-  return euclidean.rotation_matrix_from_axis_and_angle(rot,axis)
-
-def rigel_ra_dec():
-  """
-  Returns the RA and dec of Rigel, in radians. Used for testing.
-  """
-  # 051432.27 -081205.9 +000001.9-000000.600004.2 00.18-0.03B8 0 0.05   2.07, bet Ori, Rigel
-  # https://en.wikipedia.org/wiki/Rigel
-  ra = ((5.0+14.0/60.0+32.27/3600.0)/24.0)*2*MATH_PI
-  dec = (-(8+12/60.0+5.9/3600.)/360.0)*2*MATH_PI
-  return [ra,dec]
   
 
 main()

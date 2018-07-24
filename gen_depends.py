@@ -24,6 +24,7 @@ def main():
         vector
         conserved
         euclidean
+        celestial
       """):
     add_target(targets,target,physics_and_math)
 
@@ -48,6 +49,7 @@ def main():
         math_util
         math
         euclidean
+        celestial
       """):
     add_target(targets,target,test)
 

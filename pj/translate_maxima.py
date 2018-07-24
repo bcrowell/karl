@@ -16,7 +16,7 @@ operators = {'MTIMES':'*','MPLUS':'+','RAT':'/'}
 # pow(), just leave it off the list, and put it into fns_to_translate.
 
 constants = {'%e':'Math.E','%pi':'Math.PI'}
-fns_to_prepend_with_math = ['sqrt','abs','sin','cos','tan','sinh','cosh','tanh',
+fns_to_prepend_with_math = ['sqrt','abs','sin','cos','tan','asin','acos','atan2','sinh','cosh','tanh',
                             'arcsinh','arccosh','arctanh','exp','log',
                             'pow','lambert_w','floor','ceil']
 #                          ... see similar list in translate_math2 in pj.

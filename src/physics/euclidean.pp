@@ -8,13 +8,14 @@ Low-level math functions for three-dimensional Euclidean geometry.
 #include "test.h"
 #include "precision.h"
 
-import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild
 #if "LANG" eq "python"
 import sys,os,copy
 #endif
 
 def rotation_matrix_from_axis_and_angle(theta,u):
   # https://en.wikipedia.org/wiki/Rotation_matrix#Rotation_matrix_from_axis_and_angle
+  if abs(norm_sq(u)-1.0)>10*EPS:
+    THROW("|u|!=1 in rotation_matrix_from_axis_and_angle")
   ux = u[0]
   uy = u[1]
   uz = u[2]
@@ -35,15 +36,19 @@ def apply_matrix(m,p):
 def dot(a,b):
   return a[0]*b[0]+a[1]*b[1]+a[2]*b[2]
 
-def normalize(v):
+def normalize(v0):
+  v = CLONE_ARRAY_OF_FLOATS(v0)
   n = norm(v)
   v[0] = v[0]/n
   v[1] = v[1]/n
   v[2] = v[2]/n
   return v
 
+def norm_sq(v):
+  return v[0]*v[0]+v[1]*v[1]+v[2]*v[2]
+
 def norm(v):
-  return sqrt(v[0]*v[0]+v[1]*v[1]+v[2]*v[2])
+  return sqrt(norm_sq(v))
 
 def cross_prod(a,b):
   c = [0.0,0.0,0.0]
@@ -52,3 +57,6 @@ def cross_prod(a,b):
   c[2] = a[0]*b[1]-a[1]*b[0]
   return c
 
+def determinant(m):
+  return   m[0][0]*m[1][1]*m[2][2]+m[1][0]*m[2][1]*m[0][2]+m[2][0]*m[0][1]*m[1][2]+\
+         -(m[2][0]*m[1][1]*m[0][2]+m[0][0]*m[2][1]*m[1][2]+m[1][0]*m[0][1]*m[2][2])

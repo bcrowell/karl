@@ -10,7 +10,7 @@ $modules_not_to_load = ['numpy','scipy','math','sys']
 $local_functions = {}
 # ... keys are names of functions inside this module, which in python are referred to without module. as a prefix
 
-$math_functions = "sqrt|abs|sin|cos|tan|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w|floor|ceil"
+$math_functions = "sqrt|abs|sin|cos|tan|asin|acos|atan2|sinh|cosh|tanh|arcsinh|arccosh|arctanh|exp|log|lambert_w|floor|ceil"
                        # ... see similar list in fns_to_prepend_with_math in translate_maxima.
 
 def main()

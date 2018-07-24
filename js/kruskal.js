@@ -65,7 +65,7 @@
         return g;
       };
       kruskal.aux = function(a, b) {
-        var e2a, e2b, f, r, u, mu, t;
+        var e2a, e2b, f1, f2, f, r, u, mu, t;
 
         /*
         Compute Schwarzschild t and r, and metric element mu, for a point given in rescaled Kruskal coordinates (a,b).
@@ -85,7 +85,17 @@
         e2a = math_util.safe_exp(-2 * a);
         e2b = math_util.safe_exp(-2 * Math.abs(b));
         /* From now on, we know we're in region I or II, a>0. */
-        f = (1.0 - e2a) * (1.0 - e2b);
+        if (Math.abs(a) > 1000.0 * (1.0e-16)) {
+          f1 = 1.0 - e2a;
+        } else {
+          f1 = 2 * a;
+        }
+        if (Math.abs(b) > 1000.0 * (1.0e-16)) {
+          f2 = 1.0 - e2b;
+        } else {
+          f2 = 2 * Math.abs(b);
+        }
+        f = f1 * f2;
         if (f == 0.0) {
           r = 1.0;
         } else {
@@ -105,7 +115,7 @@
         mu = (1.0 + e2a) * (1.0 + e2b) * (1 / (2 * Math.E * r)) * Math.exp(a + Math.abs(b) - (r - 1));
         /* Compute t: */
         if (a != 0 && b != 0 && f != 0.0 && (!(((r) == null) || (isNaN(r))))) {
-          t = a - Math.abs(b) + Math.log((1 - e2a) / (1 - e2b));
+          t = a - Math.abs(b) + Math.log(f1 / f2);
         } else {
           t = null;
         }
