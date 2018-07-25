@@ -975,7 +975,16 @@ get to null infinity (?).
 Interpolate between geodesics that I simulate, until I get to angles that are
 either outside of the projection screen or that intersect the horizon.
 
-To do on optics: See if I can get any nice interpolation scheme.
+Notes from Riazuelo: He goes to deflection angles of up to $5\pi$, says that's usually enough to
+get all interesting visible effects. He seems to say that the small deflections are basically
+SR doppler shifts, because the observer is free-falling (same idea I had). Although this seems to get the sign
+wrong, it does seem to correctly predict the absolute value of the slope to be $\approx r^{-1/2}$,
+which seems close to what I see numerically. Numerically, I think I actually see for
+small $\alpha$ is
+\begin{equation*}
+  \alpha-\beta\approx (r^{1/2}-1)^{-1}\alpha.
+\end{equation*}
+The actual results drop lower than this before coming back up.
 
 \section{Literature on ray tracing}
 

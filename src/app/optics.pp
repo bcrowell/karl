@@ -29,12 +29,16 @@ star_catalog = '/usr/share/karl/mag7.sqlite'
 def main():
   r = 9.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
-  ra_out,dec_out = celestial.rigel_ra_dec()
+  #ra_out,dec_out = celestial.rigel_ra_dec()
+  ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
+  #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.lmc_ra_dec())
   tol = 1.0e-3
   aberration_table = make_aberration_table(r,tol,TRUE,"aberration.csv")
   max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
               # in addition to the ones bright enough to be in the catalog
-  star_table = make_star_table(star_catalog,aberration_table,r,TRUE,ra_out,dec_out,max_mag,TRUE,"stars.csv")
+  if_black_hole = FALSE
+  star_table = make_star_table(star_catalog,aberration_table,r,if_black_hole,\
+                               ra_out,dec_out,max_mag,TRUE,"stars.csv")
 
 #--------------------------------------------------------------------------------------------------
 
@@ -130,53 +134,21 @@ def make_aberration_table(r,tol,write_csv,csv_file):
       # ... normalized
       alpha = acos(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp))
       # ... angle at which the observer says the photon is emitted, see docs
-      n = 100
-      ndebug=0
-      if verbosity>=3:
-        ndebug=n/10
-      ri = r
-      lambda_max = 10.0 # fixme, sort of random
-      info = {}
-      while True:
-        # need more precision for rays that are greatly deflected
-        tt = tol
-        if last_deflection>0.3:
-          tt = tt*0.001 
-        if last_deflection>1.0:
-          tt = tt*0.001 
-        opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tt,
-              'user_function':count_winding}
-        err,final_x,final_v,final_a,final_lambda,info,sigma  = \
-                fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
-        if err!=0:
-          if err==RK_INCOMPLETE:
-            done = TRUE
-            break
-          THROW("error: "+str(err))
-        rf = final_x[1]
-        if IS_NAN(rf):
-          THROW("rf is NaN")
-        if rf>1.0e9 and rf>100.0*r:
-          break
-        if rf>10.0 and final_v[1]>0 and rf>ri: # quick and dirty test, far away and getting farther
-          f = (rf-ri)/ri # fractional change in r from the iteration we just completed
-          if f<0.1:
-            lambda_max = lambda_max*(0.1/f) # try to get at least a 10% change in r with each iteration
-        x = final_x
-        v = final_v
-        ri = rf
-      if done:
-        PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete, done.")
-        break
-      w = info['user_data'] # winding number
-      beta = atan2(final_x[3],final_x[2]) # returns an angle from -pi to pi
-      if beta<0.0:
-        beta = beta+2.0*MATH_PI
-      beta = beta+w*2.0*MATH_PI
+      beta,done = do_ray(spacetime,chart,pars,x,v,r,tol,count_winding)
       table.append([r,alpha,beta])
-      last_deflection = abs(alpha-beta)
       if verbosity>=2:
-        PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg")
+        if alpha==0.0:
+          err_approx = 0.0
+        else:
+          approx = alpha/(sqrt(r)-1)
+          err_approx = (approx-abs(alpha-beta))/alpha
+        PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
+              " deg, rel err in approx=",err_approx)
+      last_deflection = abs(alpha-beta)
+      if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
+        PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
+        done = TRUE
+        break
     if done:
       break
   table2 = []
@@ -210,6 +182,43 @@ def make_aberration_table(r,tol,write_csv,csv_file):
     print("table of aberration data written to "+csv_file)
 #endif
   return table2
+
+def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding):
+  n = 100
+  ndebug=0
+  if verbosity>=3:
+    ndebug=n/10
+  ri = r
+  lambda_max = 10.0 # fixme, sort of random
+  info = {}
+  while True:
+    opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,
+          'user_function':count_winding}
+    err,final_x,final_v,final_a,final_lambda,info,sigma  = \
+            fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
+    if err!=0:
+      if err==RK_INCOMPLETE:
+        PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete, done.")
+        return [NAN,TRUE]
+      THROW("error: "+str(err))
+    rf = final_x[1]
+    if IS_NAN(rf):
+      THROW("rf is NaN")
+    if rf>1.0e9 and rf>100.0*r:
+      break
+    if rf>10.0 and final_v[1]>0 and rf>ri: # quick and dirty test, far away and getting farther
+      f = (rf-ri)/ri # fractional change in r from the iteration we just completed
+      if f<0.1:
+        lambda_max = lambda_max*(0.1/f) # try to get at least a 10% change in r with each iteration
+    x = final_x
+    v = final_v
+    ri = rf
+  w = info['user_data'] # winding number
+  beta = atan2(final_x[3],final_x[2]) # returns an angle from -pi to pi
+  if beta<0.0:
+    beta = beta+2.0*MATH_PI
+  beta = beta+w*2.0*MATH_PI
+  return [beta,FALSE]
 
 def array_to_csv(x):
   return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
@@ -319,9 +328,11 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
         drawn[id] = TRUE
         count_drawn = count_drawn+1
         beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
+        if beta>MATH_PI:
+          THROW('beta>pi')
         alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
-        brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
-        table.append([alpha,phi,brightness,bv])
+        brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
+        star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
       if star_catalog_max_mag<max_mag+mag_corr:
         # Fill in fake random stars too dim to have been in the catalog.
         # Seares, 1925, http://adsbit.harvard.edu//full/1925ApJ....62..320S/0000320.000.html
@@ -349,11 +360,11 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             phi = uniform_random(phi1,phi2)
             mag = uniform_random(star_catalog_max_mag+i,star_catalog_max_mag+i+1)
             beta = beta1+((beta2-beta1)/(alpha2-alpha1))*(alpha-alpha1)
-            brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2)
+            brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
             bv = 0.0 # fixme
             if brightness>1.0e-3 and alpha <1.5:
               print("very bright fake star at low alpha, alpha,phi,brightness,mag=",alpha,phi,brightness,mag)
-            table.append([alpha,phi,brightness,bv])
+            star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
   db.close()
 #if "LANG" eq "python"
   print("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag,\
@@ -365,6 +376,13 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
         f.write(array_to_csv(x)+"\n")
     print("table of star data written to "+csv_file)
 #endif
+
+def star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole):
+  if if_black_hole:
+    angle = alpha
+  else:
+    angle = beta
+  table.append([angle,phi,brightness,bv])
 
 def uniform_random(a,b):
   return a+(b-a)*random.random()
@@ -394,10 +412,13 @@ def poisson_random(mean):
     x=0
   return x
 
-def brightness_helper(beta,mag,f1,f2,beta1,beta2):
-  f = f1+((f2-f1)/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
-  if f<EPS: # can have f<0 due to interpolation
-    f=EPS
+def brightness_helper(beta,mag,f1,f2,beta1,beta2,if_black_hole):
+  if if_black_hole:
+    f = f1+((f2-f1)/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
+    if f<EPS: # can have f<0 due to interpolation
+      f=EPS
+  else:
+    f=1.0
   brightness = exp(-(mag/2.5)*log(10.0)+log(f))
   return brightness
 

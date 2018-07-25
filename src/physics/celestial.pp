@@ -47,11 +47,6 @@ def celestial_to_beta(ra,dec,m_inv):
   oy = [0.0,1.0,0.0] # x axis in obs. coords
   beta = acos(euclidean.dot(p2,zenith))
   phi = atan2(euclidean.dot(p2,oy),euclidean.dot(p2,ox))
-  if beta<0.0:
-    beta = -beta
-    phi = phi+MATH_PI
-  if phi>2.0*MATH_PI:
-    phi = phi-2.0*MATH_PI
   if phi<0.0:
     phi = phi+2.0*MATH_PI
   return [beta,phi]
@@ -72,9 +67,26 @@ def rotation_matrix_observer_to_celestial(ra,dec,direction):
     axis = euclidean.normalize(euclidean.cross_prod(zenith,ncp))
   return euclidean.rotation_matrix_from_axis_and_angle(rot,axis)
 
+def antipodes_of_ra_and_dec(ra_dec):
+  ra,dec = ra_dec
+  dec2 = -dec
+  ra2 = ra+MATH_PI
+  if ra2>2.0*MATH_PI:
+    ra2 = ra2 - 2.0*MATH_PI
+  return [ra2,dec2]
+
+def lmc_ra_dec():
+  """
+  Returns the RA and dec of the lesser magellanic cloud, in radians. 
+  """
+  # https://en.wikipedia.org/wiki/Large_Magellanic_Cloud
+  ra = ((5.0+23.0/60.0/3600.0)/24.0)*2*MATH_PI
+  dec = (-(69+45/60.0)/360.0)*2*MATH_PI
+  return [ra,dec]
+
 def rigel_ra_dec():
   """
-  Returns the RA and dec of Rigel, in radians. Used for testing.
+  Returns the RA and dec of Rigel, in radians. 
   """
   # 051432.27 -081205.9 +000001.9-000000.600004.2 00.18-0.03B8 0 0.05   2.07, bet Ori, Rigel
   # https://en.wikipedia.org/wiki/Rigel
