@@ -265,19 +265,15 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
   m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
-#if 1
   table,stats_real =\
            real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv)
   n_stars = stats_real['n_stars']
   count_drawn = stats_real['count_drawn']
   PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
-#endif
-#if 1
   table,stats_fake =\
            fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv)
   count_fake = stats_fake['count_fake']
   PRINT("Drew ",count_fake," fake stars.")
-#endif
   return table
 
 def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv):
