@@ -265,15 +265,19 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
   m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
+#if 1
   table,stats_real =\
            real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv)
-  table,stats_fake =\
-           fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv)
   n_stars = stats_real['n_stars']
   count_drawn = stats_real['count_drawn']
+  PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
+#endif
+#if 1
+  table,stats_fake =\
+           fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv)
   count_fake = stats_fake['count_fake']
-  PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag,\
-            ", plus ",count_fake," fake stars")
+  PRINT("Drew ",count_fake," fake stars.")
+#endif
   return table
 
 def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv):
@@ -283,6 +287,8 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
   n_stars = cursor.fetchone()[0]
   print("n_stars=",n_stars)
   count_drawn = 0
+  k1 = 0 # qwe
+  k2 = 0 # qwe
   for i in range(n_stars):
     cursor = db.cursor()
     cursor.execute('''SELECT ra,dec,mag,bv FROM stars WHERE id=?''',(i+1,))
@@ -301,7 +307,12 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
       f=1.0
     brightness = exp(-(mag/2.5)*log(10.0)+log(f))
     star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
+    if beta>MATH_PI-0.5: # qwe
+      k1 = k1+1
+    if beta<0.5:
+      k2 = k2+1
   db.close()
+  print("k1,k2=",k1,k2)
   PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
   return [table,{'n_stars':n_stars,'count_drawn':count_drawn}]
 

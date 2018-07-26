@@ -38,6 +38,7 @@
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
       /* ... something went really wrong, output is garbage */
       /* ... the geodesic was incomplete */
+      /* ... exited due to a trigger */
 
       karl.load("schwarzschild");
       karl.load("kruskal");
@@ -186,7 +187,7 @@
             runge_kutta.next_est(est, acc, step, y, dlambda);
           }
           if (n_triggers > 0 && runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim)) {
-            return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data);
+            return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 3);
           }
           /*-- Update everything: */
           lam = lam + dlambda;
@@ -205,7 +206,7 @@
             user_data = user_function(lam, x, v, spacetime, chart, pars);
           }
         }
-        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data);
+        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 0);
       };
       runge_kutta.c_available = function(spacetime, chart) {
         return false;
@@ -380,7 +381,7 @@
         }
         return (false);
       };
-      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime_and_chart, pars, user_data) {
+      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime_and_chart, pars, user_data, err) {
         var x, v, info;
 
         runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, debug_function, spacetime_and_chart);
@@ -393,7 +394,7 @@
         if (!((user_data) == null)) {
           info['user_data'] = user_data;
         }
-        return [0, x, v, acc, lam, info];
+        return [err, x, v, acc, lam, info];
       };
       runge_kutta.runge_kutta_get_par_helper = function(opt, name, default_val) {
         var val;

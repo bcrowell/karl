@@ -50,6 +50,7 @@
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
       /* ... something went really wrong, output is garbage */
       /* ... the geodesic was incomplete */
+      /* ... exited due to a trigger */
       /* ... relative precision for arithmetic */
       /* ... ln of (1.0e-16) */
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */

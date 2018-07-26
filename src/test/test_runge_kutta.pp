@@ -23,7 +23,7 @@ def smoke_test():
   opt = {'lambda_max':100.0,'dlambda':10.0,'ndebug':ndebug}
   err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,{},x,v,opt)
   if err & RK_ERR:
-    THROW('error: '+info['message'])
+    THROW(strcat((['error: ',err])))
   # Angular coordinates shouldn't have changed:
   test.assert_equal(x[2],final_x[2])
   test.assert_equal(x[3],final_x[3])
@@ -47,7 +47,7 @@ def test_force():
          'force_acts':TRUE,'force_function':f,'force_chart':CH_SCH}
   err,final_x,final_v,final_a,final_lambda,info  = runge_kutta.trajectory_simple(SP_SCH,CH_SCH,{},x,v,opt)
   if err & RK_ERR:
-    THROW('error: '+info['message'])
+    THROW(strcat(['error: ',err]))
   # We're hovering, so r shouldn't have changed:
   test.assert_rel_equal_eps(x[1],final_x[1],1.0e-8)
   # Angular coordinates shouldn't have changed:

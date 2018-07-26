@@ -50,6 +50,7 @@
       /* return codes for Runge-Kutta, designed to be bitwise or-able. */
       /* ... something went really wrong, output is garbage */
       /* ... the geodesic was incomplete */
+      /* ... exited due to a trigger */
       karl.load("runge_kutta");
       karl.load("angular");
       karl.load("vector");
@@ -81,7 +82,7 @@
           info = temp[5]
         })();
         if (err & 1) {
-          throw 'error: ' + info['message'];;
+          throw strcat((['error: ', err]));;
         }
         /* Angular coordinates shouldn't have changed: */
         test.assert_equal(x[2], final_x[2]);
@@ -124,7 +125,7 @@
           info = temp[5]
         })();
         if (err & 1) {
-          throw 'error: ' + info['message'];;
+          throw strcat(['error: ', err]);;
         }
         /* We're hovering, so r shouldn't have changed: */
         test.assert_rel_equal_eps(x[1], final_x[1], 1.0e-8);
