@@ -33,23 +33,24 @@ def main():
   ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.lmc_ra_dec())
   tol = 1.0e-3
-  aberration_table = make_aberration_table(r,tol,TRUE,"aberration.csv")
+  aberration_table = make_aberration_table(r,tol)
+  write_csv_file(aberration_table,"aberration.csv",TRUE,"Table of aberration data written to")
   max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
               # in addition to the ones bright enough to be in the catalog
   if_black_hole = FALSE
   star_table = make_star_table(star_catalog,aberration_table,r,if_black_hole,\
-                               ra_out,dec_out,max_mag,TRUE,"stars.csv")
+                               ra_out,dec_out,max_mag)
+  write_csv_file(star_table,"stars.csv",TRUE,"Table of star data written to")
 
 #--------------------------------------------------------------------------------------------------
 
-def make_aberration_table(r,tol,write_csv,csv_file):
+def make_aberration_table(r,tol):
   """
   Determine a table of optical aberration angles for an observer in the Schwarzschild spacetime.
   Each line of the table is in the format [r,alpha,beta,beta-alpha,f], where r is observer's coordinate
   in units of Schwarzschild radius, alpha is angle as seen by observer if they're in a standard
   state of motion (free fall from rest at infinity), beta is angle on the celestial sphere,
-  and f is the factor by which intensities are amplified by lensing. If this is the python version
-  running, and write_csv is true, then we write a copy of the data to csv_file.
+  and f is the factor by which intensities are amplified by lensing.
   """
   spacetime = SP_SCH
   chart = CH_SCH
@@ -178,14 +179,6 @@ def make_aberration_table(r,tol,write_csv,csv_file):
     x.append(beta-alpha)
     x.append(f)
     table2.append(x)
-#if "LANG" eq "python"
-  if write_csv:
-    with open(csv_file, 'w') as f:
-      for x in table2:
-        # x = [r,alpha,beta,beta-alpha,f]
-        f.write(array_to_csv(x)+"\n")
-    print("table of aberration data written to "+csv_file)
-#endif
   return table2
 
 def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
@@ -258,7 +251,7 @@ def fill_in_aberration_table_by_interpolation(table,r):
     table.pop()
 
 
-def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,write_csv,csv_file):
+def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag):
   """
   Make a table of stars seen by on observer in the vicinity of a black hole, in a standard state of motion,
   which is free fall from rest at infinity.
@@ -269,14 +262,26 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   [r,alpha,beta,beta-alpha,f]. Here alpha is the observer's angle.
   Max_mag gives the maximum apparent magnitude to include.
   """
+  m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
+  m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
+  table = []
+  table,stats_real =\
+           real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv)
+  table,stats_fake =\
+           fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv)
+  n_stars = stats_real['n_stars']
+  count_drawn = stats_real['count_drawn']
+  count_fake = stats_fake['count_fake']
+  PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag,\
+            ", plus ",count_fake," fake stars")
+  return table
+
+def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv):
   db = sqlite3.connect(star_catalog)
   cursor = db.cursor()
   cursor.execute('''select max(id) from stars''')
   n_stars = cursor.fetchone()[0]
   print("n_stars=",n_stars)
-  m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
-  m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
-  table = []
   count_drawn = 0
   for i in range(n_stars):
     cursor = db.cursor()
@@ -296,7 +301,11 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
       f=1.0
     brightness = exp(-(mag/2.5)*log(10.0)+log(f))
     star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
+  db.close()
   PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
+  return [table,{'n_stars':n_stars,'count_drawn':count_drawn}]
+
+def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv):
   count_fake = 0
   count_boxes = 0
   for i in range(len(aberration_table)-1):
@@ -393,17 +402,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             if brightness>1.0e-3 and alpha <1.5:
               print("very bright fake star at low alpha, alpha,phi,brightness,mag=",alpha,phi,brightness,mag)
             star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
-  db.close()
-#if "LANG" eq "python"
-  print("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag,\
-            ", plus ",count_fake," fake stars")
-  if write_csv:
-    with open(csv_file, 'w') as f:
-      for x in table:
-        # x = [alpha,phi,brightness,bv]
-        f.write(array_to_csv(x)+"\n")
-    print("table of star data written to "+csv_file)
-#endif
+  return [table,{'count_fake':count_fake}]
 
 def star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole):
   if if_black_hole:
@@ -513,11 +512,26 @@ def array_to_csv(x):
   return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
 
 def read_csv_file(filename):
+#if "LANG" eq "python"
   with open(filename, 'r') as f:
     data = []
     reader = csv.reader(f)
     for row in reader:
       data.append(row)
     return data
+#else
+  return
+#endif
+
+def write_csv_file(table,filename,if_message,message):
+#if "LANG" eq "python"
+  with open(filename, 'w') as f:
+    for x in table:
+      f.write(array_to_csv(x)+"\n")
+  if if_message:
+    print(message+" "+filename)
+#else
+  return
+#endif
 
 main()
