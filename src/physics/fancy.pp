@@ -42,6 +42,7 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     optional parameters:
       triggers: a set of triggers; if this option is supplied, allow_transitions must be false
       allow_transitions: boolean, should we allow transitions between coordinate systems?; default: true
+      no_enter_horizon: if true, then the calculation is terminated if we cross from region I or III into II
   returns [err,x,v,a,final_lambda,info,sigma]
   """
   #---------------- Initialize some data. ------------------
@@ -69,6 +70,10 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     allow_transitions = opt['allow_transitions']
   else:
     allow_transitions = TRUE
+  if HAS_KEY(opt,'no_enter_horizon'):
+    no_enter_horizon = opt['no_enter_horizon']
+  else:
+    no_enter_horizon = FALSE
   if HAS_KEY(opt,'triggers'):
     if allow_transitions:
       THROW('allow_transitions should be false if there are user-supplied triggers')
@@ -86,6 +91,7 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
   #---------------- Loop in which we check for coordinate transitions, then delegate the
   #                 real work to the basic RK routine. ------------------
   n_unproductive = 0
+  visited_exterior = FALSE
   while True: #js while (true)
     triggers = CLONE_ARRAY_OF_FLOATS2DIM(user_triggers)
     r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
@@ -94,6 +100,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
       THROW_ARRAY(([\
             "error in r_stuff; this probably means we hit the singularity, adaptive RK not working right, r=",\
             r,", x=",x,", chart=",chart]))
+    if r>1.0:
+      visited_exterior = TRUE
     if allow_transitions:
       optimal_chart = chart_and_triggers(r,triggers,sigma,future_oriented)
       if chart!=optimal_chart:
@@ -107,13 +115,21 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
 #endif
       chart = optimal_chart
     opt['triggers'] = triggers
+    pop_trigger = FALSE
+    if no_enter_horizon and chart==CH_AKS and x[0]>0.0 and x[1]<0.0:
+      APPEND_TO_ARRAY(triggers,([1.0,1,0.0,0.3]))
+      pop_trigger = TRUE
     n,dlambda,terminate = choose_step_size(r,rdot,rddot,p,tol,lam_left,x,v,chart,real_lambda_max-lambda0,fallback_dlambda)
+    if pop_trigger:
+      POP_FROM_ARRAY(triggers)
     if r!=1.0:
       fallback_dlambda = dlambda
     if terminate:
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
       BREAK
+    #qweif n_unproductive>0:
+    #  print("n_unproductive=",n_unproductive,", r=",r,", x=",io_util.vector_to_str(x))
     if n_unproductive>0:
       dlambda = dlambda*2**(-n_unproductive)
     opt['dlambda'] = dlambda
@@ -130,6 +146,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16))
 #endif
     #---------------- Check the results. ------------------
+    if err==RK_TRIGGER:
+      break
     if final_lambda==lambda0:
       n_unproductive = n_unproductive+1
     else:
@@ -145,8 +163,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     # Find final Schwarzschild r:
     xs = transform.transform_point(x,spacetime,chart,pars,CH_SCH)
     r = xs[1]
-    # Check for incomplete geodesic:
-    if r<EPS or opt['dlambda']<EPS:
+    # Check for incomplete geodesic, or terminate due to entering horizon, if that's what the user wants.
+    if r<EPS or opt['dlambda']<EPS or (no_enter_horizon and r<1.0 and visited_exterior):
       r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
       err,r,rdot,rddot,p,lam_left = r_stuff
       final_lambda = final_lambda+lam_left
@@ -158,6 +176,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
   #---------------- Return. ----------------
   if err==RK_INCOMPLETE:
     info['message'] = 'incomplete geodesic'
+  if err==RK_TRIGGER:
+    info['message'] = 'triggered'
   return final_helper(err,final_x,final_v,final_a,final_lambda,info,sigma,spacetime,chart,pars,user_chart)
 
 def choose_step_size(r,rdot,rddot,p,tol,lam_left,x,v,chart,user_lambda_max,fallback_dlambda):

@@ -142,7 +142,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
     if n_triggers>0 and \
             trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
       return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
-                     norm_final,debug_function,spacetime|chart,pars,user_data)
+                     norm_final,debug_function,spacetime|chart,pars,user_data,RK_TRIGGER)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)
@@ -156,7 +156,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
     if not IS_NONE(user_function):
       user_data = user_function(lam,x,v,spacetime,chart,pars)
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
-              debug_function,spacetime|chart,pars,user_data)
+              debug_function,spacetime|chart,pars,user_data,0)
 
 def c_available(spacetime,chart):
 #if "LANG" eq "js"
@@ -294,7 +294,7 @@ def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_thres
   return FALSE
 
 def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
-             debug_function,spacetime_and_chart,pars,user_data):
+             debug_function,spacetime_and_chart,pars,user_data,err):
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,debug_function,spacetime_and_chart)
   # ... always do a printout for the final iteratation
   if norm_final:
@@ -303,7 +303,7 @@ def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dl
   info = {}
   if not IS_NONE(user_data):
     info['user_data'] = user_data
-  return [0,x,v,acc,lam,info]
+  return [err,x,v,acc,lam,info]
 
 def runge_kutta_get_par_helper(opt,name,default_val):
   val = default_val

@@ -94,18 +94,18 @@ def make_aberration_table(r,tol,write_csv,csv_file):
   count_winding(0.0,[],[],0,0,{})
   table = []
   last_deflection = 0.0
-  s1 = 5 # for moderate deflections, reduce step size by this factor
-  s2 = 20 # ... additional factor for large deflections
-  n_angles = 10*s1*s2 # we actually skip most of these angles
+  s0 = 2 # scaling factor for number of angular steps
+  s1 = 2 # for moderate deflections, reduce step size by this factor
+  s2 = 10 # ... additional factor for large deflections
+  n_angles = s0*s1*s2 # we actually skip most of these angles
   for in_n_out in range(2): # 0=outward, 1=inward
     for i in range(n_angles):
-      frac_skip = s1*s2 # normally we skip most of of the angles, don't need the resolution
+      frac_skip = s1*s2 # normally we fill in most of the angles by interpolation
       if last_deflection>0.5:
         frac_skip = frac_skip//s1
       if last_deflection>2.0:
         frac_skip = frac_skip//s2
-      if not (i%frac_skip==0):
-        continue
+      skip_this = not (i%frac_skip==0)
       z = (float(i)/float(n_angles))
       if in_n_out==1:
         z = 1.0-z
@@ -134,23 +134,28 @@ def make_aberration_table(r,tol,write_csv,csv_file):
       # ... normalized
       alpha = acos(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp))
       # ... angle at which the observer says the photon is emitted, see docs
-      beta,done = do_ray(spacetime,chart,pars,x,v,r,tol,count_winding)
+      if skip_this:
+        beta,done = [NONE,FALSE] # fill in later by interpolation
+      else:
+        beta,done = do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha)
       table.append([r,alpha,beta])
-      if verbosity>=2:
-        if alpha==0.0:
-          err_approx = 0.0
-        else:
-          approx = alpha/(sqrt(r)-1)
-          err_approx = (approx-abs(alpha-beta))/alpha
-        PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
-              " deg, rel err in approx=",err_approx)
-      last_deflection = abs(alpha-beta)
-      if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
-        PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
-        done = TRUE
-        break
+      if not (IS_NONE(beta) or IS_NAN(beta)):
+        if verbosity>=2:
+          if alpha==0.0:
+            err_approx = 0.0
+          else:
+            approx = alpha/(sqrt(r)-1)
+            err_approx = (approx-abs(alpha-beta))/alpha
+          PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
+                " deg, rel err in approx=",err_approx)
+        last_deflection = abs(alpha-beta)
+        if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
+          PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
+          done = TRUE
+          break
     if done:
       break
+  fill_in_aberration_table_by_interpolation(table,r)
   table2 = []
   for i in range(len(table)):
     x = CLONE_ARRAY_OF_FLOATS(table[i])
@@ -183,7 +188,7 @@ def make_aberration_table(r,tol,write_csv,csv_file):
 #endif
   return table2
 
-def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding):
+def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
   n = 100
   ndebug=0
   if verbosity>=3:
@@ -193,12 +198,12 @@ def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding):
   info = {}
   while True:
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,
-          'user_function':count_winding}
+          'user_function':count_winding,'no_enter_horizon':TRUE}
     err,final_x,final_v,final_a,final_lambda,info,sigma  = \
             fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
     if err!=0:
-      if err==RK_INCOMPLETE:
-        PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete, done.")
+      if err==RK_INCOMPLETE or err==RK_TRIGGER:
+        PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete or entered horizon, done.")
         return [NAN,TRUE]
       THROW("error: "+str(err))
     rf = final_x[1]
@@ -220,16 +225,38 @@ def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding):
   beta = beta+w*2.0*MATH_PI
   return [beta,FALSE]
 
-def array_to_csv(x):
-  return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
+def fill_in_aberration_table_by_interpolation(table,r):
+  #-------------------
+  # Use interpolation to fill in missing values.
+  # Find i and j that both have real data.
+  for i in range(len(table)-2):
+    if IS_NONE(table[i][2]):
+      continue
+    j=i+1
+    while j<=len(table)-1 and IS_NONE(table[j][2]):
+      j=j+1
+    if j==i+1 or j>len(table)-1:
+      continue
+    alpha1 = table[i][1]
+    alpha2 = table[j][1]
+    beta1 = table[i][2]
+    beta2 = table[j][2]
+    # Find error compared to small-angle approx:
+    err1 = alpha1/(sqrt(r)-1)-(beta1-alpha1)
+    err2 = alpha2/(sqrt(r)-1)-(beta2-alpha2)
+    k=i+1
+    while IS_NONE(table[k][2]) and k<j:
+      alpha = table[k][1]
+      err = linear_interp(alpha1,alpha2,err1,err2,alpha) # interpolate to find est. of what error would have been
+      beta = alpha+alpha/(sqrt(r)-1)-err
+      table[k][2] = beta
+      k=k+1
+  # Remove any uncomputed items from the end of the table:
+  while IS_NONE(table[len(table)-1][2]):
+    table.pop()
+  while IS_NAN(table[len(table)-1][2]):
+    table.pop()
 
-def read_csv_file(filename):
-  with open(filename, 'r') as f:
-    data = []
-    reader = csv.reader(f)
-    for row in reader:
-      data.append(row)
-    return data
 
 def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,write_csv,csv_file):
   """
@@ -259,7 +286,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
     alpha1 = ab1[1]
     alpha2 = ab2[1]
     alpha = 0.5*(alpha1+alpha2) # midpoint of strip
-    PRINT("alpha=",alpha*180.0/MATH_PI)
+    PRINT("making star table for alpha=",alpha*180.0/MATH_PI," deg.")
     dalpha = alpha2-alpha1
     beta1 = ab1[2]
     beta2 = ab2[2]
@@ -328,8 +355,8 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
         drawn[id] = TRUE
         count_drawn = count_drawn+1
         beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
-        if beta>MATH_PI:
-          THROW('beta>pi')
+        if beta>MATH_PI or IS_NAN(beta):
+          THROW('beta>pi or beta is NaN')
         alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
         brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
         star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
@@ -359,7 +386,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
             alpha = uniform_random(alpha1,alpha2)
             phi = uniform_random(phi1,phi2)
             mag = uniform_random(star_catalog_max_mag+i,star_catalog_max_mag+i+1)
-            beta = beta1+((beta2-beta1)/(alpha2-alpha1))*(alpha-alpha1)
+            beta = linear_interp(alpha1,alpha2,beta1,beta2,alpha)
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
             bv = 0.0 # fixme
             if brightness>1.0e-3 and alpha <1.5:
@@ -414,7 +441,7 @@ def poisson_random(mean):
 
 def brightness_helper(beta,mag,f1,f2,beta1,beta2,if_black_hole):
   if if_black_hole:
-    f = f1+((f2-f1)/(beta2-beta1))*(beta-beta1) # interpolate amplification factor
+    f = linear_interp(beta1,beta2,f1,f2,beta) # interpolate amplification factor
     if f<EPS: # can have f<0 due to interpolation
       f=EPS
   else:
@@ -466,5 +493,19 @@ def force_into_range(x,a,b):
   if x>b:
     return b
   return x
+
+def linear_interp(x1,x2,y1,y2,x):
+  return ((y2-y1)/(x2-x1))*(x-x1)+y1
+
+def array_to_csv(x):
+  return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
+
+def read_csv_file(filename):
+  with open(filename, 'r') as f:
+    data = []
+    reader = csv.reader(f)
+    for row in reader:
+      data.append(row)
+    return data
 
 main()

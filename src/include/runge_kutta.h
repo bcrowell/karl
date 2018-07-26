@@ -4,3 +4,5 @@
 # ... something went really wrong, output is garbage
 #define RK_INCOMPLETE 2
 # ... the geodesic was incomplete
+#define RK_TRIGGER 3
+# ... exited due to a trigger

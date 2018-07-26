@@ -14,6 +14,7 @@
 #define EMPTY2DIM(x) [[0 for i in range(x)] for j in range(x)]
 #define EMPTY3DIM(x) [[[0 for i in range(x)] for j in range(x)] for k in range(x)]
 #define APPEND_TO_ARRAY(x,y) ((x).append(y))
+#define POP_FROM_ARRAY(x) ((x).pop)
 #define PRINT print
 #define THROW(message) raise RuntimeError(message)
 #define THROW_ARRAY(aaa) THROW((io_util.strcat(aaa)))
@@ -45,6 +46,7 @@ karl.load("lib/array");
 #define EMPTY2DIM(x) karl.array2d((x),(x))
 #define EMPTY3DIM(x) karl.array3d((x),(x),(x))
 #define APPEND_TO_ARRAY(x,y) ((x).push(y))
+#define POP_FROM_ARRAY(x) ((x).pop)
 #define PRINT print
 # ... works in rhino and d8
 #define IS_BROWSER (typeof window !== 'undefined')
