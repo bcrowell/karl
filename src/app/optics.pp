@@ -271,22 +271,41 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   """
   db = sqlite3.connect(star_catalog)
   cursor = db.cursor()
-  cursor.execute('''select max(id) from stars where mag<=?''',(max_mag,))
+  cursor.execute('''select max(id) from stars''')
   n_stars = cursor.fetchone()[0]
   print("n_stars=",n_stars)
   m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
   m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
-  drawn = {}
   count_drawn = 0
+  for i in range(n_stars):
+    cursor = db.cursor()
+    cursor.execute('''SELECT ra,dec,mag,bv FROM stars WHERE id=?''',(i+1,))
+    row = cursor.fetchall()[0]
+    ra,dec,mag,bv = row
+    if mag>max_mag:
+      continue
+    beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
+    alpha = linear_interp_from_table(aberration_table,2,1,beta,0,len(aberration_table)-1)
+    count_drawn = count_drawn+1
+    if if_black_hole:
+      f = linear_interp_from_table(aberration_table,2,4,beta,0,len(aberration_table)-1)
+      if f<EPS: # can have f<0 due to interpolation
+        f=EPS
+    else:
+      f=1.0
+    brightness = exp(-(mag/2.5)*log(10.0)+log(f))
+    star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
+  PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
   count_fake = 0
+  count_boxes = 0
   for i in range(len(aberration_table)-1):
     ab1 = aberration_table[i]
     ab2 = aberration_table[i+1]
     alpha1 = ab1[1]
     alpha2 = ab2[1]
     alpha = 0.5*(alpha1+alpha2) # midpoint of strip
-    PRINT("making star table for alpha=",alpha*180.0/MATH_PI," deg.")
+    PRINT("adding fake stars for alpha=",alpha*180.0/MATH_PI," deg., count_boxes=",count_boxes)
     dalpha = alpha2-alpha1
     beta1 = ab1[2]
     beta2 = ab2[2]
@@ -295,6 +314,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
     # Break up the 2pi range of azimuthal angles into n_az chunks, so that each chunk within this
     # strip is approximately square.
     n_az = CEIL(2.0*MATH_PI*sin(alpha)/dalpha)
+    count_boxes = count_boxes+n_az
     dphi = 2.0*MATH_PI/n_az
     for j in range(n_az):
       phi1 = dphi*j
@@ -341,25 +361,6 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
       # Estimate cut-off for brightness:
       f_approx = ab1[4]
       mag_corr = 2.5*log(f_approx)/log(10.0) # for f_approx<1, this is negative
-      # Do a database search within this range of RA and dec.
-      cursor = db.cursor()
-      cursor.execute('''SELECT id,ra,dec,mag,bv FROM stars WHERE mag<=? AND ra>=? AND ra<=? AND dec>=? AND dec<=?''',\
-                      (max_mag+mag_corr,min_ra,max_ra,min_dec,max_dec))
-      all_rows = cursor.fetchall()
-      count_found = 0
-      for row in all_rows:
-        id,ra,dec,mag,bv = row
-        if id in drawn:
-          continue
-        count_found = count_found+1
-        drawn[id] = TRUE
-        count_drawn = count_drawn+1
-        beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
-        if beta>MATH_PI or IS_NAN(beta):
-          THROW('beta>pi or beta is NaN')
-        alpha = alpha1+((alpha2-alpha1)/(beta2-beta1))*(beta-beta1)
-        brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
-        star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
       if star_catalog_max_mag<max_mag+mag_corr:
         # Fill in fake random stars too dim to have been in the catalog.
         # Seares, 1925, http://adsbit.harvard.edu//full/1925ApJ....62..320S/0000320.000.html
@@ -496,6 +497,17 @@ def force_into_range(x,a,b):
 
 def linear_interp(x1,x2,y1,y2,x):
   return ((y2-y1)/(x2-x1))*(x-x1)+y1
+
+def linear_interp_from_table(table,x_col,y_col,x,i,j):
+  # Do a binary search through the table, so this is O(log(n)).
+  # If x is outside the range of values in the table, this algorithm results in silent linear extrapolation.
+  if j==i+1:
+    return linear_interp(table[i][x_col],table[j][x_col],table[i][y_col],table[j][y_col],x)
+  k=(i+j)//2
+  if table[k][x_col]>x:
+    return linear_interp_from_table(table,x_col,y_col,x,i,k)
+  else:
+    return linear_interp_from_table(table,x_col,y_col,x,k,j)
 
 def array_to_csv(x):
   return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))
