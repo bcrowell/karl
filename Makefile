@@ -22,16 +22,11 @@ all:
 	make c
 	make test
 
-obj/optics.py: src/app/optics.pp
-	make py
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/optics.pp -o obj/optics.py
-	@chmod +x obj/optics.py
-
 optics: obj/optics.py
 	make py
 	@chmod +x obj/optics.py
 	obj/optics.py
-	src/render/render.rb
+	obj/render.py
 	display stars.png
 
 depend: gen_depends.py

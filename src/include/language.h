@@ -32,6 +32,7 @@
 #define FALSE (False)
 #define LEN(x) len(x)
 #define CEIL(x) int(math.ceil(x))
+#define FLOOR(x) int(math.floor(x))
 #endif
 
 #if "LANG" eq "js"
@@ -67,6 +68,7 @@ karl.load("lib/array");
 #define LEN(x) ((x).length)
 #define CEIL(x) math.ceil(x)
 #                 ... works in rhino
+#define FLOOR(x) math.floor(x)
 #endif
 
 #endif

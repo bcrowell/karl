@@ -17,10 +17,14 @@ $gamma = 0.75 # https://en.wikipedia.org/wiki/Gamma_correction
 $default_width = 1000
 
 def main
+  w = $default_width
+  fov_deg = 45.0 # field of view in degrees
+  view_rot_deg = 0.0 # angle away from black hole, i.e., 180 means looking directly away from it
+  #----
   blur = 1 # std dev. of gaussian blur, in units of pixels
   truncate_blur = 4.0 # # truncate blur at 3 s.d.
   overexpose = 10.0
-  w = $default_width
+  #----
   image_i = Array.new(w) { Array.new(w) } # intensity
   image_h = Array.new(w) { Array.new(w) } # intensity-averaged hue
   image_s = Array.new(w) { Array.new(w) } # intensity-averaged saturation

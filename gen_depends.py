@@ -28,6 +28,13 @@ def main():
       """):
     add_target(targets,target,physics_and_math)
 
+  apps = {**generic,**{"name":"apps","apps":True}}
+  for target in prep_list("""
+        optics
+        render
+      """):
+    add_target(targets,target,apps)
+
   util = {**generic,**{"name":"util"}}
   for target in prep_list("""
         io_util        
@@ -75,12 +82,17 @@ def main():
       for target in targets[pat_name]:
         pat = targets[pat_name][target]
         is_test = ("test" in pat and pat["test"])
+        is_app = ("apps" in pat and pat["apps"])
         if is_test:
           prefix = "test_"
           src_dir = "test/"
         else:
-          prefix = ""
-          src_dir = "physics/"
+          if is_app:
+            prefix = ""
+            src_dir = "app/"
+          else:
+            prefix = ""
+            src_dir = "physics/"
         pp = "src/"+src_dir+prefix+target+".pp"
         py = "obj/"+prefix+target+".py"
         js = "js/"+prefix+target+".js"
