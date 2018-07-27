@@ -11,14 +11,14 @@ def main():
   outfile = "stars.json"
   verbosity = 1
   #----
-  w = 1000 # pixels, width of square image
-  h = 700
+  w = 1200 # pixels, width of square image
+  h = 600
   fov_deg = 90.0 # horizontal field of view in degrees
   view_rot_deg = 180.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----
   blur = 1 # std dev. of gaussian blur, in units of pixels
   truncate_blur = 4.0 # # truncate blur at 3 s.d.
-  exposure = 1.0
+  exposure = 3.0
   gamma = 0.75 # https://en.wikipedia.org/wiki/Gamma_correction
   # A value less than 1 makes stars appear more uniform in brightness, makes
   # dim stars easier to see.
@@ -45,7 +45,7 @@ def main():
   table = read_csv_file(csv_file)
   for i in range(len(table)):
     row = table[i]
-    alpha,phi,brightness,bv = float(row[0]),float(row[1]),float(row[2]),float(row[3])
+    alpha,phi,raw_brightness,bv = float(row[0]),float(row[1]),float(row[2]),float(row[3])
     if TRUE:
       v = euclidean.spherical_to_cartesian(alpha,phi)
       v = euclidean.apply_matrix(rot,v)
@@ -59,7 +59,12 @@ def main():
     y = FLOOR(0.5*h+r*sin(phi2)+0.5)
     if not (x>=0 and x<=w-1 and y>=0 and y<=w-1):
       continue
-    p = CEIL(blur*truncate_blur+0.5) # size of square and inscribed circle on which to do computations
+    brightness = raw_brightness*exposure
+    if brightness<=1.0:
+      bloat = 1.0
+    else:
+      bloat = sqrt(brightness) # increase radius of blob to represent greater brightness
+    p = CEIL(bloat*blur*truncate_blur+0.5) # size of square and inscribed circle on which to do computations
     blur2 = blur*blur
     for ii in range(2*p+1):
       i = ii-p
@@ -73,9 +78,14 @@ def main():
           continue
         # gaussian blur
         r2 = i*i+j*j
-        if not r2/blur2<truncate_blur*truncate_blur:
+        gaussian_x = r2/blur2
+        if bloat>1.0:
+          gaussian_x=gaussian_x-(bloat-1.0)
+          if gaussian_x<0.0:
+            gaussian_x = 0.0
+        if not gaussian_x<truncate_blur*truncate_blur:
           continue # cut off to a circle, so it doesn't look boxy
-        b = brightness*exp(-0.5*r2/blur2)
+        b = brightness*exp(-0.5*gaussian_x)
         image_i[xx][yy] = image_i[xx][yy]+b
         hue,sat = bv_to_color(bv)
         image_h[xx][yy] = image_h[xx][yy]+b*hue

@@ -401,8 +401,6 @@ def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m
             beta = linear_interp(alpha1,alpha2,beta1,beta2,alpha)
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
             bv = 0.0 # fixme
-            if brightness>1.0e-3 and alpha <1.5:
-              print("very bright fake star at low alpha, alpha,phi,brightness,mag=",alpha,phi,brightness,mag)
             star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
   return [table,{'count_fake':count_fake}]
 
