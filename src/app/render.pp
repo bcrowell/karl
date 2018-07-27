@@ -73,11 +73,13 @@ def main():
     exit(-1)
   # Make hue and saturation into intensity-weighted averages:
   for i in range(w):
+    if math.isinf(image_h[487][504]):
+      THROW('qwe250')
     for j in range(w):
       z = image_i[i][j]
       if z>0.0:
-        image_h[xx][yy] = image_h[xx][yy]/z
-        image_s[xx][yy] = image_s[xx][yy]/z
+        image_h[i][j] = image_h[i][j]/z
+        image_s[i][j] = image_s[i][j]/z
   # Gamma correction:
   for i in range(w):
     for j in range(w):

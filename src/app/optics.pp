@@ -37,7 +37,7 @@ def main():
   write_csv_file(aberration_table,"aberration.csv",TRUE,"Table of aberration data written to")
   max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
               # in addition to the ones bright enough to be in the catalog
-  if_black_hole = TRUE
+  if_black_hole = FALSE
   star_table = make_star_table(star_catalog,aberration_table,r,if_black_hole,\
                                ra_out,dec_out,max_mag)
   write_csv_file(star_table,"stars.csv",TRUE,"Table of star data written to")

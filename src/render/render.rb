@@ -17,7 +17,7 @@ def main
   begin
     image_arrays = JSON.parse File.read(infile)
   rescue JSON::ParserError
-    $stderr.print "invalid JSON syntax"
+    print "invalid JSON syntax, #{$!}"
     exit(-1)
   end 
   #----
