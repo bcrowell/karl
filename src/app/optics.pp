@@ -13,7 +13,8 @@
 #include "runge_kutta.h"
 #include "precision.h"
 
-import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial
+import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial,math_util,\
+       star_properties
 #if "LANG" eq "python"
 import sys,os,copy,sqlite3,csv,random
 import PIL,ephem
@@ -240,7 +241,7 @@ def fill_in_aberration_table_by_interpolation(table,r):
     k=i+1
     while IS_NONE(table[k][2]) and k<j:
       alpha = table[k][1]
-      err = linear_interp(alpha1,alpha2,err1,err2,alpha) # interpolate to find est. of what error would have been
+      err = math_util.linear_interp(alpha1,alpha2,err1,err2,alpha) # interpolate to find est. of what error would have been
       beta = alpha+alpha/(sqrt(r)-1)-err
       table[k][2] = beta
       k=k+1
@@ -293,10 +294,10 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
     if mag>max_mag:
       continue
     beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
-    alpha = linear_interp_from_table(aberration_table,2,1,beta,0,len(aberration_table)-1)
+    alpha = math_util.linear_interp_from_table(aberration_table,2,1,beta,0,len(aberration_table)-1)
     count_drawn = count_drawn+1
     if if_black_hole:
-      f = linear_interp_from_table(aberration_table,2,4,beta,0,len(aberration_table)-1)
+      f = math_util.linear_interp_from_table(aberration_table,2,4,beta,0,len(aberration_table)-1)
       if f<EPS: # can have f<0 due to interpolation
         f=EPS
     else:
@@ -398,9 +399,9 @@ def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m
             alpha = uniform_random(alpha1,alpha2)
             phi = uniform_random(phi1,phi2)
             mag = uniform_random(star_catalog_max_mag+i,star_catalog_max_mag+i+1)
-            beta = linear_interp(alpha1,alpha2,beta1,beta2,alpha)
+            beta = math_util.linear_interp(alpha1,alpha2,beta1,beta2,alpha)
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
-            bv = 0.0 # fixme
+            bv = star_properties.spectral_class_to_bv(star_properties.random_spectral_class())
             star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
   return [table,{'count_fake':count_fake}]
 
@@ -441,7 +442,7 @@ def poisson_random(mean):
 
 def brightness_helper(beta,mag,f1,f2,beta1,beta2,if_black_hole):
   if if_black_hole:
-    f = linear_interp(beta1,beta2,f1,f2,beta) # interpolate amplification factor
+    f = math_util.linear_interp(beta1,beta2,f1,f2,beta) # interpolate amplification factor
     if f<EPS: # can have f<0 due to interpolation
       f=EPS
   else:
@@ -459,8 +460,8 @@ def get_star_density(ra,dec):
   y = CEIL((lat/(MATH_PI/2.0))*y_res)+y_res//2
   if x>x_res-1:
     x = x-x_res
-  x = force_into_range(x,0,x_res-1)
-  y = force_into_range(y,0,y_res-1)
+  x = math_util.force_into_range(x,0,x_res-1)
+  y = math_util.force_into_range(y,0,y_res-1)
   # Filenames are like gaia_color_equirect_medium_part_08_07.png
   # Here, i=8, j=7. See data/star_density/split_gaia.rb.
   # Blocks are 100x100 pixels. The files are in equirectangular projection, https://en.wikipedia.org/wiki/Equirectangular_projection ,
@@ -487,26 +488,6 @@ def to_galactic_lon_lat(ra,dec):
   g = ephem.Galactic(ephem.Equatorial(ra, dec))
   return [g.lon+0.0,g.lat+0.0]
 
-def force_into_range(x,a,b):
-  if x<a:
-    return a
-  if x>b:
-    return b
-  return x
-
-def linear_interp(x1,x2,y1,y2,x):
-  return ((y2-y1)/(x2-x1))*(x-x1)+y1
-
-def linear_interp_from_table(table,x_col,y_col,x,i,j):
-  # Do a binary search through the table, so this is O(log(n)).
-  # If x is outside the range of values in the table, this algorithm results in silent linear extrapolation.
-  if j==i+1:
-    return linear_interp(table[i][x_col],table[j][x_col],table[i][y_col],table[j][y_col],x)
-  k=(i+j)//2
-  if table[k][x_col]>x:
-    return linear_interp_from_table(table,x_col,y_col,x,i,k)
-  else:
-    return linear_interp_from_table(table,x_col,y_col,x,k,j)
 
 def array_to_csv(x):
   return ",".join(map(lambda u : io_util.fl_n_decimals(u,12), x))

@@ -50,3 +50,24 @@ def asinh_of_exp(u):
     y = y + term
   return y # If we get here, the approx. may not be very good.
 
+def force_into_range(x,a,b):
+  if x<a:
+    return a
+  if x>b:
+    return b
+  return x
+
+def linear_interp(x1,x2,y1,y2,x):
+  return ((y2-y1)/(x2-x1))*(x-x1)+y1
+
+def linear_interp_from_table(table,x_col,y_col,x,i,j):
+  # Do a binary search through the table, so this is O(log(n)).
+  # The i,j parameters at the end are really here for recursion; normally call this with 0,len(table)-1.
+  # If x is outside the range of values in the table, this algorithm results in silent linear extrapolation.
+  if j==i+1:
+    return linear_interp(table[i][x_col],table[j][x_col],table[i][y_col],table[j][y_col],x)
+  k=(i+j)//2
+  if table[k][x_col]>x:
+    return linear_interp_from_table(table,x_col,y_col,x,i,k)
+  else:
+    return linear_interp_from_table(table,x_col,y_col,x,k,j)

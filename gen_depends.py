@@ -25,6 +25,7 @@ def main():
         conserved
         euclidean
         celestial
+        star_properties
       """):
     add_target(targets,target,physics_and_math)
 

@@ -41,8 +41,8 @@ File.readlines(infile).each { |line|
   if line =~ /^#/ then next end
   nlines = nlines+1
   if nlines%100==0 then print "." end
-  if line=~/^(.{9,9}) (.{9,9}) [^ ]* (.{5,5})(.{5,5})/ then
-    ra,dec,mag,bv = hms_to_radians($1),dec_to_radians($2),$3.to_f,$4.to_f
+  if line=~/^(.{9,9}) (.{9,9}) [^ ]* (.{5,5})(.{5,5})(.)(.)/ then
+    ra,dec,mag,bv,class,subclass = hms_to_radians($1),dec_to_radians($2),$3.to_f,$4.to_f,$5,$6
     if mag<7.0 then
       db.execute("INSERT INTO stars VALUES(#{nlines},#{ra},#{dec},#{mag},#{bv})")
     end

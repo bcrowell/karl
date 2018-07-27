@@ -17,8 +17,8 @@ def main():
   view_rot_deg = 100.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----
   blur = 1 # std dev. of gaussian blur, in units of pixels
-  exposure = 30.0
-  gamma = 0.75 # https://en.wikipedia.org/wiki/Gamma_correction
+  exposure = 10.0
+  gamma = 0.7 # https://en.wikipedia.org/wiki/Gamma_correction
   # A value less than 1 makes stars appear more uniform in brightness, makes
   # dim stars easier to see.
   #----
