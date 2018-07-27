@@ -14,11 +14,10 @@ def main():
   w = 1200 # pixels, width of square image
   h = 600
   fov_deg = 90.0 # horizontal field of view in degrees
-  view_rot_deg = 160.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
+  view_rot_deg = 100.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----
   blur = 1 # std dev. of gaussian blur, in units of pixels
-  truncate_blur = 4.0 # # truncate blur at 3 s.d.
-  exposure = 3.0
+  exposure = 30.0
   gamma = 0.75 # https://en.wikipedia.org/wiki/Gamma_correction
   # A value less than 1 makes stars appear more uniform in brightness, makes
   # dim stars easier to see.
@@ -29,7 +28,6 @@ def main():
   fov_rad = euclidean.deg_to_rad(fov_deg)
   view_rot_rad = euclidean.deg_to_rad(view_rot_deg)
   rot = euclidean.rotation_matrix_from_axis_and_angle(MATH_PI-view_rot_rad,[0.0,1.0,0.0])
-  print("rot=",rot)
   k_proj = (w/2.0)/tan(fov_rad/2.0) # proportionality constant for stereographic projection
   image_i = []
   image_h = []
@@ -65,8 +63,10 @@ def main():
       bloat = 1.0
     else:
       bloat = sqrt(brightness) # increase radius of blob to represent greater brightness
+      brightness=1.0
+    truncate_blur = 4.0 # go out to 4 s.d. in gaussian blur
     p = CEIL(bloat*blur*truncate_blur+0.5) # size of square and inscribed circle on which to do computations
-    blur2 = blur*blur
+    blur2 = blur*blur*bloat*bloat
     for ii in range(2*p+1):
       i = ii-p
       xx = x+i
@@ -80,12 +80,6 @@ def main():
         # gaussian blur
         r2 = i*i+j*j
         gaussian_x = r2/blur2
-        if bloat>1.0:
-          gaussian_x=gaussian_x-(bloat-1.0)
-          if gaussian_x<0.0:
-            gaussian_x = 0.0
-        if not gaussian_x<truncate_blur*truncate_blur:
-          continue # cut off to a circle, so it doesn't look boxy
         b = brightness*exp(-0.5*gaussian_x)
         image_i[xx][yy] = image_i[xx][yy]+b
         hue,sat = bv_to_color(bv)
@@ -109,7 +103,7 @@ def main():
   # Gamma correction:
   for i in range(w):
     for j in range(h):
-      image_i[i][j] = exposure*max*(image_i[i][j]/max)**gamma
+      image_i[i][j] = max*(image_i[i][j]/max)**gamma
   with open(outfile, 'w') as f:
     f.write(json.dumps([image_i,image_h,image_s]))
   if verbosity>=1:
