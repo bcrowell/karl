@@ -303,13 +303,7 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
       f=1.0
     brightness = exp(-(mag/2.5)*log(10.0)+log(f))
     star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
-    if beta>MATH_PI-0.01: # qwe
-      k1 = k1+1
-    if beta<0.01:
-      k2 = k2+1
-      print("adding rigel, row=",table[-1]," mag=",mag,", f=",f)
   db.close()
-  print("k1,k2=",k1,k2)
   PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
   return [table,{'n_stars':n_stars,'count_drawn':count_drawn}]
 

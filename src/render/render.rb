@@ -26,13 +26,14 @@ def main
   #----
   image_i,image_h,image_s = image_arrays
   w = image_i.length # width of square field of view, in pixels
+  h = image_i[0].length # height
   #----
   black = hsv_to_color(0,0,0)
   white = hsv_to_color(0,0,100.0)
-  png_image = ChunkyPNG::Image.new(w,w,black)
+  png_image = ChunkyPNG::Image.new(w,h,black)
   max_hue = 265.0
   0.upto(w-1) { |i|
-    0.upto(w-1) { |j|
+    0.upto(h-1) { |j|
       next if image_i[i][j]==0
       l = 100.0*image_i[i][j].to_f
       l = put_in_range(l,0.0,100.0)
