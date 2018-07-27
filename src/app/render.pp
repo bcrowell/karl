@@ -71,6 +71,17 @@ def main():
   if max==0.0:
     print("max=0")
     exit(-1)
+  # Make hue and saturation into intensity-weighted averages:
+  for i in range(w):
+    for j in range(w):
+      z = image_i[i][j]
+      if z>0.0:
+        image_h[xx][yy] = image_h[xx][yy]/z
+        image_s[xx][yy] = image_s[xx][yy]/z
+  # Gamma correction:
+  for i in range(w):
+    for j in range(w):
+      image_i[i][j] = max*(image_i[i][j]/max)**gamma
   with open(outfile, 'w') as f:
     f.write(json.dumps([image_i,image_h,image_s]))
 
