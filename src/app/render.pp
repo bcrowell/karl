@@ -14,7 +14,7 @@ def main():
   w = 1200 # pixels, width of square image
   h = 600
   fov_deg = 90.0 # horizontal field of view in degrees
-  view_rot_deg = 180.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
+  view_rot_deg = 160.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----
   blur = 1 # std dev. of gaussian blur, in units of pixels
   truncate_blur = 4.0 # # truncate blur at 3 s.d.
@@ -29,6 +29,7 @@ def main():
   fov_rad = euclidean.deg_to_rad(fov_deg)
   view_rot_rad = euclidean.deg_to_rad(view_rot_deg)
   rot = euclidean.rotation_matrix_from_axis_and_angle(MATH_PI-view_rot_rad,[0.0,1.0,0.0])
+  print("rot=",rot)
   k_proj = (w/2.0)/tan(fov_rad/2.0) # proportionality constant for stereographic projection
   image_i = []
   image_h = []
@@ -92,7 +93,7 @@ def main():
         image_s[xx][yy] = image_s[xx][yy]+b*sat
   max = 0.0
   for i in range(w):
-    for j in range(y):
+    for j in range(h):
       if image_i[i][j]>max:
         max = image_i[i][j]
   if max==0.0:
