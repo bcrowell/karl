@@ -20,7 +20,7 @@ import PIL,ephem
 from PIL import Image
 #endif
 
-verbosity=2
+verbosity=1
 
 star_catalog_max_mag = 7
 star_catalog = '/usr/share/karl/mag7.sqlite'
@@ -29,15 +29,15 @@ star_catalog = '/usr/share/karl/mag7.sqlite'
 def main():
   r = 9.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
-  #ra_out,dec_out = celestial.rigel_ra_dec()
-  ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
+  ra_out,dec_out = celestial.rigel_ra_dec()
+  #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.lmc_ra_dec())
   tol = 1.0e-3
   aberration_table = make_aberration_table(r,tol)
   write_csv_file(aberration_table,"aberration.csv",TRUE,"Table of aberration data written to")
   max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
               # in addition to the ones bright enough to be in the catalog
-  if_black_hole = FALSE
+  if_black_hole = TRUE
   star_table = make_star_table(star_catalog,aberration_table,r,if_black_hole,\
                                ra_out,dec_out,max_mag)
   write_csv_file(star_table,"stars.csv",TRUE,"Table of star data written to")
@@ -303,10 +303,11 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
       f=1.0
     brightness = exp(-(mag/2.5)*log(10.0)+log(f))
     star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
-    if beta>MATH_PI-0.5: # qwe
+    if beta>MATH_PI-0.01: # qwe
       k1 = k1+1
-    if beta<0.5:
+    if beta<0.01:
       k2 = k2+1
+      print("adding rigel, row=",table[-1]," mag=",mag,", f=",f)
   db.close()
   print("k1,k2=",k1,k2)
   PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
@@ -321,7 +322,7 @@ def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m
     alpha1 = ab1[1]
     alpha2 = ab2[1]
     alpha = 0.5*(alpha1+alpha2) # midpoint of strip
-    PRINT("adding fake stars for alpha=",alpha*180.0/MATH_PI," deg., count_boxes=",count_boxes)
+    #PRINT("adding fake stars for alpha=",alpha*180.0/MATH_PI," deg., count_boxes=",count_boxes)
     dalpha = alpha2-alpha1
     beta1 = ab1[2]
     beta2 = ab2[2]

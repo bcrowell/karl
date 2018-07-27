@@ -13,6 +13,9 @@ def main
   infile = 'stars.json'
   fov_deg = 45.0 # field of view in degrees
   view_rot_deg = 0.0 # angle away from black hole, i.e., 180 means looking directly away from it
+  verbosity = 1
+  #----
+  if verbosity>=1 then print "starting rendering to PNG (render.rb)\n" end
   #----
   begin
     image_arrays = JSON.parse File.read(infile)
@@ -30,6 +33,7 @@ def main
   max_hue = 265.0
   0.upto(w-1) { |i|
     0.upto(w-1) { |j|
+      next if image_i[i][j]==0
       l = 100.0*image_i[i][j].to_f
       l = put_in_range(l,0.0,100.0)
       hue = put_in_range(image_h[i][j].to_f*max_hue,0.0,max_hue)
@@ -39,6 +43,7 @@ def main
     }
   }
   png_image.save("stars.png")
+  if verbosity>=1 then print "done with rendering to PNG (render.rb)\n" end
 end
 
 def put_in_range(x,min,max)

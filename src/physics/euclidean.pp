@@ -60,3 +60,13 @@ def cross_prod(a,b):
 def determinant(m):
   return   m[0][0]*m[1][1]*m[2][2]+m[1][0]*m[2][1]*m[0][2]+m[2][0]*m[0][1]*m[1][2]+\
          -(m[2][0]*m[1][1]*m[0][2]+m[0][0]*m[2][1]*m[1][2]+m[1][0]*m[0][1]*m[2][2])
+
+def spherical_to_cartesian(theta,phi):
+  return [sin(theta)*cos(phi),sin(theta)*sin(phi),cos(theta)]
+
+def cartesian_to_spherical(v):
+  # returns [theta,phi]
+  return [acos(v[2]),atan2(v[1],v[0])]
+
+def deg_to_rad(x):
+  return (MATH_PI/180.0)*x

@@ -4,7 +4,7 @@ from lambert_w_stuff import lambert_w,lambert_w_of_exp
 import math_util
 from math_util import asinh_of_exp
 import math
-from math import sin,cos,exp,sinh,cosh,tanh,sqrt,asin,acos,atan2,pi,log,floor
+from math import sin,cos,tan,exp,sinh,cosh,tanh,sqrt,asin,acos,atan2,pi,log,floor
 import numpy
 import scipy
 from numpy import arctanh,arcsinh
