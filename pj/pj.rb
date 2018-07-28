@@ -276,7 +276,7 @@ def translate_line(l,current_function_key)
   if l=~/^\s*(\w([\w0-9\[\]]|,\s*)*)\s*=/ then 
     return translate_assignment(l,current_function_key)
   end
-  if l=~/for/ and l=~/range/ then
+  if l=~/for / and l=~/ range\(/ then
     return translate_for_loop(l,current_function_key)
   end
   if has_math(l) then l=translate_math_with_comment(l) end # things like function calls that have math in them
@@ -297,6 +297,9 @@ def translate_for_loop(l,current_function_key)
     end
     hi = translate_expression_common_idioms(hi)
     return "for (var #{var}=#{lo}; #{var}<#{hi}; #{var}++)"
+  else
+    $stderr.print "Error translating for loop: "+l+"\n"
+    exit(-1)
   end
 end
 

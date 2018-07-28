@@ -1,5 +1,6 @@
 import random
 
+#include "language.h"
 #include "math.h"
 
 import math_util

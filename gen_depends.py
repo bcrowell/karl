@@ -99,9 +99,10 @@ def main():
         js = "js/"+prefix+target+".js"
         jsi = "js/"+prefix+target+".jsi"
         if npass==0:
-          all_js.append(js)
           all_py.append(py)
-          if not is_test:
+          if not is_app:
+            all_js.append(js)
+          if not (is_test or is_app):
             all_js_modules.append(js)
             all_py_modules.append(py)
           if is_test:
@@ -113,11 +114,12 @@ def main():
           print(py+": "+pp+" "+include_files)
           print("	filepp $(FILEPP_OPTIONS) -DLANG=python "+pp+" -o "+py)
           print("	@chmod +x "+py)
-          print(js+": "+pp+" "+include_files)
-          print("	filepp $(FILEPP_OPTIONS) -DLANG=js "+pp+" -o "+jsi)
-          print("	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js)
-          print("	@rm "+jsi)
-          print("	@-js-beautify --replace -n -s 2 "+js)
+          if not is_app:
+            print(js+": "+pp+" "+include_files)
+            print("	filepp $(FILEPP_OPTIONS) -DLANG=js "+pp+" -o "+jsi)
+            print("	pj/pj.rb "+jsi+" karl <"+jsi+" >"+js)
+            print("	@rm "+jsi)
+            print("	@-js-beautify --replace -n -s 2 "+js)
           if is_test:
             print("test_"+target+"_py: "+py+" "+py_modules+" obj/karl.so")
             print("	@$(PYTHON3) "+py)

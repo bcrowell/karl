@@ -1,230 +1,74 @@
 # --------------------------------------------------------------------------------
 # This file was generated automatically by gen_depends.py. Do not edit it by hand.
 # --------------------------------------------------------------------------------
-test: obj/test_celestial.py js/test_celestial.js obj/test_schwarzschild.py js/test_schwarzschild.js obj/test_math.py js/test_math.js obj/test_math_util.py js/test_math_util.js obj/test_kruskal.py js/test_kruskal.js obj/test_lambert_w.py js/test_lambert_w.js obj/test_angular.py js/test_angular.js obj/test_fancy.py js/test_fancy.js obj/test_keplerian.py js/test_keplerian.js obj/test_transform.py js/test_transform.js obj/test_euclidean.py js/test_euclidean.js obj/test_runge_kutta.py js/test_runge_kutta.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py
-	@make test_celestial
+test: obj/test_transform.py js/test_transform.js obj/test_fancy.py js/test_fancy.js obj/test_euclidean.py js/test_euclidean.js obj/test_schwarzschild.py js/test_schwarzschild.js obj/test_lambert_w.py js/test_lambert_w.js obj/test_angular.py js/test_angular.js obj/test_runge_kutta.py js/test_runge_kutta.js obj/test_celestial.py js/test_celestial.js obj/test_keplerian.py js/test_keplerian.js obj/test_kruskal.py js/test_kruskal.js obj/test_math_util.py js/test_math_util.js obj/test_math.py js/test_math.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py
+	@make test_transform
+	@make test_fancy
+	@make test_euclidean
 	@make test_schwarzschild
-	@make test_math
-	@make test_math_util
-	@make test_kruskal
 	@make test_lambert_w
 	@make test_angular
-	@make test_fancy
-	@make test_keplerian
-	@make test_transform
-	@make test_euclidean
 	@make test_runge_kutta
+	@make test_celestial
+	@make test_keplerian
+	@make test_kruskal
+	@make test_math_util
+	@make test_math
 
-js: js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js js/test_celestial.js js/test_schwarzschild.js js/test_math.js js/test_math_util.js js/test_kruskal.js js/test_lambert_w.js js/test_angular.js js/test_fancy.js js/test_keplerian.js js/test_transform.js js/test_euclidean.js js/test_runge_kutta.js
+js: js/test_transform.js js/test_fancy.js js/test_euclidean.js js/test_schwarzschild.js js/test_lambert_w.js js/test_angular.js js/test_runge_kutta.js js/test_celestial.js js/test_keplerian.js js/test_kruskal.js js/test_math_util.js js/test_math.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
 	#
-py: obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/test_celestial.py obj/test_schwarzschild.py obj/test_math.py obj/test_math_util.py obj/test_kruskal.py obj/test_lambert_w.py obj/test_angular.py obj/test_fancy.py obj/test_keplerian.py obj/test_transform.py obj/test_euclidean.py obj/test_runge_kutta.py
+py: obj/test_transform.py obj/test_fancy.py obj/test_euclidean.py obj/test_schwarzschild.py obj/test_lambert_w.py obj/test_angular.py obj/test_runge_kutta.py obj/test_celestial.py obj/test_keplerian.py obj/test_kruskal.py obj/test_math_util.py obj/test_math.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/optics.py obj/render.py
 	#
-#--------- test (util)
-obj/test.py: src/physics/test.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/test.pp -o obj/test.py
-	@chmod +x obj/test.py
-js/test.js: src/physics/test.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/test.pp -o js/test.jsi
-	pj/pj.rb js/test.jsi karl <js/test.jsi >js/test.js
-	@rm js/test.jsi
-	@-js-beautify --replace -n -s 2 js/test.js
+#--------- transform (test)
+obj/test_transform.py: src/test/test_transform.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_transform.pp -o obj/test_transform.py
+	@chmod +x obj/test_transform.py
+js/test_transform.js: src/test/test_transform.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_transform.pp -o js/test_transform.jsi
+	pj/pj.rb js/test_transform.jsi karl <js/test_transform.jsi >js/test_transform.js
+	@rm js/test_transform.jsi
+	@-js-beautify --replace -n -s 2 js/test_transform.js
+test_transform_py: obj/test_transform.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_transform.py
+test_transform_js: js/test_transform.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_transform.js
+test_transform:
+	@make -s --no-print-directory test_transform_py
+	@make -s --no-print-directory test_transform_js
 
-#--------- c_libs (util)
-obj/c_libs.py: src/physics/c_libs.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/c_libs.pp -o obj/c_libs.py
-	@chmod +x obj/c_libs.py
-js/c_libs.js: src/physics/c_libs.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/c_libs.pp -o js/c_libs.jsi
-	pj/pj.rb js/c_libs.jsi karl <js/c_libs.jsi >js/c_libs.js
-	@rm js/c_libs.jsi
-	@-js-beautify --replace -n -s 2 js/c_libs.js
+#--------- fancy (test)
+obj/test_fancy.py: src/test/test_fancy.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_fancy.pp -o obj/test_fancy.py
+	@chmod +x obj/test_fancy.py
+js/test_fancy.js: src/test/test_fancy.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_fancy.pp -o js/test_fancy.jsi
+	pj/pj.rb js/test_fancy.jsi karl <js/test_fancy.jsi >js/test_fancy.js
+	@rm js/test_fancy.jsi
+	@-js-beautify --replace -n -s 2 js/test_fancy.js
+test_fancy_py: obj/test_fancy.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_fancy.py
+test_fancy_js: js/test_fancy.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_fancy.js
+test_fancy:
+	@make -s --no-print-directory test_fancy_py
+	@make -s --no-print-directory test_fancy_js
 
-#--------- io_util (util)
-obj/io_util.py: src/physics/io_util.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/io_util.pp -o obj/io_util.py
-	@chmod +x obj/io_util.py
-js/io_util.js: src/physics/io_util.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/io_util.pp -o js/io_util.jsi
-	pj/pj.rb js/io_util.jsi karl <js/io_util.jsi >js/io_util.js
-	@rm js/io_util.jsi
-	@-js-beautify --replace -n -s 2 js/io_util.js
-
-#--------- render (apps)
-obj/render.py: src/app/render.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/render.pp -o obj/render.py
-	@chmod +x obj/render.py
-js/render.js: src/app/render.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/app/render.pp -o js/render.jsi
-	pj/pj.rb js/render.jsi karl <js/render.jsi >js/render.js
-	@rm js/render.jsi
-	@-js-beautify --replace -n -s 2 js/render.js
-
-#--------- optics (apps)
-obj/optics.py: src/app/optics.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/optics.pp -o obj/optics.py
-	@chmod +x obj/optics.py
-js/optics.js: src/app/optics.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/app/optics.pp -o js/optics.jsi
-	pj/pj.rb js/optics.jsi karl <js/optics.jsi >js/optics.js
-	@rm js/optics.jsi
-	@-js-beautify --replace -n -s 2 js/optics.js
-
-#--------- celestial (physics_and_math)
-obj/celestial.py: src/physics/celestial.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/celestial.pp -o obj/celestial.py
-	@chmod +x obj/celestial.py
-js/celestial.js: src/physics/celestial.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/celestial.pp -o js/celestial.jsi
-	pj/pj.rb js/celestial.jsi karl <js/celestial.jsi >js/celestial.js
-	@rm js/celestial.jsi
-	@-js-beautify --replace -n -s 2 js/celestial.js
-
-#--------- schwarzschild (physics_and_math)
-obj/schwarzschild.py: src/physics/schwarzschild.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/schwarzschild.pp -o obj/schwarzschild.py
-	@chmod +x obj/schwarzschild.py
-js/schwarzschild.js: src/physics/schwarzschild.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/schwarzschild.pp -o js/schwarzschild.jsi
-	pj/pj.rb js/schwarzschild.jsi karl <js/schwarzschild.jsi >js/schwarzschild.js
-	@rm js/schwarzschild.jsi
-	@-js-beautify --replace -n -s 2 js/schwarzschild.js
-
-#--------- lambert_w_stuff (physics_and_math)
-obj/lambert_w_stuff.py: src/physics/lambert_w_stuff.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/lambert_w_stuff.pp -o obj/lambert_w_stuff.py
-	@chmod +x obj/lambert_w_stuff.py
-js/lambert_w_stuff.js: src/physics/lambert_w_stuff.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/lambert_w_stuff.pp -o js/lambert_w_stuff.jsi
-	pj/pj.rb js/lambert_w_stuff.jsi karl <js/lambert_w_stuff.jsi >js/lambert_w_stuff.js
-	@rm js/lambert_w_stuff.jsi
-	@-js-beautify --replace -n -s 2 js/lambert_w_stuff.js
-
-#--------- math_util (physics_and_math)
-obj/math_util.py: src/physics/math_util.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/math_util.pp -o obj/math_util.py
-	@chmod +x obj/math_util.py
-js/math_util.js: src/physics/math_util.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/math_util.pp -o js/math_util.jsi
-	pj/pj.rb js/math_util.jsi karl <js/math_util.jsi >js/math_util.js
-	@rm js/math_util.jsi
-	@-js-beautify --replace -n -s 2 js/math_util.js
-
-#--------- vector (physics_and_math)
-obj/vector.py: src/physics/vector.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/vector.pp -o obj/vector.py
-	@chmod +x obj/vector.py
-js/vector.js: src/physics/vector.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/vector.pp -o js/vector.jsi
-	pj/pj.rb js/vector.jsi karl <js/vector.jsi >js/vector.js
-	@rm js/vector.jsi
-	@-js-beautify --replace -n -s 2 js/vector.js
-
-#--------- star_properties (physics_and_math)
-obj/star_properties.py: src/physics/star_properties.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/star_properties.pp -o obj/star_properties.py
-	@chmod +x obj/star_properties.py
-js/star_properties.js: src/physics/star_properties.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/star_properties.pp -o js/star_properties.jsi
-	pj/pj.rb js/star_properties.jsi karl <js/star_properties.jsi >js/star_properties.js
-	@rm js/star_properties.jsi
-	@-js-beautify --replace -n -s 2 js/star_properties.js
-
-#--------- kruskal (physics_and_math)
-obj/kruskal.py: src/physics/kruskal.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/kruskal.pp -o obj/kruskal.py
-	@chmod +x obj/kruskal.py
-js/kruskal.js: src/physics/kruskal.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/kruskal.pp -o js/kruskal.jsi
-	pj/pj.rb js/kruskal.jsi karl <js/kruskal.jsi >js/kruskal.js
-	@rm js/kruskal.jsi
-	@-js-beautify --replace -n -s 2 js/kruskal.js
-
-#--------- conserved (physics_and_math)
-obj/conserved.py: src/physics/conserved.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/conserved.pp -o obj/conserved.py
-	@chmod +x obj/conserved.py
-js/conserved.js: src/physics/conserved.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/conserved.pp -o js/conserved.jsi
-	pj/pj.rb js/conserved.jsi karl <js/conserved.jsi >js/conserved.js
-	@rm js/conserved.jsi
-	@-js-beautify --replace -n -s 2 js/conserved.js
-
-#--------- angular (physics_and_math)
-obj/angular.py: src/physics/angular.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/angular.pp -o obj/angular.py
-	@chmod +x obj/angular.py
-js/angular.js: src/physics/angular.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/angular.pp -o js/angular.jsi
-	pj/pj.rb js/angular.jsi karl <js/angular.jsi >js/angular.js
-	@rm js/angular.jsi
-	@-js-beautify --replace -n -s 2 js/angular.js
-
-#--------- fancy (physics_and_math)
-obj/fancy.py: src/physics/fancy.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/fancy.pp -o obj/fancy.py
-	@chmod +x obj/fancy.py
-js/fancy.js: src/physics/fancy.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/fancy.pp -o js/fancy.jsi
-	pj/pj.rb js/fancy.jsi karl <js/fancy.jsi >js/fancy.js
-	@rm js/fancy.jsi
-	@-js-beautify --replace -n -s 2 js/fancy.js
-
-#--------- keplerian (physics_and_math)
-obj/keplerian.py: src/physics/keplerian.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/keplerian.pp -o obj/keplerian.py
-	@chmod +x obj/keplerian.py
-js/keplerian.js: src/physics/keplerian.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/keplerian.pp -o js/keplerian.jsi
-	pj/pj.rb js/keplerian.jsi karl <js/keplerian.jsi >js/keplerian.js
-	@rm js/keplerian.jsi
-	@-js-beautify --replace -n -s 2 js/keplerian.js
-
-#--------- transform (physics_and_math)
-obj/transform.py: src/physics/transform.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/transform.pp -o obj/transform.py
-	@chmod +x obj/transform.py
-js/transform.js: src/physics/transform.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/transform.pp -o js/transform.jsi
-	pj/pj.rb js/transform.jsi karl <js/transform.jsi >js/transform.js
-	@rm js/transform.jsi
-	@-js-beautify --replace -n -s 2 js/transform.js
-
-#--------- euclidean (physics_and_math)
-obj/euclidean.py: src/physics/euclidean.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/euclidean.pp -o obj/euclidean.py
-	@chmod +x obj/euclidean.py
-js/euclidean.js: src/physics/euclidean.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/euclidean.pp -o js/euclidean.jsi
-	pj/pj.rb js/euclidean.jsi karl <js/euclidean.jsi >js/euclidean.js
-	@rm js/euclidean.jsi
-	@-js-beautify --replace -n -s 2 js/euclidean.js
-
-#--------- runge_kutta (physics_and_math)
-obj/runge_kutta.py: src/physics/runge_kutta.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/runge_kutta.pp -o obj/runge_kutta.py
-	@chmod +x obj/runge_kutta.py
-js/runge_kutta.js: src/physics/runge_kutta.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/runge_kutta.pp -o js/runge_kutta.jsi
-	pj/pj.rb js/runge_kutta.jsi karl <js/runge_kutta.jsi >js/runge_kutta.js
-	@rm js/runge_kutta.jsi
-	@-js-beautify --replace -n -s 2 js/runge_kutta.js
-
-#--------- celestial (test)
-obj/test_celestial.py: src/test/test_celestial.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_celestial.pp -o obj/test_celestial.py
-	@chmod +x obj/test_celestial.py
-js/test_celestial.js: src/test/test_celestial.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_celestial.pp -o js/test_celestial.jsi
-	pj/pj.rb js/test_celestial.jsi karl <js/test_celestial.jsi >js/test_celestial.js
-	@rm js/test_celestial.jsi
-	@-js-beautify --replace -n -s 2 js/test_celestial.js
-test_celestial_py: obj/test_celestial.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_celestial.py
-test_celestial_js: js/test_celestial.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_celestial.js
-test_celestial:
-	@make -s --no-print-directory test_celestial_py
-	@make -s --no-print-directory test_celestial_js
+#--------- euclidean (test)
+obj/test_euclidean.py: src/test/test_euclidean.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_euclidean.pp -o obj/test_euclidean.py
+	@chmod +x obj/test_euclidean.py
+js/test_euclidean.js: src/test/test_euclidean.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_euclidean.pp -o js/test_euclidean.jsi
+	pj/pj.rb js/test_euclidean.jsi karl <js/test_euclidean.jsi >js/test_euclidean.js
+	@rm js/test_euclidean.jsi
+	@-js-beautify --replace -n -s 2 js/test_euclidean.js
+test_euclidean_py: obj/test_euclidean.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_euclidean.py
+test_euclidean_js: js/test_euclidean.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_euclidean.js
+test_euclidean:
+	@make -s --no-print-directory test_euclidean_py
+	@make -s --no-print-directory test_euclidean_js
 
 #--------- schwarzschild (test)
 obj/test_schwarzschild.py: src/test/test_schwarzschild.pp src/include/*.h
@@ -235,64 +79,13 @@ js/test_schwarzschild.js: src/test/test_schwarzschild.pp src/include/*.h
 	pj/pj.rb js/test_schwarzschild.jsi karl <js/test_schwarzschild.jsi >js/test_schwarzschild.js
 	@rm js/test_schwarzschild.jsi
 	@-js-beautify --replace -n -s 2 js/test_schwarzschild.js
-test_schwarzschild_py: obj/test_schwarzschild.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
+test_schwarzschild_py: obj/test_schwarzschild.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
 	@$(PYTHON3) obj/test_schwarzschild.py
-test_schwarzschild_js: js/test_schwarzschild.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
+test_schwarzschild_js: js/test_schwarzschild.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
 	@$(PYTHON3) run_js.py js/test_schwarzschild.js
 test_schwarzschild:
 	@make -s --no-print-directory test_schwarzschild_py
 	@make -s --no-print-directory test_schwarzschild_js
-
-#--------- math (test)
-obj/test_math.py: src/test/test_math.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_math.pp -o obj/test_math.py
-	@chmod +x obj/test_math.py
-js/test_math.js: src/test/test_math.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_math.pp -o js/test_math.jsi
-	pj/pj.rb js/test_math.jsi karl <js/test_math.jsi >js/test_math.js
-	@rm js/test_math.jsi
-	@-js-beautify --replace -n -s 2 js/test_math.js
-test_math_py: obj/test_math.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_math.py
-test_math_js: js/test_math.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_math.js
-test_math:
-	@make -s --no-print-directory test_math_py
-	@make -s --no-print-directory test_math_js
-
-#--------- math_util (test)
-obj/test_math_util.py: src/test/test_math_util.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_math_util.pp -o obj/test_math_util.py
-	@chmod +x obj/test_math_util.py
-js/test_math_util.js: src/test/test_math_util.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_math_util.pp -o js/test_math_util.jsi
-	pj/pj.rb js/test_math_util.jsi karl <js/test_math_util.jsi >js/test_math_util.js
-	@rm js/test_math_util.jsi
-	@-js-beautify --replace -n -s 2 js/test_math_util.js
-test_math_util_py: obj/test_math_util.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_math_util.py
-test_math_util_js: js/test_math_util.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_math_util.js
-test_math_util:
-	@make -s --no-print-directory test_math_util_py
-	@make -s --no-print-directory test_math_util_js
-
-#--------- kruskal (test)
-obj/test_kruskal.py: src/test/test_kruskal.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_kruskal.pp -o obj/test_kruskal.py
-	@chmod +x obj/test_kruskal.py
-js/test_kruskal.js: src/test/test_kruskal.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_kruskal.pp -o js/test_kruskal.jsi
-	pj/pj.rb js/test_kruskal.jsi karl <js/test_kruskal.jsi >js/test_kruskal.js
-	@rm js/test_kruskal.jsi
-	@-js-beautify --replace -n -s 2 js/test_kruskal.js
-test_kruskal_py: obj/test_kruskal.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_kruskal.py
-test_kruskal_js: js/test_kruskal.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_kruskal.js
-test_kruskal:
-	@make -s --no-print-directory test_kruskal_py
-	@make -s --no-print-directory test_kruskal_js
 
 #--------- lambert_w (test)
 obj/test_lambert_w.py: src/test/test_lambert_w.pp src/include/*.h
@@ -303,9 +96,9 @@ js/test_lambert_w.js: src/test/test_lambert_w.pp src/include/*.h
 	pj/pj.rb js/test_lambert_w.jsi karl <js/test_lambert_w.jsi >js/test_lambert_w.js
 	@rm js/test_lambert_w.jsi
 	@-js-beautify --replace -n -s 2 js/test_lambert_w.js
-test_lambert_w_py: obj/test_lambert_w.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
+test_lambert_w_py: obj/test_lambert_w.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
 	@$(PYTHON3) obj/test_lambert_w.py
-test_lambert_w_js: js/test_lambert_w.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
+test_lambert_w_js: js/test_lambert_w.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
 	@$(PYTHON3) run_js.py js/test_lambert_w.js
 test_lambert_w:
 	@make -s --no-print-directory test_lambert_w_py
@@ -320,81 +113,13 @@ js/test_angular.js: src/test/test_angular.pp src/include/*.h
 	pj/pj.rb js/test_angular.jsi karl <js/test_angular.jsi >js/test_angular.js
 	@rm js/test_angular.jsi
 	@-js-beautify --replace -n -s 2 js/test_angular.js
-test_angular_py: obj/test_angular.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
+test_angular_py: obj/test_angular.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
 	@$(PYTHON3) obj/test_angular.py
-test_angular_js: js/test_angular.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
+test_angular_js: js/test_angular.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
 	@$(PYTHON3) run_js.py js/test_angular.js
 test_angular:
 	@make -s --no-print-directory test_angular_py
 	@make -s --no-print-directory test_angular_js
-
-#--------- fancy (test)
-obj/test_fancy.py: src/test/test_fancy.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_fancy.pp -o obj/test_fancy.py
-	@chmod +x obj/test_fancy.py
-js/test_fancy.js: src/test/test_fancy.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_fancy.pp -o js/test_fancy.jsi
-	pj/pj.rb js/test_fancy.jsi karl <js/test_fancy.jsi >js/test_fancy.js
-	@rm js/test_fancy.jsi
-	@-js-beautify --replace -n -s 2 js/test_fancy.js
-test_fancy_py: obj/test_fancy.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_fancy.py
-test_fancy_js: js/test_fancy.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_fancy.js
-test_fancy:
-	@make -s --no-print-directory test_fancy_py
-	@make -s --no-print-directory test_fancy_js
-
-#--------- keplerian (test)
-obj/test_keplerian.py: src/test/test_keplerian.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_keplerian.pp -o obj/test_keplerian.py
-	@chmod +x obj/test_keplerian.py
-js/test_keplerian.js: src/test/test_keplerian.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_keplerian.pp -o js/test_keplerian.jsi
-	pj/pj.rb js/test_keplerian.jsi karl <js/test_keplerian.jsi >js/test_keplerian.js
-	@rm js/test_keplerian.jsi
-	@-js-beautify --replace -n -s 2 js/test_keplerian.js
-test_keplerian_py: obj/test_keplerian.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_keplerian.py
-test_keplerian_js: js/test_keplerian.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_keplerian.js
-test_keplerian:
-	@make -s --no-print-directory test_keplerian_py
-	@make -s --no-print-directory test_keplerian_js
-
-#--------- transform (test)
-obj/test_transform.py: src/test/test_transform.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_transform.pp -o obj/test_transform.py
-	@chmod +x obj/test_transform.py
-js/test_transform.js: src/test/test_transform.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_transform.pp -o js/test_transform.jsi
-	pj/pj.rb js/test_transform.jsi karl <js/test_transform.jsi >js/test_transform.js
-	@rm js/test_transform.jsi
-	@-js-beautify --replace -n -s 2 js/test_transform.js
-test_transform_py: obj/test_transform.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_transform.py
-test_transform_js: js/test_transform.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_transform.js
-test_transform:
-	@make -s --no-print-directory test_transform_py
-	@make -s --no-print-directory test_transform_js
-
-#--------- euclidean (test)
-obj/test_euclidean.py: src/test/test_euclidean.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_euclidean.pp -o obj/test_euclidean.py
-	@chmod +x obj/test_euclidean.py
-js/test_euclidean.js: src/test/test_euclidean.pp src/include/*.h
-	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_euclidean.pp -o js/test_euclidean.jsi
-	pj/pj.rb js/test_euclidean.jsi karl <js/test_euclidean.jsi >js/test_euclidean.js
-	@rm js/test_euclidean.jsi
-	@-js-beautify --replace -n -s 2 js/test_euclidean.js
-test_euclidean_py: obj/test_euclidean.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
-	@$(PYTHON3) obj/test_euclidean.py
-test_euclidean_js: js/test_euclidean.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
-	@$(PYTHON3) run_js.py js/test_euclidean.js
-test_euclidean:
-	@make -s --no-print-directory test_euclidean_py
-	@make -s --no-print-directory test_euclidean_js
 
 #--------- runge_kutta (test)
 obj/test_runge_kutta.py: src/test/test_runge_kutta.pp src/include/*.h
@@ -405,11 +130,276 @@ js/test_runge_kutta.js: src/test/test_runge_kutta.pp src/include/*.h
 	pj/pj.rb js/test_runge_kutta.jsi karl <js/test_runge_kutta.jsi >js/test_runge_kutta.js
 	@rm js/test_runge_kutta.jsi
 	@-js-beautify --replace -n -s 2 js/test_runge_kutta.js
-test_runge_kutta_py: obj/test_runge_kutta.py obj/test.py obj/c_libs.py obj/io_util.py obj/render.py obj/optics.py obj/celestial.py obj/schwarzschild.py obj/lambert_w_stuff.py obj/math_util.py obj/vector.py obj/star_properties.py obj/kruskal.py obj/conserved.py obj/angular.py obj/fancy.py obj/keplerian.py obj/transform.py obj/euclidean.py obj/runge_kutta.py obj/karl.so
+test_runge_kutta_py: obj/test_runge_kutta.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
 	@$(PYTHON3) obj/test_runge_kutta.py
-test_runge_kutta_js: js/test_runge_kutta.js js/test.js js/c_libs.js js/io_util.js js/render.js js/optics.js js/celestial.js js/schwarzschild.js js/lambert_w_stuff.js js/math_util.js js/vector.js js/star_properties.js js/kruskal.js js/conserved.js js/angular.js js/fancy.js js/keplerian.js js/transform.js js/euclidean.js js/runge_kutta.js
+test_runge_kutta_js: js/test_runge_kutta.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
 	@$(PYTHON3) run_js.py js/test_runge_kutta.js
 test_runge_kutta:
 	@make -s --no-print-directory test_runge_kutta_py
 	@make -s --no-print-directory test_runge_kutta_js
+
+#--------- celestial (test)
+obj/test_celestial.py: src/test/test_celestial.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_celestial.pp -o obj/test_celestial.py
+	@chmod +x obj/test_celestial.py
+js/test_celestial.js: src/test/test_celestial.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_celestial.pp -o js/test_celestial.jsi
+	pj/pj.rb js/test_celestial.jsi karl <js/test_celestial.jsi >js/test_celestial.js
+	@rm js/test_celestial.jsi
+	@-js-beautify --replace -n -s 2 js/test_celestial.js
+test_celestial_py: obj/test_celestial.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_celestial.py
+test_celestial_js: js/test_celestial.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_celestial.js
+test_celestial:
+	@make -s --no-print-directory test_celestial_py
+	@make -s --no-print-directory test_celestial_js
+
+#--------- keplerian (test)
+obj/test_keplerian.py: src/test/test_keplerian.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_keplerian.pp -o obj/test_keplerian.py
+	@chmod +x obj/test_keplerian.py
+js/test_keplerian.js: src/test/test_keplerian.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_keplerian.pp -o js/test_keplerian.jsi
+	pj/pj.rb js/test_keplerian.jsi karl <js/test_keplerian.jsi >js/test_keplerian.js
+	@rm js/test_keplerian.jsi
+	@-js-beautify --replace -n -s 2 js/test_keplerian.js
+test_keplerian_py: obj/test_keplerian.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_keplerian.py
+test_keplerian_js: js/test_keplerian.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_keplerian.js
+test_keplerian:
+	@make -s --no-print-directory test_keplerian_py
+	@make -s --no-print-directory test_keplerian_js
+
+#--------- kruskal (test)
+obj/test_kruskal.py: src/test/test_kruskal.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_kruskal.pp -o obj/test_kruskal.py
+	@chmod +x obj/test_kruskal.py
+js/test_kruskal.js: src/test/test_kruskal.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_kruskal.pp -o js/test_kruskal.jsi
+	pj/pj.rb js/test_kruskal.jsi karl <js/test_kruskal.jsi >js/test_kruskal.js
+	@rm js/test_kruskal.jsi
+	@-js-beautify --replace -n -s 2 js/test_kruskal.js
+test_kruskal_py: obj/test_kruskal.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_kruskal.py
+test_kruskal_js: js/test_kruskal.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_kruskal.js
+test_kruskal:
+	@make -s --no-print-directory test_kruskal_py
+	@make -s --no-print-directory test_kruskal_js
+
+#--------- math_util (test)
+obj/test_math_util.py: src/test/test_math_util.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_math_util.pp -o obj/test_math_util.py
+	@chmod +x obj/test_math_util.py
+js/test_math_util.js: src/test/test_math_util.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_math_util.pp -o js/test_math_util.jsi
+	pj/pj.rb js/test_math_util.jsi karl <js/test_math_util.jsi >js/test_math_util.js
+	@rm js/test_math_util.jsi
+	@-js-beautify --replace -n -s 2 js/test_math_util.js
+test_math_util_py: obj/test_math_util.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_math_util.py
+test_math_util_js: js/test_math_util.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_math_util.js
+test_math_util:
+	@make -s --no-print-directory test_math_util_py
+	@make -s --no-print-directory test_math_util_js
+
+#--------- math (test)
+obj/test_math.py: src/test/test_math.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/test/test_math.pp -o obj/test_math.py
+	@chmod +x obj/test_math.py
+js/test_math.js: src/test/test_math.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/test/test_math.pp -o js/test_math.jsi
+	pj/pj.rb js/test_math.jsi karl <js/test_math.jsi >js/test_math.js
+	@rm js/test_math.jsi
+	@-js-beautify --replace -n -s 2 js/test_math.js
+test_math_py: obj/test_math.py obj/transform.py obj/fancy.py obj/star_properties.py obj/euclidean.py obj/schwarzschild.py obj/angular.py obj/runge_kutta.py obj/celestial.py obj/vector.py obj/keplerian.py obj/conserved.py obj/kruskal.py obj/math_util.py obj/lambert_w_stuff.py obj/test.py obj/io_util.py obj/c_libs.py obj/karl.so
+	@$(PYTHON3) obj/test_math.py
+test_math_js: js/test_math.js js/transform.js js/fancy.js js/star_properties.js js/euclidean.js js/schwarzschild.js js/angular.js js/runge_kutta.js js/celestial.js js/vector.js js/keplerian.js js/conserved.js js/kruskal.js js/math_util.js js/lambert_w_stuff.js js/test.js js/io_util.js js/c_libs.js
+	@$(PYTHON3) run_js.py js/test_math.js
+test_math:
+	@make -s --no-print-directory test_math_py
+	@make -s --no-print-directory test_math_js
+
+#--------- transform (physics_and_math)
+obj/transform.py: src/physics/transform.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/transform.pp -o obj/transform.py
+	@chmod +x obj/transform.py
+js/transform.js: src/physics/transform.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/transform.pp -o js/transform.jsi
+	pj/pj.rb js/transform.jsi karl <js/transform.jsi >js/transform.js
+	@rm js/transform.jsi
+	@-js-beautify --replace -n -s 2 js/transform.js
+
+#--------- fancy (physics_and_math)
+obj/fancy.py: src/physics/fancy.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/fancy.pp -o obj/fancy.py
+	@chmod +x obj/fancy.py
+js/fancy.js: src/physics/fancy.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/fancy.pp -o js/fancy.jsi
+	pj/pj.rb js/fancy.jsi karl <js/fancy.jsi >js/fancy.js
+	@rm js/fancy.jsi
+	@-js-beautify --replace -n -s 2 js/fancy.js
+
+#--------- star_properties (physics_and_math)
+obj/star_properties.py: src/physics/star_properties.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/star_properties.pp -o obj/star_properties.py
+	@chmod +x obj/star_properties.py
+js/star_properties.js: src/physics/star_properties.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/star_properties.pp -o js/star_properties.jsi
+	pj/pj.rb js/star_properties.jsi karl <js/star_properties.jsi >js/star_properties.js
+	@rm js/star_properties.jsi
+	@-js-beautify --replace -n -s 2 js/star_properties.js
+
+#--------- euclidean (physics_and_math)
+obj/euclidean.py: src/physics/euclidean.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/euclidean.pp -o obj/euclidean.py
+	@chmod +x obj/euclidean.py
+js/euclidean.js: src/physics/euclidean.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/euclidean.pp -o js/euclidean.jsi
+	pj/pj.rb js/euclidean.jsi karl <js/euclidean.jsi >js/euclidean.js
+	@rm js/euclidean.jsi
+	@-js-beautify --replace -n -s 2 js/euclidean.js
+
+#--------- schwarzschild (physics_and_math)
+obj/schwarzschild.py: src/physics/schwarzschild.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/schwarzschild.pp -o obj/schwarzschild.py
+	@chmod +x obj/schwarzschild.py
+js/schwarzschild.js: src/physics/schwarzschild.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/schwarzschild.pp -o js/schwarzschild.jsi
+	pj/pj.rb js/schwarzschild.jsi karl <js/schwarzschild.jsi >js/schwarzschild.js
+	@rm js/schwarzschild.jsi
+	@-js-beautify --replace -n -s 2 js/schwarzschild.js
+
+#--------- angular (physics_and_math)
+obj/angular.py: src/physics/angular.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/angular.pp -o obj/angular.py
+	@chmod +x obj/angular.py
+js/angular.js: src/physics/angular.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/angular.pp -o js/angular.jsi
+	pj/pj.rb js/angular.jsi karl <js/angular.jsi >js/angular.js
+	@rm js/angular.jsi
+	@-js-beautify --replace -n -s 2 js/angular.js
+
+#--------- runge_kutta (physics_and_math)
+obj/runge_kutta.py: src/physics/runge_kutta.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/runge_kutta.pp -o obj/runge_kutta.py
+	@chmod +x obj/runge_kutta.py
+js/runge_kutta.js: src/physics/runge_kutta.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/runge_kutta.pp -o js/runge_kutta.jsi
+	pj/pj.rb js/runge_kutta.jsi karl <js/runge_kutta.jsi >js/runge_kutta.js
+	@rm js/runge_kutta.jsi
+	@-js-beautify --replace -n -s 2 js/runge_kutta.js
+
+#--------- celestial (physics_and_math)
+obj/celestial.py: src/physics/celestial.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/celestial.pp -o obj/celestial.py
+	@chmod +x obj/celestial.py
+js/celestial.js: src/physics/celestial.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/celestial.pp -o js/celestial.jsi
+	pj/pj.rb js/celestial.jsi karl <js/celestial.jsi >js/celestial.js
+	@rm js/celestial.jsi
+	@-js-beautify --replace -n -s 2 js/celestial.js
+
+#--------- vector (physics_and_math)
+obj/vector.py: src/physics/vector.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/vector.pp -o obj/vector.py
+	@chmod +x obj/vector.py
+js/vector.js: src/physics/vector.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/vector.pp -o js/vector.jsi
+	pj/pj.rb js/vector.jsi karl <js/vector.jsi >js/vector.js
+	@rm js/vector.jsi
+	@-js-beautify --replace -n -s 2 js/vector.js
+
+#--------- keplerian (physics_and_math)
+obj/keplerian.py: src/physics/keplerian.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/keplerian.pp -o obj/keplerian.py
+	@chmod +x obj/keplerian.py
+js/keplerian.js: src/physics/keplerian.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/keplerian.pp -o js/keplerian.jsi
+	pj/pj.rb js/keplerian.jsi karl <js/keplerian.jsi >js/keplerian.js
+	@rm js/keplerian.jsi
+	@-js-beautify --replace -n -s 2 js/keplerian.js
+
+#--------- conserved (physics_and_math)
+obj/conserved.py: src/physics/conserved.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/conserved.pp -o obj/conserved.py
+	@chmod +x obj/conserved.py
+js/conserved.js: src/physics/conserved.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/conserved.pp -o js/conserved.jsi
+	pj/pj.rb js/conserved.jsi karl <js/conserved.jsi >js/conserved.js
+	@rm js/conserved.jsi
+	@-js-beautify --replace -n -s 2 js/conserved.js
+
+#--------- kruskal (physics_and_math)
+obj/kruskal.py: src/physics/kruskal.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/kruskal.pp -o obj/kruskal.py
+	@chmod +x obj/kruskal.py
+js/kruskal.js: src/physics/kruskal.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/kruskal.pp -o js/kruskal.jsi
+	pj/pj.rb js/kruskal.jsi karl <js/kruskal.jsi >js/kruskal.js
+	@rm js/kruskal.jsi
+	@-js-beautify --replace -n -s 2 js/kruskal.js
+
+#--------- math_util (physics_and_math)
+obj/math_util.py: src/physics/math_util.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/math_util.pp -o obj/math_util.py
+	@chmod +x obj/math_util.py
+js/math_util.js: src/physics/math_util.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/math_util.pp -o js/math_util.jsi
+	pj/pj.rb js/math_util.jsi karl <js/math_util.jsi >js/math_util.js
+	@rm js/math_util.jsi
+	@-js-beautify --replace -n -s 2 js/math_util.js
+
+#--------- lambert_w_stuff (physics_and_math)
+obj/lambert_w_stuff.py: src/physics/lambert_w_stuff.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/lambert_w_stuff.pp -o obj/lambert_w_stuff.py
+	@chmod +x obj/lambert_w_stuff.py
+js/lambert_w_stuff.js: src/physics/lambert_w_stuff.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/lambert_w_stuff.pp -o js/lambert_w_stuff.jsi
+	pj/pj.rb js/lambert_w_stuff.jsi karl <js/lambert_w_stuff.jsi >js/lambert_w_stuff.js
+	@rm js/lambert_w_stuff.jsi
+	@-js-beautify --replace -n -s 2 js/lambert_w_stuff.js
+
+#--------- test (util)
+obj/test.py: src/physics/test.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/test.pp -o obj/test.py
+	@chmod +x obj/test.py
+js/test.js: src/physics/test.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/test.pp -o js/test.jsi
+	pj/pj.rb js/test.jsi karl <js/test.jsi >js/test.js
+	@rm js/test.jsi
+	@-js-beautify --replace -n -s 2 js/test.js
+
+#--------- io_util (util)
+obj/io_util.py: src/physics/io_util.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/io_util.pp -o obj/io_util.py
+	@chmod +x obj/io_util.py
+js/io_util.js: src/physics/io_util.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/io_util.pp -o js/io_util.jsi
+	pj/pj.rb js/io_util.jsi karl <js/io_util.jsi >js/io_util.js
+	@rm js/io_util.jsi
+	@-js-beautify --replace -n -s 2 js/io_util.js
+
+#--------- c_libs (util)
+obj/c_libs.py: src/physics/c_libs.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/physics/c_libs.pp -o obj/c_libs.py
+	@chmod +x obj/c_libs.py
+js/c_libs.js: src/physics/c_libs.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=js src/physics/c_libs.pp -o js/c_libs.jsi
+	pj/pj.rb js/c_libs.jsi karl <js/c_libs.jsi >js/c_libs.js
+	@rm js/c_libs.jsi
+	@-js-beautify --replace -n -s 2 js/c_libs.js
+
+#--------- optics (apps)
+obj/optics.py: src/app/optics.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/optics.pp -o obj/optics.py
+	@chmod +x obj/optics.py
+
+#--------- render (apps)
+obj/render.py: src/app/render.pp src/include/*.h
+	filepp $(FILEPP_OPTIONS) -DLANG=python src/app/render.pp -o obj/render.py
+	@chmod +x obj/render.py
 

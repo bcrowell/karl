@@ -67,3 +67,33 @@
         }
         return y; /* If we get here, the approx. may not be very good. */
       };
+      math_util.force_into_range = function(x, a, b) {
+
+        if (x < a) {
+          return a;
+        }
+        if (x > b) {
+          return b;
+        }
+        return x;
+      };
+      math_util.linear_interp = function(x1, x2, y1, y2, x) {
+
+        return ((y2 - y1) / (x2 - x1)) * (x - x1) + y1;
+      };
+      math_util.linear_interp_from_table = function(table, x_col, y_col, x, i, j) {
+        var k;
+
+        /* Do a binary search through the table, so this is O(log(n)). */
+        /* The i,j parameters at the end are really here for recursion; normally call this with 0,len(table)-1. */
+        /* If x is outside the range of values in the table, this algorithm results in silent linear extrapolation. */
+        if (j == i + 1) {
+          return math_util.linear_interp(table[i][x_col], table[j][x_col], table[i][y_col], table[j][y_col], x);
+        }
+        k = (i + j) //2;
+        if (table[k][x_col] > x) {
+          return math_util.linear_interp_from_table(table, x_col, y_col, x, i, k);
+        } else {
+          return math_util.linear_interp_from_table(table, x_col, y_col, x, k, j);
+        }
+      };
