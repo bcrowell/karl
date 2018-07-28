@@ -189,7 +189,7 @@
           if (n_triggers > 0) {
             tr = runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim);
             if (tr != (-1)) {
-              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 3, tr);
+              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 4, tr);
             }
           }
           /*-- Update everything: */
