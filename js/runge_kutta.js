@@ -46,7 +46,7 @@
       karl.load("angular");
       karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, pars, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, user_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, est, step, i, user_data, y, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, user_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, est, step, i, user_data, y, tr, tot_est;
 
         /*
         Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
@@ -86,7 +86,7 @@
         where
           err = 0 if normal, or bitwise or of codes such as 1, 2, defined in runge_kutta.h
           final_x,final_v,final_a,final_lambda = final values of position, velocity, acceleration, and affine param
-          info = hash with misc. info
+          info = hash with misc. info, including error message and which trigger was triggered
         */
         x = (karl.clone_array1d(x0));
         v = (karl.clone_array1d(v0));
@@ -186,8 +186,11 @@
             }
             runge_kutta.next_est(est, acc, step, y, dlambda);
           }
-          if (n_triggers > 0 && runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim)) {
-            return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 3);
+          if (n_triggers > 0) {
+            tr = runge_kutta.trigger_helper(x, v, acc, dlambda, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, ndim);
+            if (tr != (-1)) {
+              return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, iter, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 3, tr);
+            }
           }
           /*-- Update everything: */
           lam = lam + dlambda;
@@ -206,7 +209,7 @@
             user_data = user_function(lam, x, v, spacetime, chart, pars);
           }
         }
-        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 0);
+        return runge_kutta.runge_kutta_final_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime | chart, pars, user_data, 0, -1);
       };
       runge_kutta.c_available = function(spacetime, chart) {
         return false;
@@ -358,6 +361,7 @@
         we're triggering on differs from the trigger value by dx, and it's currently changing at
         a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below
         handles all the cases properly. The input variable acc is actually the acceleration times dlambda.
+        Returns -1 normally, or trigger number if a trigger tripped off.
         */
         for (var i = 0; i < n_triggers; i++) {
           s = trigger_s[i]; /* sense of the trigger (see above) */
@@ -376,12 +380,12 @@
           /*print("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s) */
           if (s * dx > 0 && x_dot * dlambda * s > alpha * dx * s) { /* Note that we can't cancel the s, which may be negative. */
             /* We extrapolate that if we were to complete this iteration, we would cross the threshold. */
-            return (true);
+            return i;
           }
         }
-        return (false);
+        return -1;
       };
-      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime_and_chart, pars, user_data, err) {
+      runge_kutta.runge_kutta_final_helper = function(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, acc, norm_final, debug_function, spacetime_and_chart, pars, user_data, err, which_trigger) {
         var x, v, info;
 
         runge_kutta.debug_helper(debug_count, ndebug, steps_between_debugging, n, lam, dlambda, x, v, debug_function, spacetime_and_chart);
@@ -393,6 +397,9 @@
         info = {};
         if (!((user_data) == null)) {
           info['user_data'] = user_data;
+        }
+        if (which_trigger != -1) {
+          info['trigger'] = which_trigger;
         }
         return [err, x, v, acc, lam, info];
       };

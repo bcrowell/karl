@@ -57,7 +57,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   where
     err = 0 if normal, or bitwise or of codes such as RK_ERR, RK_INCOMPLETE, defined in runge_kutta.h
     final_x,final_v,final_a,final_lambda = final values of position, velocity, acceleration, and affine param
-    info = hash with misc. info
+    info = hash with misc. info, including error message and which trigger was triggered
   """
   x=CLONE_ARRAY_OF_FLOATS(x0)
   v=CLONE_ARRAY_OF_FLOATS(v0)
@@ -139,10 +139,11 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
         for i in range(ndim2):
           y[i] = y0[i]+est[2][i]
       next_est(est,acc,step,y,dlambda)
-    if n_triggers>0 and \
-            trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim):
-      return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
-                     norm_final,debug_function,spacetime|chart,pars,user_data,RK_TRIGGER)
+    if n_triggers>0:
+      tr = trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,ndim)
+      if tr!=(-1):
+        return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,iter,lam,dlambda,x,v,acc,\
+                     norm_final,debug_function,spacetime|chart,pars,user_data,RK_TRIGGER,tr)
     #-- Update everything:
     lam= lam+dlambda
     tot_est = EMPTY1DIM(ndim2)
@@ -156,7 +157,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
     if not IS_NONE(user_function):
       user_data = user_function(lam,x,v,spacetime,chart,pars)
   return runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
-              debug_function,spacetime|chart,pars,user_data,0)
+              debug_function,spacetime|chart,pars,user_data,0,-1)
 
 def c_available(spacetime,chart):
 #if "LANG" eq "js"
@@ -273,6 +274,7 @@ def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_thres
   we're triggering on differs from the trigger value by dx, and it's currently changing at
   a rate x_dot. Depending on the signs of s, dx, and x_dot, we have 8 cases. The logic below
   handles all the cases properly. The input variable acc is actually the acceleration times dlambda.
+  Returns -1 normally, or trigger number if a trigger tripped off.
   """
   for i in range(n_triggers):
     s = trigger_s[i] # sense of the trigger (see above)
@@ -290,11 +292,11 @@ def trigger_helper(x,v,acc,dlambda,n_triggers,trigger_s,trigger_on,trigger_thres
     #PRINT("s=",s,", dx=",dx,", x_dot=",x_dot,", dlambda=",dlambda,"lhs=",x_dot*dlambda*s,", rhs=",alpha*dx*s)
     if s*dx>0 and x_dot*dlambda*s>alpha*dx*s: # Note that we can't cancel the s, which may be negative.
       # We extrapolate that if we were to complete this iteration, we would cross the threshold.
-      return TRUE
-  return FALSE
+      return i
+  return -1
 
 def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,acc,norm_final,\
-             debug_function,spacetime_and_chart,pars,user_data,err):
+             debug_function,spacetime_and_chart,pars,user_data,err,which_trigger):
   debug_helper(debug_count,ndebug,steps_between_debugging,n,lam,dlambda,x,v,debug_function,spacetime_and_chart)
   # ... always do a printout for the final iteratation
   if norm_final:
@@ -303,6 +305,8 @@ def runge_kutta_final_helper(debug_count,ndebug,steps_between_debugging,n,lam,dl
   info = {}
   if not IS_NONE(user_data):
     info['user_data'] = user_data
+  if which_trigger!=-1:
+    info['trigger'] = which_trigger
   return [err,x,v,acc,lam,info]
 
 def runge_kutta_get_par_helper(opt,name,default_val):

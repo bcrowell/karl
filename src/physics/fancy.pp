@@ -74,6 +74,7 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     no_enter_horizon = opt['no_enter_horizon']
   else:
     no_enter_horizon = FALSE
+  no_enter_horizon_trigger = NONE
   if HAS_KEY(opt,'triggers'):
     if allow_transitions:
       THROW('allow_transitions should be false if there are user-supplied triggers')
@@ -118,10 +119,9 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     pop_trigger = FALSE
     if no_enter_horizon and chart==CH_AKS and x[0]>0.0 and x[1]<0.0:
       APPEND_TO_ARRAY(triggers,([1.0,1,0.0,0.3]))
+      no_enter_horizon_trigger = len(triggers)-1
       pop_trigger = TRUE
     n,dlambda,terminate = choose_step_size(r,rdot,rddot,p,tol,lam_left,x,v,chart,real_lambda_max-lambda0,fallback_dlambda)
-    if pop_trigger:
-      POP_FROM_ARRAY(triggers)
     if r!=1.0:
       fallback_dlambda = dlambda
     if terminate:
@@ -146,7 +146,9 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     PRINT("final_lambda=",final_lambda,", final_x=",io_util.vector_to_str_n_decimals(final_x,16))
 #endif
     #---------------- Check the results. ------------------
-    if err==RK_TRIGGER:
+    if pop_trigger:
+      POP_FROM_ARRAY(triggers)
+    if err==RK_TRIGGER and info['trigger']==no_enter_horizon_trigger: # it's the extra trigger for not entering horizon
       break
     if final_lambda==lambda0:
       n_unproductive = n_unproductive+1
@@ -165,6 +167,7 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     r = xs[1]
     # Check for incomplete geodesic, or terminate due to entering horizon, if that's what the user wants.
     if r<EPS or opt['dlambda']<EPS or (no_enter_horizon and r<1.0 and visited_exterior):
+      #PRINT(strcat(["r=",r,", dlambda=",opt['dlambda'],", no_enter_horizon=",no_enter_horizon]))
       r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
       err,r,rdot,rddot,p,lam_left = r_stuff
       final_lambda = final_lambda+lam_left
