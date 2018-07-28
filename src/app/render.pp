@@ -110,7 +110,7 @@ def main():
     PRINT("done rendering (render.py)")
 
 def bv_to_color(bv):
-  return star_properties.temperature_to_hue_and_sat(star_properties.bv_to_temperature(bv))
+  return star_properties.log_temperature_to_hue_and_sat(star_properties.bv_to_log_temperature(bv))
 
 def put_in_range(x,min,max):
   if x<min:
