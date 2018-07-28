@@ -1,4 +1,6 @@
+#if "LANG" eq "python"
 from scipy.special import lambertw
+#endif
 
 import numpy
 import scipy
