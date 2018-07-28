@@ -4,7 +4,7 @@
 #include "math.h"
 
 import csv,ephem,json
-import euclidean
+import euclidean,star_properties
 
 def main():
   csv_file = "stars.csv"
@@ -110,17 +110,7 @@ def main():
     PRINT("done rendering (render.py)")
 
 def bv_to_color(bv):
-  # https://en.wikipedia.org/wiki/Color_index
-  # The following is just a rough-and-ready approximation that I made up.
-  # Better: http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
-  # Return values:
-  #   hue: 0=red, 1=blue
-  #   sat: 0 to 1
-  h = (1.40-bv)/(1.40-(-0.33))
-  h = put_in_range(h,0,1)
-  s = (bv-0.5)**4
-  s = put_in_range(s,0,1)
-  return [h,s]
+  return star_properties.temperature_to_hue_and_sat(star_properties.bv_to_temperature(bv))
 
 def put_in_range(x,min,max):
   if x<min:

@@ -1,5 +1,7 @@
 import random
 
+#include "math.h"
+
 import math_util
 
 def list_of_spectral_classes():
@@ -46,3 +48,27 @@ def bv_to_temperature(bv):
   """
   table = [[-0.33,42000],[-0.30,30000],[-0.02,9790],[0.30,7300],[0.58,5940],[0.81,5150],[1.40,3840]]
   return math_util.linear_interp_from_table(table,0,1,bv,0,len(table)-1)
+
+def temperature_to_hue_and_sat(temp):
+  """
+  Given a blackbody temperature, find an approximate hue and saturation. Hue is
+  on a scale from 0 (red) to 1 (blue), corresponding to 0-270 in the hsluv system.
+  Saturation is from 0 to 1, corresponding to 0-100 in hsluv.
+  """
+  # subjective tabulation based on:
+  #   https://en.wikipedia.org/wiki/File:TernaryColorTmap.PNG
+  #   arcturus --  http://www.allthesky.com/constellations/bootes/constell.html
+  #   betelgeuse and rigel -- http://www.allthesky.com/constellations/orion/constell.html
+  # cf. http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
+  # The points used are:
+  #   M -  3,600 K - betelgeuse
+  #   K -  4,300   - arcturus
+  #   A -  7,000   - canopus
+  #   B - 12,000   - rigel
+  #   O - 38,000   - meissa
+  table = [[8.19,0.13,0.80],[8.37,0.16,0.45],[8.85,0.48,0.30],[9.39,0.81,0.56],[10.55,0.97,0.82]]
+  log_t = log(math_util.force_into_range(temp,2000,50000))
+  n = len(table)
+  hue = math_util.linear_interp_from_table(table,0,1,log_t,0,n-1)
+  sat = math_util.linear_interp_from_table(table,0,2,log_t,0,n-1)
+  return [hue,sat]
