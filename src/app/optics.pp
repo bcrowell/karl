@@ -34,15 +34,16 @@ def main():
   tol = 1.0e-3
   if_black_hole = TRUE
   max_mag = 12
-  draw_sky(r,ra_out,dec_out,tol,"aberration.csv","stars.csv","stars.json",verbosity,if_black_hole,max_mag,\
+  draw_sky(r,ra_out,dec_out,tol,"aberration.csv","v.csv","stars.csv","stars.json",verbosity,if_black_hole,max_mag,\
             star_catalog,star_catalog_max_mag)
 
 #--------------------------------------------------------------------------------------------------
 
-def draw_sky(r,ra_out,dec_out,tol,aberration_csv,stars_csv,image_json,verbosity,if_black_hole,max_mag,\
-             star_catalog,star_catalog_max_mag):
+def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_json,verbosity,\
+             if_black_hole,max_mag,star_catalog,star_catalog_max_mag):
   """
-  Draw the sky as seen by an observer at radius r and angular coordinates specified by the given
+  Draw the sky as seen by an observer near a Schwarzschild black hole.
+  The observer is at radius r and angular coordinates specified by the given
   RA and dec, i.e., the black hole is placed at the center of the earth's celestial sphere.
   Use tolerance tol for geodesics. The two csv files are currently only for the user to inspect,
   if desired. The output is a set of pixel arrays written to image_json, which is actually
@@ -51,22 +52,35 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,stars_csv,image_json,verbosity,
   to this mag, in addition to the ones bright enough to be in the catalog.
   If if_black_hole is false, the star field is drawn as it would appear without any black hole.
   """
-  aberration_table = make_aberration_table(r,tol)
+  aberration_table,v_table = make_aberration_tables(r,tol)
   write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
-  star_table = make_star_table(star_catalog,aberration_table,r,if_black_hole,\
+  write_csv_file(v_table,v_table_csv,TRUE,"Table of ray velocities written to")
+  star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,\
                                ra_out,dec_out,max_mag,star_catalog_max_mag)
   write_csv_file(star_table,stars_csv,TRUE,"Table of star data written to")
   render.render(star_table,image_json,verbosity)
 
 #--------------------------------------------------------------------------------------------------
 
-def make_aberration_table(r,tol):
+def make_aberration_tables(r,tol):
   """
   Determine a table of optical aberration angles for an observer in the Schwarzschild spacetime.
-  Each line of the table is in the format [r,alpha,beta,beta-alpha,f], where r is observer's coordinate
+  Each line of the table is in the format [r,alpha,beta,beta-alpha,f].
+  Here r is observer's coordinate
   in units of Schwarzschild radius, alpha is angle as seen by observer if they're in a standard
   state of motion (free fall from rest at infinity), beta is angle on the celestial sphere,
-  and f is the factor by which intensities are amplified by lensing.
+  and f is the factor by which intensities are amplified by lensing. 
+  In addition, we return a separate table [alpha,v0,...v4] of the 
+  components of the velocity vector v^kappa of the light ray at observation,
+  in 5-dimensional Schwarzschild coordinates. 
+  This is used in order to find the Doppler shifts later.
+  The alpha values in this table are a subset of the
+  ones in the aberration table, because it seems safer to interpolate the Doppler shifts at the end,
+  rather than interpolating the vector components here.
+  The normalization of the velocities is such that the velocity vector at emission is (1,-1,0,0,0).
+  The observer's velocity is not calculated here because it can easily be found later, and
+  would be the same for all rays: -- u_kappa=(1,-A*sqrt(1-A)), where A=1-1/r. Note that this
+  is the covariant form of u.
   """
   spacetime = SP_SCH
   chart = CH_SCH
@@ -110,8 +124,12 @@ def make_aberration_table(r,tol):
     return count_winding.winding
   count_winding(0.0,[],[],0,0,{})
   table = []
+  v_table = []
   last_deflection = 0.0
-  s0 = 2 # scaling factor for number of angular steps
+  s0 = 2
+  # ...scaling factor for number of angular steps
+  #    Making this a big value, like 10, makes fake stars take a long time, because the sky is subdivided
+  #    very finely. Making it a very small value, like 2, may make interpolation of Doppler shifts too crude.
   s1 = 2 # for moderate deflections, reduce step size by this factor
   s2 = 10 # ... additional factor for large deflections
   n_angles = s0*s1*s2 # we actually skip most of these angles
@@ -142,6 +160,8 @@ def make_aberration_table(r,tol):
           dphi_dr = -dphi_dr
         dphi_dt = le*aa/(r*r)
         v = [1.0,dphi_dt/dphi_dr,0.0,dphi_dt,0.0] # tangent vector
+      v_observation = CLONE_ARRAY_OF_FLOATS(v)
+      # ... will get rescaled later, see comments below, but clone it to make sure it can't get munged
       norm = vector.norm(spacetime,chart,pars,x,v)
       if abs(norm)>EPS*10:
         THROW("norm="+str(norm))
@@ -154,9 +174,25 @@ def make_aberration_table(r,tol):
       if skip_this:
         beta,done = [NONE,FALSE] # fill in later by interpolation
       else:
-        beta,done = do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha)
+        beta,done,v_emission = do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha)
       table.append([r,alpha,beta])
-      if not (IS_NONE(beta) or IS_NAN(beta)):
+      got_result = not (IS_NONE(beta) or IS_NAN(beta))
+      #---
+      # Calculate the velocity of the ray at observation. This would actually be pretty trivial, since
+      # v is the "initial" velocity for solving the diffeq, but is actually the final
+      # velocity of the ray, at observation. However, we do need v_emission for normalization.
+      # Because the Schwarzschild coordinates are spherical coordinates, v_emission is guaranteed
+      # to have the form v^kappa=(q,-q,0,0,0). We need to retrofit v=v_observation to have a normalization
+      # that would have resulted from emission with v^kappa=(1,-1,0,0,0), which corresponds to a different  
+      # choice of affine parameter. In the Schwarzschild case, v_t is conserved, so the result for
+      # v_observation should always be v^t=1/(1-1/r), and we would not need the results of ray-tracing
+      # to tell us this, but I want this code to be more general, so I don't use that assumption.
+      if got_result:
+        q = v_emission[0]
+        v_observation = vector.scalar_mult(v_observation,1.0/q)
+        v_table.append([alpha,]+v_observation)
+      # ... The + here is concatenation of the lists. This won't work in js.
+      if got_result:
         if verbosity>=2:
           if alpha==0.0:
             err_approx = 0.0
@@ -195,7 +231,7 @@ def make_aberration_table(r,tol):
     x.append(beta-alpha)
     x.append(f)
     table2.append(x)
-  return table2
+  return [table2,v_table]
 
 def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
   n = 100
@@ -213,7 +249,7 @@ def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
     if err!=0:
       if err==RK_INCOMPLETE or err==RK_TRIGGER:
         PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete or entered horizon, done.")
-        return [NAN,TRUE]
+        return [NAN,TRUE,NONE]
       THROW("error: "+str(err))
     rf = final_x[1]
     if IS_NAN(rf):
@@ -232,7 +268,7 @@ def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
   if beta<0.0:
     beta = beta+2.0*MATH_PI
   beta = beta+w*2.0*MATH_PI
-  return [beta,FALSE]
+  return [beta,FALSE,final_v]
 
 def fill_in_aberration_table_by_interpolation(table,r):
   #-------------------
@@ -267,7 +303,8 @@ def fill_in_aberration_table_by_interpolation(table,r):
     table.pop()
 
 
-def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog_max_mag):
+def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,ra_out,dec_out,max_mag,\
+                    star_catalog_max_mag):
   """
   Make a table of stars seen by on observer in the vicinity of a black hole, in a standard state of motion,
   which is free fall from rest at infinity.
@@ -318,7 +355,8 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
     else:
       f=1.0
     brightness = exp(-(mag/2.5)*log(10.0)+log(f))
-    star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
+    ln_temp = star_properties.bv_to_log_temperature(bv)
+    star_table_entry_helper(table,alpha,phi,brightness,ln_temp,beta,if_black_hole)
   db.close()
   PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
   return [table,{'n_stars':n_stars,'count_drawn':count_drawn}]
@@ -417,7 +455,8 @@ def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m
             beta = math_util.linear_interp(alpha1,alpha2,beta1,beta2,alpha)
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
             bv = star_properties.spectral_class_to_bv(star_properties.random_spectral_class())
-            star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole)
+            ln_temp = star_properties.bv_to_log_temperature(bv)
+            star_table_entry_helper(table,alpha,phi,brightness,ln_temp,beta,if_black_hole)
   return [table,{'count_fake':count_fake}]
 
 def star_table_entry_helper(table,alpha,phi,brightness,bv,beta,if_black_hole):

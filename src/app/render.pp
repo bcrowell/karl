@@ -39,7 +39,7 @@ def render(table,outfile,verbosity):
       image_s[i][j] = 0.0
   for i in range(len(table)):
     row = table[i]
-    alpha,phi,raw_brightness,bv = float(row[0]),float(row[1]),float(row[2]),float(row[3])
+    alpha,phi,raw_brightness,ln_temp = float(row[0]),float(row[1]),float(row[2]),float(row[3])
     if TRUE:
       v = euclidean.spherical_to_cartesian(alpha,phi)
       v = euclidean.apply_matrix(rot,v)
@@ -77,7 +77,7 @@ def render(table,outfile,verbosity):
         gaussian_x = r2/blur2
         b = brightness*exp(-0.5*gaussian_x)
         image_i[xx][yy] = image_i[xx][yy]+b
-        hue,sat = star_properties.bv_to_color(bv)
+        hue,sat = star_properties.log_temperature_to_hue_and_sat(ln_temp)
         image_h[xx][yy] = image_h[xx][yy]+b*hue
         image_s[xx][yy] = image_s[xx][yy]+b*sat
   max = 0.0
