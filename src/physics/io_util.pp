@@ -50,3 +50,12 @@ def fl_n_decimals(x,n):
 #js   return x.toExponential(n).toString();
 #js }
 
+#if "LANG" eq "python"
+def read_csv_file(filename):
+  with open(filename, 'r') as f:
+    data = []
+    reader = csv.reader(f)
+    for row in reader:
+      data.append(row)
+    return data
+#endif

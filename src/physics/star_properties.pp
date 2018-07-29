@@ -78,3 +78,6 @@ def log_temperature_to_hue_and_sat(log_temp):
   hue = math_util.linear_interp_from_table(table,0,1,log_temp,0,n-1)
   sat = math_util.linear_interp_from_table(table,0,2,log_temp,0,n-1)
   return [hue,sat]
+
+def bv_to_color(bv):
+  return log_temperature_to_hue_and_sat(bv_to_log_temperature(bv))

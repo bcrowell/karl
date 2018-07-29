@@ -26,7 +26,6 @@ optics: obj/optics.py
 	make py
 	@chmod +x obj/optics.py
 	obj/optics.py
-	obj/render.py
 	src/render/render.rb
 	display stars.png
 

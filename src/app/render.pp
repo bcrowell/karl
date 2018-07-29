@@ -6,11 +6,7 @@
 import csv,ephem,json
 import euclidean,star_properties
 
-def main():
-  csv_file = "stars.csv"
-  outfile = "stars.json"
-  verbosity = 1
-  #----
+def render(table,outfile,verbosity):
   w = 1200 # pixels, width of square image
   h = 600
   fov_deg = 90.0 # horizontal field of view in degrees
@@ -41,7 +37,6 @@ def main():
       image_i[i][j] = 0.0
       image_h[i][j] = 0.0
       image_s[i][j] = 0.0
-  table = read_csv_file(csv_file)
   for i in range(len(table)):
     row = table[i]
     alpha,phi,raw_brightness,bv = float(row[0]),float(row[1]),float(row[2]),float(row[3])
@@ -82,7 +77,7 @@ def main():
         gaussian_x = r2/blur2
         b = brightness*exp(-0.5*gaussian_x)
         image_i[xx][yy] = image_i[xx][yy]+b
-        hue,sat = bv_to_color(bv)
+        hue,sat = star_properties.bv_to_color(bv)
         image_h[xx][yy] = image_h[xx][yy]+b*hue
         image_s[xx][yy] = image_s[xx][yy]+b*sat
   max = 0.0
@@ -109,23 +104,8 @@ def main():
   if verbosity>=1:
     PRINT("done rendering (render.py)")
 
-def bv_to_color(bv):
-  return star_properties.log_temperature_to_hue_and_sat(star_properties.bv_to_log_temperature(bv))
 
-def put_in_range(x,min,max):
-  if x<min:
-    return min
-  if x>max:
-    return max
-  return x
 
-def read_csv_file(filename):
-  with open(filename, 'r') as f:
-    data = []
-    reader = csv.reader(f)
-    for row in reader:
-      data.append(row)
-    return data
 
-main()
+
 
