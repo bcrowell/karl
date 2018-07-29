@@ -21,28 +21,42 @@ import PIL,ephem
 from PIL import Image
 #endif
 
-verbosity=1
-
-star_catalog_max_mag = 7
-star_catalog = '/usr/share/karl/mag7.sqlite'
-# Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
-
 def main():
+  verbosity=1
+  star_catalog_max_mag = 7
+  star_catalog = '/usr/share/karl/mag7.sqlite'
+  # Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
   r = 9.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
   ra_out,dec_out = celestial.rigel_ra_dec()
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.lmc_ra_dec())
   tol = 1.0e-3
-  aberration_table = make_aberration_table(r,tol)
-  write_csv_file(aberration_table,"aberration.csv",TRUE,"Table of aberration data written to")
-  max_mag = 12 # max apparent mag to show; causes random fake stars to be displayed down to this mag,
-               # in addition to the ones bright enough to be in the catalog
   if_black_hole = TRUE
+  max_mag = 12
+  draw_sky(r,ra_out,dec_out,tol,"aberration.csv","stars.csv","stars.json",verbosity,if_black_hole,max_mag,\
+            star_catalog,star_catalog_max_mag)
+
+#--------------------------------------------------------------------------------------------------
+
+def draw_sky(r,ra_out,dec_out,tol,aberration_csv,stars_csv,image_json,verbosity,if_black_hole,max_mag,\
+             star_catalog,star_catalog_max_mag):
+  """
+  Draw the sky as seen by an observer at radius r and angular coordinates specified by the given
+  RA and dec, i.e., the black hole is placed at the center of the earth's celestial sphere.
+  Use tolerance tol for geodesics. The two csv files are currently only for the user to inspect,
+  if desired. The output is a set of pixel arrays written to image_json, which is actually
+  rendered to a png file by render.rb.
+  The variable max_mag is the max apparent mag to show; causes random fake stars to be displayed down
+  to this mag, in addition to the ones bright enough to be in the catalog.
+  If if_black_hole is false, the star field is drawn as it would appear without any black hole.
+  """
+  aberration_table = make_aberration_table(r,tol)
+  write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
   star_table = make_star_table(star_catalog,aberration_table,r,if_black_hole,\
-                               ra_out,dec_out,max_mag)
-  write_csv_file(star_table,"stars.csv",TRUE,"Table of star data written to")
-  render.render(star_table,"stars.json",verbosity)
+                               ra_out,dec_out,max_mag,star_catalog_max_mag)
+  write_csv_file(star_table,stars_csv,TRUE,"Table of star data written to")
+  render.render(star_table,image_json,verbosity)
 
 #--------------------------------------------------------------------------------------------------
 
@@ -253,7 +267,7 @@ def fill_in_aberration_table_by_interpolation(table,r):
     table.pop()
 
 
-def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag):
+def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog_max_mag):
   """
   Make a table of stars seen by on observer in the vicinity of a black hole, in a standard state of motion,
   which is free fall from rest at infinity.
@@ -273,7 +287,7 @@ def make_star_table(star_catalog,aberration_table,r,if_black_hole,ra_out,dec_out
   count_drawn = stats_real['count_drawn']
   PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
   table,stats_fake =\
-           fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv)
+           fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv,star_catalog_max_mag)
   count_fake = stats_fake['count_fake']
   PRINT("Drew ",count_fake," fake stars.")
   return table
@@ -309,7 +323,7 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
   PRINT("done with real stars, drew ",count_drawn," with magnitudes less than ",max_mag)
   return [table,{'n_stars':n_stars,'count_drawn':count_drawn}]
 
-def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv):
+def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv,star_catalog_max_mag):
   count_fake = 0
   count_boxes = 0
   for i in range(len(aberration_table)-1):
