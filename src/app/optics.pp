@@ -26,7 +26,7 @@ def main():
   star_catalog_max_mag = 7
   star_catalog = '/usr/share/karl/mag7.sqlite'
   # Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
-  r = 9.0
+  r = 2.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
   ra_out,dec_out = celestial.rigel_ra_dec()
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
@@ -190,6 +190,10 @@ def make_aberration_tables(r,tol):
       if got_result:
         q = v_emission[0]
         v_observation = vector.scalar_mult(v_observation,1.0/q)
+        # This vector was set up for an outgoing ray, but we're flipping this around, treating it as an incoming
+        # ray that was observed here. Therefore we need to flip components 1...4:
+        v_observation = vector.scalar_mult(v_observation,-1.0)
+        v_observation[0] = -v_observation[0] # flip 0 component back to what it was
         v_table.append([alpha,]+v_observation)
       # ... The + here is concatenation of the lists. This won't work in js.
       if got_result:
@@ -339,8 +343,6 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
   n_stars = cursor.fetchone()[0]
   print("n_stars=",n_stars)
   count_drawn = 0
-  k1 = 0 # qwe
-  k2 = 0 # qwe
   for i in range(n_stars):
     cursor = db.cursor()
     cursor.execute('''SELECT ra,dec,mag,bv FROM stars WHERE id=?''',(i+1,))
@@ -489,9 +491,10 @@ def doppler_helper(r,v_table,alpha):
   #     u_m=(1,0,zeroes) and v^m=(1,-1,zeroes), so this inner product is 1.
   aa = 1.0-1.0/r # assumes Sch.
   u0 = 1.0
-  u1 = -aa*sqrt(1-aa)
+  u1 = (1.0/aa)*sqrt(1-aa)
   # ... Covariant form of (t,r) components of observer's velocity. Assumes Sch. and observer radially infalling
-  #     from rest at infinity.
+  #     from rest at infinity. u0=1 because it's the conserved energy in Sch. spacetime and we started from
+  #     rest at infinity. u1 follows from normalization.
   v0 = math_util.linear_interp_from_table(v_table,0,1,alpha,0,len(v_table)-1)
   v1 = math_util.linear_interp_from_table(v_table,0,2,alpha,0,len(v_table)-1)
   numerator = u0*v0+u1*v1 # inner product of u' (covariant) with v' (contravariant).
