@@ -22,11 +22,27 @@ from PIL import Image
 #endif
 
 def main():
+  if FALSE:
+    r = 9.0
+    if_fake = TRUE
+    star_catalog_max_mag = 7
+    do_image(r,"stars.png",if_fake,star_catalog_max_mag)
+  else:
+    # animation
+    if_fake = FALSE # random stars wouldn't be at fixed locations
+    star_catalog_max_mag = 9 # use dim stars to try to make up for lack of fake stars
+    n = 100
+    for i in range(n):
+      z = float(i)/float(n)
+      r = 9.0-7.9*z*z # accelerating, but not real physics for the state of motion we're using
+      outfile = "animation"+("%03d" % i)+".png"
+      print("---------------------- r=",r,", file=",outfile," ------------------------------")
+      do_image(r,outfile,if_fake,star_catalog_max_mag)
+
+def do_image(r,image_file,if_fake,star_catalog_max_mag):
   verbosity=1
-  star_catalog_max_mag = 7
-  star_catalog = '/usr/share/karl/mag7.sqlite'
+  star_catalog = '/usr/share/karl/mag'+str(star_catalog_max_mag)+'.sqlite'
   # Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
-  r = 2.0
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :
   ra_out,dec_out = celestial.rigel_ra_dec()
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
@@ -34,13 +50,14 @@ def main():
   tol = 1.0e-3
   if_black_hole = TRUE
   max_mag = 12
-  draw_sky(r,ra_out,dec_out,tol,"aberration.csv","v.csv","stars.csv","stars.json",verbosity,if_black_hole,max_mag,\
-            star_catalog,star_catalog_max_mag)
+  draw_sky(r,ra_out,dec_out,tol,"aberration.csv","v.csv","stars.csv","stars.json",verbosity,if_black_hole,\
+            if_fake,max_mag,star_catalog,star_catalog_max_mag)
+  os.system("src/render/render.rb stars.json "+image_file)
 
 #--------------------------------------------------------------------------------------------------
 
 def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_json,verbosity,\
-             if_black_hole,max_mag,star_catalog,star_catalog_max_mag):
+             if_black_hole,if_fake,max_mag,star_catalog,star_catalog_max_mag):
   """
   Draw the sky as seen by an observer near a Schwarzschild black hole.
   The observer is at radius r and angular coordinates specified by the given
@@ -55,7 +72,7 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
   aberration_table,v_table = make_aberration_tables(r,tol)
   write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
   write_csv_file(v_table,v_table_csv,TRUE,"Table of ray velocities written to")
-  star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,\
+  star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,\
                                ra_out,dec_out,max_mag,star_catalog_max_mag)
   write_csv_file(star_table,stars_csv,TRUE,"Table of star data written to")
   render.render(star_table,image_json,verbosity)
@@ -169,8 +186,10 @@ def make_aberration_tables(r,tol):
       # ... part of photon's velocity orthogonal to observer's velocity
       v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
       # ... normalized
-      alpha = acos(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp))
-      # ... angle at which the observer says the photon is emitted, see docs
+      zzz = math_util.force_into_range(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp),-1.0,1.0)
+      alpha = acos(zzz)
+      # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
+      #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
       if skip_this:
         beta,done = [NONE,FALSE] # fill in later by interpolation
       else:
@@ -307,7 +326,7 @@ def fill_in_aberration_table_by_interpolation(table,r):
     table.pop()
 
 
-def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,ra_out,dec_out,max_mag,\
+def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,ra_out,dec_out,max_mag,\
                     star_catalog_max_mag):
   """
   Make a table of stars seen by on observer in the vicinity of a black hole, in a standard state of motion,
@@ -329,11 +348,12 @@ def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,ra_out
   n_stars = stats_real['n_stars']
   count_drawn = stats_real['count_drawn']
   PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
-  table,stats_fake =\
+  if if_fake:
+    table,stats_fake =\
            fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv,star_catalog_max_mag,\
                       v_table)
-  count_fake = stats_fake['count_fake']
-  PRINT("Drew ",count_fake," fake stars.")
+    count_fake = stats_fake['count_fake']
+    PRINT("Drew ",count_fake," fake stars.")
   return table
 
 def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv,v_table):

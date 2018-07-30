@@ -26,8 +26,6 @@ optics: obj/optics.py
 	make py
 	@chmod +x obj/optics.py
 	obj/optics.py
-	src/render/render.rb
-	display stars.png
 
 depend: gen_depends.py
 	@python3 gen_depends.py >depend

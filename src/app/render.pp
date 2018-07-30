@@ -7,8 +7,8 @@ import csv,ephem,json
 import euclidean,star_properties
 
 def render(table,outfile,verbosity):
-  w = 1200 # pixels, width of square image
-  h = 600
+  w = 600 # pixels, width of square image
+  h = 300
   fov_deg = 90.0 # horizontal field of view in degrees
   view_rot_deg = 100.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----

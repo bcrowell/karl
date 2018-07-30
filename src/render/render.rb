@@ -10,7 +10,9 @@ require 'hsluv'
 require 'json'
 
 def main
-  infile = 'stars.json'
+  if ARGV.length!=2 then $stderr.print "Error in render.rb, exactly 2 command-line args required\n"; exit(-1) end
+  infile = ARGV[0]
+  outfile = ARGV[1]
   fov_deg = 45.0 # field of view in degrees
   view_rot_deg = 0.0 # angle away from black hole, i.e., 180 means looking directly away from it
   verbosity = 1
@@ -43,7 +45,7 @@ def main
       png_image[i,j] = hsv_to_color(hue,sat,l)
     }
   }
-  png_image.save("stars.png")
+  png_image.save(outfile)
   if verbosity>=1 then print "done with rendering to PNG (render.rb)\n" end
 end
 
