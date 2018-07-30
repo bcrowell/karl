@@ -6,13 +6,16 @@
 import csv,ephem,json
 import euclidean,star_properties
 
-def render(table,outfile,verbosity,w,h):
+def render(table,outfile,verbosity,w,h,fov_deg,view_rot_deg):
   # table = table of stars
   # outfile = filename of json file to write to
   # w,h = width and height in pixels
-  fov_deg = 90.0 # horizontal field of view in degrees
-  view_rot_deg = 100.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
+  # fov_deg = horizontal field of view in degrees
+  # view_rot_deg: 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----
+  if fov_deg>=180.0:
+    THROW('fov_deg must be less than 180 degrees')
+    # Values close to 180 produce field of view crowded into a tiny circle.
   blur = 1 # std dev. of gaussian blur, in units of pixels
   exposure = 10.0
   gamma = 0.7 # https://en.wikipedia.org/wiki/Gamma_correction
