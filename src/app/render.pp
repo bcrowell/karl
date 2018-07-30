@@ -6,9 +6,10 @@
 import csv,ephem,json
 import euclidean,star_properties
 
-def render(table,outfile,verbosity):
-  w = 600 # pixels, width of square image
-  h = 300
+def render(table,outfile,verbosity,w,h):
+  # table = table of stars
+  # outfile = filename of json file to write to
+  # w,h = width and height in pixels
   fov_deg = 90.0 # horizontal field of view in degrees
   view_rot_deg = 100.0 # 0 means looking at black hole, 180 means looking directly away; positive is pan to right
   #----

@@ -27,6 +27,11 @@ optics: obj/optics.py
 	@chmod +x obj/optics.py
 	obj/optics.py
 
+animation:
+	convert -delay 20 -loop 0 anim*.png animation.gif
+	#display animation.gif
+	# ... doesn't work, instead do gimp : filters : animation : playback
+
 depend: gen_depends.py
 	@python3 gen_depends.py >depend
 

@@ -22,11 +22,11 @@ from PIL import Image
 #endif
 
 def main():
-  if FALSE:
-    r = 9.0
+  if TRUE:
+    r = 2.0
     if_fake = TRUE
     star_catalog_max_mag = 7
-    do_image(r,"stars.png",if_fake,star_catalog_max_mag)
+    do_image(r,"stars.png",if_fake,star_catalog_max_mag,1200,600)
   else:
     # animation
     if_fake = FALSE # random stars wouldn't be at fixed locations
@@ -37,9 +37,9 @@ def main():
       r = 9.0-7.9*z*z # accelerating, but not real physics for the state of motion we're using
       outfile = "animation"+("%03d" % i)+".png"
       print("---------------------- r=",r,", file=",outfile," ------------------------------")
-      do_image(r,outfile,if_fake,star_catalog_max_mag)
+      do_image(r,outfile,if_fake,star_catalog_max_mag,600,300)
 
-def do_image(r,image_file,if_fake,star_catalog_max_mag):
+def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height):
   verbosity=1
   star_catalog = '/usr/share/karl/mag'+str(star_catalog_max_mag)+'.sqlite'
   # Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
@@ -51,13 +51,13 @@ def do_image(r,image_file,if_fake,star_catalog_max_mag):
   if_black_hole = TRUE
   max_mag = 12
   draw_sky(r,ra_out,dec_out,tol,"aberration.csv","v.csv","stars.csv","stars.json",verbosity,if_black_hole,\
-            if_fake,max_mag,star_catalog,star_catalog_max_mag)
+            if_fake,max_mag,star_catalog,star_catalog_max_mag,width,height)
   os.system("src/render/render.rb stars.json "+image_file)
 
 #--------------------------------------------------------------------------------------------------
 
 def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_json,verbosity,\
-             if_black_hole,if_fake,max_mag,star_catalog,star_catalog_max_mag):
+             if_black_hole,if_fake,max_mag,star_catalog,star_catalog_max_mag,width,height):
   """
   Draw the sky as seen by an observer near a Schwarzschild black hole.
   The observer is at radius r and angular coordinates specified by the given
@@ -68,6 +68,7 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
   The variable max_mag is the max apparent mag to show; causes random fake stars to be displayed down
   to this mag, in addition to the ones bright enough to be in the catalog.
   If if_black_hole is false, the star field is drawn as it would appear without any black hole.
+  Width and height are in pixels.
   """
   aberration_table,v_table = make_aberration_tables(r,tol)
   write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
@@ -75,7 +76,7 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
   star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,\
                                ra_out,dec_out,max_mag,star_catalog_max_mag)
   write_csv_file(star_table,stars_csv,TRUE,"Table of star data written to")
-  render.render(star_table,image_json,verbosity)
+  render.render(star_table,image_json,verbosity,width,height)
 
 #--------------------------------------------------------------------------------------------------
 
