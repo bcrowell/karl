@@ -975,16 +975,36 @@ get to null infinity (?).
 Interpolate between geodesics that I simulate, until I get to angles that are
 either outside of the projection screen or that intersect the horizon.
 
-Notes from Riazuelo: He goes to deflection angles of up to $5\pi$, says that's usually enough to
+Riazuelo goes to deflection angles of up to $5\pi$, says that's usually enough to
 get all interesting visible effects. He seems to say that the small deflections are basically
 SR doppler shifts, because the observer is free-falling (same idea I had). Although this seems to get the sign
 wrong, it does seem to correctly predict the absolute value of the slope to be $\approx r^{-1/2}$,
-which seems close to what I see numerically. Numerically, I think I actually see for
+which seems close to what I see numerically. Numerically, what I think I actually see for
 small $\alpha$ is
 \begin{equation*}
   \alpha-\beta\approx (r^{1/2}-1)^{-1}\alpha.
 \end{equation*}
-The actual results drop lower than this before coming back up.
+The actual results drop lower than this before coming back up. I use this approximation to
+improve the quality of interpolation.
+
+For $\alpha>\pi/2$, $L/E=\pm (1/2)3^{3/2}$ corresponds to the photon sphere, the unstable innermost
+circular orbit (at $r=3/2$), which can be occupied only by massless particles. For an observer at $r>3/2$,
+the upper limit on $\alpha$ corresponds to the time-reversal of the case where a photon starts on
+the photon sphere and then flies outward. Therefore for the Schwarzschild spacetime, this is a good,
+accurate way to judge the largest $\alpha$ that we need to consider. In reality, we stop evaluating
+$\beta(\alpha)$ before this, because we only go up to a certain deflection angle such as $5\pi$,
+but it's helpful to have this estimate in order to decide what angles to try, and the maximum angle
+we actually end up doing is quite close to the estimate.
+
+\subsection{Doppler shifts}
+
+The Doppler effects are surprisingly subtle, even for observers at highly relativistic $r$.
+For the observer in my standard state of motion, free-falling from rest at infinity, the Doppler
+effect for a star directly overhead can be calculated in closed form. I have this as an example
+in GR 7. At the horizon, it's only a factor of 2. For the standard observer,
+Doppler shifts turn out to be redshifts for stars
+directly overhead (as we would expect intuitively based on semi-Newtonian reasoning, because
+we're infalling, away from the sources), and blueshifts for horizon-grazing angles.
 
 \section{Literature on ray tracing}
 

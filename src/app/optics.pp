@@ -23,7 +23,7 @@ from PIL import Image
 
 def main():
   if TRUE:
-    r = 2.0
+    r = 10.0
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
@@ -73,7 +73,7 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
   If if_black_hole is false, the star field is drawn as it would appear without any black hole.
   Width and height are in pixels.
   """
-  aberration_table,v_table = make_aberration_tables(r,tol)
+  aberration_table,v_table = make_aberration_tables(r,tol,verbosity)
   write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
   write_csv_file(v_table,v_table_csv,TRUE,"Table of ray velocities written to")
   star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,\
@@ -83,7 +83,7 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
 
 #--------------------------------------------------------------------------------------------------
 
-def make_aberration_tables(r,tol):
+def make_aberration_tables(r,tol,verbosity):
   """
   Determine a table of optical aberration angles for an observer in the Schwarzschild spacetime.
   Each line of the table is in the format [r,alpha,beta,beta-alpha,f].
@@ -103,6 +103,7 @@ def make_aberration_tables(r,tol):
   would be the same for all rays: -- u_kappa=(1,-A*sqrt(1-A)), where A=1-1/r. Note that this
   is the covariant form of u.
   """
+  is_schwarzschild = TRUE
   spacetime = SP_SCH
   chart = CH_SCH
   pars = {}
@@ -163,9 +164,15 @@ def make_aberration_tables(r,tol):
         frac_skip = frac_skip//s2
       skip_this = not (i%frac_skip==0)
       z = (float(i)/float(n_angles))
-      if in_n_out==1:
-        z = 1.0-z
-      le = z*max_le # photon's ratio L/E of angular momentum to energy
+      if in_n_out==0:
+        le = z*max_le
+      else:
+        if is_schwarzschild:
+          le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
+          le = math_util.linear_interp(0.0,1.0,max_le,le_ph,z)
+        else:
+          # more generic logic, more likely to be appropriate if not Sch.
+          le = (1.0-z)*max_le
       # Initial position:
       x = x_obs
       if le==0.0:
@@ -218,7 +225,7 @@ def make_aberration_tables(r,tol):
         v_observation = vector.scalar_mult(v_observation,-1.0)
         v_observation[0] = -v_observation[0] # flip 0 component back to what it was
         v_table.append([alpha,]+v_observation)
-      # ... The + here is concatenation of the lists. This won't work in js.
+        # ... The + here is concatenation of the lists. This won't work in js.
       if got_result:
         if verbosity>=2:
           if alpha==0.0:
@@ -226,13 +233,14 @@ def make_aberration_tables(r,tol):
           else:
             approx = alpha/(sqrt(r)-1)
             err_approx = (approx-abs(alpha-beta))/alpha
-          PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
+            PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
                 " deg, rel err in approx=",err_approx)
         last_deflection = abs(alpha-beta)
         if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
           PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
           done = TRUE
-          break
+      if done:
+        break
     if done:
       break
   fill_in_aberration_table_by_interpolation(table,r)
