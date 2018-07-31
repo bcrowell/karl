@@ -394,7 +394,14 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   # ... part of photon's velocity orthogonal to observer's velocity
   v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
   # ... normalized
-  zzz = math_util.force_into_range(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp),-1.0,1.0)
+  zzz = vector.inner_product(-spacetime,chart,pars,x_obs,rho,v_perp)
+  # ... The minus sign is because we're using the +--- metric,
+  #     so spatial inner products are sign-flipped compared to euclidean ones. 
+  #     I'm confused, at some point convinced myself there should be a second minus sign
+  #     because this routine computes the direction from which the photon appears to have come, not the
+  #     direction it appears to be going. But doing that seems to screw things up.
+  zzz = math_util.force_into_range(zzz,-1.0,1.0)
+  # ... Necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding.
   alpha = acos(zzz)
   # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
