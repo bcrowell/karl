@@ -31,7 +31,7 @@ sloppy = TRUE
 
 def main():
   if TRUE:
-    r = 10.0
+    r = 1.6
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
@@ -118,9 +118,9 @@ def make_aberration_tables(r,tol,verbosity):
   aa = 1-1/r
   x_obs,v_obs,rho = schwarzschild_standard_observer(r,spacetime,chart,pars)
   if r>1.0:
-    max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r
+    max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r (not the max. for visibility)
   else:
-    max_le = 10.0
+    max_le = 10.0 # fixme
   done = FALSE
   def count_winding(lam,x,v,spacetime,chart,pars):
     if lam==0.0:
@@ -336,6 +336,26 @@ def schwarzschild_standard_observer(r,spacetime,chart,pars):
     THROW("observer's velocity has bad norm")
   return [x_obs,v_obs,rho]
 
+def alpha_max_schwarzschild(r):
+  """
+  Maximum alpha at which an observer at r, in the standard state of motion, receives rays.
+  """
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  aa = 1-1/r
+  le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
+  x_obs,v_obs,rho = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  # In the following, there is no reverse ray-tracing going on, so inward means the observer really
+  # absorbs the photon at a point where it has dr/dt<0.
+  # in_n_out is 0 if outward, 1 if inward
+  if r>=1.5:
+    in_n_out = 0 # ray peeled off of the photon sphere and came outward to us
+  else:
+    in_n_out = 1 # limiting rays peel off of the photon sphere and fall inward to us
+  alpha_max,v_observation = le_to_alpha_schwarzschild(r,le_ph,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+  return alpha_max
+
 def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars):
   """
   The main inputs are Schwarzschild radius r of the observer, the ratio L/E of the angular momentum of a photon
@@ -351,7 +371,7 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   #----
   # Find velocity vector of the photon.
   if le==0.0:
-    v = [1.0,aa,0.0,0.0,0.0]
+    v = [1.0,aa,0.0,0.0,0.0] # should probably change sign of v_r based on in_n_out, but test carefully -- qwe
   else:
     z = r*r/(le*le)-aa
     if z<EPS and z>-10.0*EPS:
