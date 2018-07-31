@@ -25,7 +25,7 @@ all:
 optics: obj/optics.py
 	make py
 	@chmod +x obj/optics.py
-	obj/optics.py && display stars.png
+	obj/optics.py
 
 animation:
 	convert -delay 20 -loop 0 anim*.png animation.gif
