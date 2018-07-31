@@ -31,7 +31,7 @@ sloppy = TRUE
 
 def main():
   if TRUE:
-    r = 1.6
+    r = 10.0
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
@@ -155,7 +155,7 @@ def make_aberration_tables(r,tol,verbosity):
       if last_deflection>2.0:
         frac_skip = frac_skip//s2
       skip_this = not (i%frac_skip==0)
-      z = (float(i)/float(n_angles-1))
+      z = (float(i)/float(n_angles))
       if in_n_out==0:
         le = z*max_le
       else:
