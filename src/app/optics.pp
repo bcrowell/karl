@@ -155,7 +155,7 @@ def make_aberration_tables(r,tol,verbosity):
       if last_deflection>2.0:
         frac_skip = frac_skip//s2
       skip_this = not (i%frac_skip==0)
-      z = (float(i)/float(n_angles))
+      z = (float(i)/float(n_angles)) # note that this should *not* be n_angles-1
       if in_n_out==0:
         le = z*max_le
       else:
@@ -394,14 +394,10 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   # ... part of photon's velocity orthogonal to observer's velocity
   v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
   # ... normalized
-  zzz = vector.inner_product(-spacetime,chart,pars,x_obs,rho,v_perp)
-  # ... The minus sign is because we're using the +--- metric,
-  #     so spatial inner products are sign-flipped compared to euclidean ones. 
-  #     I'm confused, at some point convinced myself there should be a second minus sign
-  #     because this routine computes the direction from which the photon appears to have come, not the
-  #     direction it appears to be going. But doing that seems to screw things up.
-  zzz = math_util.force_into_range(zzz,-1.0,1.0)
-  # ... Necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding.
+  zzz = math_util.force_into_range(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp),-1.0,1.0)
+  # ... Minus sign is because this is +--- signature, so euclidean dot products have flipped signs.
+  #     I thought I convinced myself that there should be another - because we're doing direction
+  #     ray appears to have come from, not direction it's going, but that seems to mess things up.
   alpha = acos(zzz)
   # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding

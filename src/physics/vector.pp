@@ -3,7 +3,7 @@
 #include "math.h"
 #include "spacetimes.h"
 
-import schwarzschild,angular,kruskal
+import schwarzschild,angular,kruskal,io_util
 
 def scalar_mult(v0,s):
   """
