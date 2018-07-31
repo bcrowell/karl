@@ -996,6 +996,33 @@ $\beta(\alpha)$ before this, because we only go up to a certain deflection angle
 but it's helpful to have this estimate in order to decide what angles to try, and the maximum angle
 we actually end up doing is quite close to the estimate.
 
+It's useful to know the function $\alpha_\text{max}(r)$ giving the greatest $\alpha$ at which rays
+are observed by an observer at a given $r$ in the Schwarzschild spacetime. I have this
+implemented in \texttt{alpha\_max\_schwarzschild}. In principle, this constitutes a 
+closed-form expression for this function, but the math involves a fairly long series of calculations with
+three-component vectors, so I got bogged down when I tried to write out a formula on a piece of
+paper. There are two cases, $r\le 3/2$ and $r\ge 3/2$, see Riazuelo, p.~4.
+
+For $r\ge 3/2$, the following approximation is good to about 1\%:
+\begin{equation*}
+  \pi-\alpha_\text{max} \approx \frac{(1/2)3^{3/2}}{r}(1+r^{-1/2})(1.0169-0.3308r^{-2}-0.2325r^{-4})
+\end{equation*}
+Here $(1/2)3^{3/2}$ is the $L/E$ for the photon sphere. 
+I'm guessing that for large $r$, the polynomial factor is actually best approximated by 1,
+but it's hard to tell because rounding errors get big in the implementation of the exact result.
+
+For $r<3/2$, we need the other branch of the function 
+(a ray with $\dot{r}<0$ at observation, simulated backward in time as emission with $\dot{r}>0$)
+and the opposite sign on the inequality on $|L/E|$.
+I get $\lim_{r\rightarrow 0}\alpha_\text{max}=\pi/2$,
+which seems to be right based on the caption of Riazuelo's fig.~16, although I haven't worked out the
+physics of why this should be true. Numerically, I seem to
+get $\alpha_\text{max}(1)=\cos^{-1}(5/8)$, which disagrees with
+Riazuelo?? For further confusion, he claims it should be $\delta=\pi-\alpha=\cos^{-1}(23/31)$,
+which he says is $2\delta=82.1$ degrees, but in fact the first expression gives about 84 degrees,
+while obtaining the decimal approximation seems to require an input of $23/30.5$ to the inverse cosine.
+
+
 \subsection{Doppler shifts}
 
 The Doppler effects are surprisingly subtle, even for observers at highly relativistic $r$.
@@ -1112,8 +1139,8 @@ The format of
 each row of the aberration table is $[r,\alpha,\beta,\beta-\alpha,f]$, where $\alpha$ is the direction
 of the ray as seen by the observer (zero=away from the black hole), $\beta$ is the actual direction
 on the celestial sphere, and $f$ is the factor by which the brightness of light is amplified because
-of lensing. Format of stars table is $[\alpha,\phi,I,ln_temp]$, where $\phi$ is azimuthal angle, $I$ is
-brightness (first normalized to zero magnitude, but then taking $f$ into account), and ln_temp is
+of lensing. Format of stars table is $[\alpha,\phi,I,ln\_temp]$, where $\phi$ is azimuthal angle, $I$ is
+brightness (first normalized to zero magnitude, but then taking $f$ into account), and ln\_temp is
 a color temperature expressed as ln(kelvin).
 The table of stars is based on a catalog of bright stars down to 7th magnitude, supplemented by
 fake stars that are randomly generated based on a GAIA map and a statistical distribution of

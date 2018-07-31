@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+  (c) 2018 Benjamin Crowell, GPL v3
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Simulation of the motion of a test particle in the Schwarzschild spacetime</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <h1>Simulation of the motion of a test particle in the Schwarzschild spacetime</h1>
+
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/latest.js?config=TeX-MML-AM_CHTML' async></script>
+
+    <script src="util/start_karl.js"></script>
+    <script src="util/constants.js"></script>
+
+    <script src="lib/array.js"></script>
+
+    <script src="physics/angular.js"></script>
+    <script src="physics/io_util.js"></script>
+    <script src="physics/kruskal.js"></script>
+    <script src="physics/lambert_w_stuff.js"></script>
+    <script src="physics/math_util.js"></script>
+    <script src="physics/runge_kutta.js"></script>
+    <script src="physics/schwarzschild.js"></script>
+    <script src="physics/transform.js"></script>
+    <script src="physics/vector.js"></script>
+
+
+    This is a very simple demonstration of an elliptical orbit, determined by numerical
+    integration of the geodesic equation in the 
+    <a href="https://en.wikipedia.org/wiki/Schwarzschild_metric">Schwarzschild spacetime</a>. The calculation 
+    shown in the printout below was
+    done live on your computer, in your browser, using 
+    <a href="https://github.com/bcrowell/karl">open-source code</a>.
+
+    <p>
+
+    <div style="height:220px;width:1000px;overflow:auto;font-family:monospace" id="console"></div>
+                 <!-- ... for print(); see start_karl.js -->
+
+    <p>
+
+    The simulation starts at perihelion and continues for a time \(T\) equal to the Keplerian period.
+    The position \(x\) is calculated as a function of the proper time \(\lambda\)
+    and displayed at
+    intervals \(T/10\). The position 
+    is shown in a version of Schwarzschild coordinates \((t,r,i,j,k)\), where \(i\), \(j\), and \(k\)
+    represent the angular position as a point on the unit 2-sphere, embedded in a fictitious
+    3-dimensional Euclidean space. The use of the \(i\)-\(j\)-\(k\) coordinates rather than
+    \(\theta\) and \(\phi\) is purely for computational convenience, and has the advantage of eliminating
+    the coordinate singularities at \(\theta=0\) and \(\pi\). The coordinates \(t\) and \(r\)
+    are given in units of the Schwarzschild radius \(r=2M\) (=\(2GM/c^2\) in SI units). If \(M\)
+    is one solar mass, then the radius of perihelion \(10^8\) corresponds to 2 a.u.
+    The velocity vector with components \(\dot{t},\dot{r},\ldots\) is
+    also displayed (the dot indicating \(d/d\lambda\)).
+
+    <p>
+
+    The geodesic is integrated by the fourth-order Runge-Kutta
+    method. For
+    \(r \gg 1\), the motion should be Newtonian, and the
+    precision of the calculation can be gauged by how well the final position \((r,i,j,k)\) 
+    matches up with the initial one.
+
+    <script src="sample.js"></script>
+  </body>
+</html>
+

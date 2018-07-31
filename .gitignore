@@ -1,2 +1,14 @@
+a.a
 *~
 obj/*
+js/*
+*.o
+*.P
+*.aux
+*.log
+*.pdf
+*.png
+*.gif
+notes/*
+*.csv
+*.json

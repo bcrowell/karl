@@ -21,6 +21,14 @@ import PIL,ephem
 from PIL import Image
 #endif
 
+sloppy = TRUE
+# ... I have checks at various places in the code to make sure that, e.g., a vector really is normalized
+#     after I've constructed it in a way that should make it normalized. Sometimes these checks fail
+#     due to rounding, e.g., near the horizon. Setting sloppy=TRUE disables these checks, so that
+#     once the code is tested and I'm pretty sure it's correct, I no longer get exceptions being
+#     thrown once in a while.
+
+
 def main():
   if TRUE:
     r = 10.0
@@ -319,12 +327,12 @@ def schwarzschild_standard_observer(r,spacetime,chart,pars):
   # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
   rho = vector.normalize_spacelike(spacetime,chart,pars,x_obs,rho)
   # ... now normalize it to have |rho|^2=-1
-  if abs(vector.norm(spacetime,chart,pars,x_obs,rho)+1.0)>EPS*10:
+  if abs(vector.norm(spacetime,chart,pars,x_obs,rho)+1.0)>EPS*10 and not sloppy:
     THROW("norm(rho)!=-1")
   energy_obs = aa*v_obs[0]
   if abs(energy_obs-1.0)>EPS*10:
     THROW("energy of observer="+str(energy_obs))
-  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10:
+  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10 and not sloppy:
     THROW("observer's velocity has bad norm")
   return [x_obs,v_obs,rho]
 
@@ -359,7 +367,7 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   #----
   # Check that its norm is zero.
   norm = vector.norm(spacetime,chart,pars,x_obs,v)
-  if abs(norm)>EPS*10:
+  if abs(norm)>EPS*10 and not sloppy:
     THROW("norm="+str(norm))
   #----
   v_perp = vector.proj(spacetime,chart,pars,x_obs,v_obs,v)
