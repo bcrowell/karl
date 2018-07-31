@@ -108,23 +108,7 @@ def make_aberration_tables(r,tol,verbosity):
   chart = CH_SCH
   pars = {}
   aa = 1-1/r
-  x_obs = [0.0,r,1.0,0.0,0.0]
-  # Calculate the velocity vector of the observer, for the standard state of motion:
-  v_obs = [1/aa,-sqrt(1-aa),0.0,0.0,0.0]
-  #    ... solution of the equations E=Atdot=1, |v|^2=Atdot^2-(1/A)rdot^2=1
-  #        We check below that it actually is a solution.
-  # Calculate the observer's radial vector rho, parallel-transported in from infinity.
-  rho = vector.proj(spacetime,chart,pars,x_obs,v_obs,[0.0,1.0,0.0,0.0,0.0])
-  # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
-  rho = vector.normalize_spacelike(spacetime,chart,pars,x_obs,rho)
-  # ... now normalize it to have |rho|^2=-1
-  if abs(vector.norm(spacetime,chart,pars,x_obs,rho)+1.0)>EPS*10:
-    THROW("norm(rho)!=-1")
-  energy_obs = aa*v_obs[0]
-  if abs(energy_obs-1.0)>EPS*10:
-    THROW("energy of observer="+str(energy_obs))
-  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10:
-    THROW("observer's velocity has bad norm")
+  x_obs,v_obs,rho = schwarzschild_standard_observer(r,spacetime,chart,pars)
   if r>1.0:
     max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r
   else:
@@ -313,6 +297,36 @@ def fill_in_aberration_table_by_interpolation(table,r):
     table.pop()
   while IS_NAN(table[len(table)-1][2]):
     table.pop()
+
+def schwarzschild_standard_observer(r,spacetime,chart,pars):
+  """
+  The main input is the Schwarzschild radial coordinate r of an observer in the Schwarzschild spacetime.
+  The other inputs are described in comments in the calling code.
+  Although the inputs include data about the spacetime and chart, this code will not actually work except
+  for Schwarzschild cooordinates in the Schwarzschild spacetime.
+  The output is the three vectors [x_obs,v_obs,rho] describing an observer at the standard state of motion,
+  free-falling from rest at infinity. These are the observer's position and velocity, and
+  the observer's radial vector rho, parallel-transported in from infinity.
+  """
+  aa = 1-1/r
+  x_obs = [0.0,r,1.0,0.0,0.0]
+  # Calculate the velocity vector of the observer, for the standard state of motion:
+  v_obs = [1/aa,-sqrt(1-aa),0.0,0.0,0.0]
+  #    ... solution of the equations E=Atdot=1, |v|^2=Atdot^2-(1/A)rdot^2=1
+  #        We check below that it actually is a solution.
+  # Calculate the observer's radial vector rho, parallel-transported in from infinity.
+  rho = vector.proj(spacetime,chart,pars,x_obs,v_obs,[0.0,1.0,0.0,0.0,0.0])
+  # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
+  rho = vector.normalize_spacelike(spacetime,chart,pars,x_obs,rho)
+  # ... now normalize it to have |rho|^2=-1
+  if abs(vector.norm(spacetime,chart,pars,x_obs,rho)+1.0)>EPS*10:
+    THROW("norm(rho)!=-1")
+  energy_obs = aa*v_obs[0]
+  if abs(energy_obs-1.0)>EPS*10:
+    THROW("energy of observer="+str(energy_obs))
+  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10:
+    THROW("observer's velocity has bad norm")
+  return [x_obs,v_obs,rho]
 
 def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars):
   """
