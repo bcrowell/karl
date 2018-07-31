@@ -113,11 +113,6 @@ def make_aberration_tables(r,tol,verbosity):
   v_obs = [1/aa,-sqrt(1-aa),0.0,0.0,0.0]
   #    ... solution of the equations E=Atdot=1, |v|^2=Atdot^2-(1/A)rdot^2=1
   #        We check below that it actually is a solution.
-  energy_obs = aa*v_obs[0]
-  if abs(energy_obs-1.0)>EPS*10:
-    THROW("energy of observer="+str(energy_obs))
-  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10:
-    THROW("observer's velocity has bad norm")
   # Calculate the observer's radial vector rho, parallel-transported in from infinity.
   rho = vector.proj(spacetime,chart,pars,x_obs,v_obs,[0.0,1.0,0.0,0.0,0.0])
   # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
@@ -125,6 +120,11 @@ def make_aberration_tables(r,tol,verbosity):
   # ... now normalize it to have |rho|^2=-1
   if abs(vector.norm(spacetime,chart,pars,x_obs,rho)+1.0)>EPS*10:
     THROW("norm(rho)!=-1")
+  energy_obs = aa*v_obs[0]
+  if abs(energy_obs-1.0)>EPS*10:
+    THROW("energy of observer="+str(energy_obs))
+  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10:
+    THROW("observer's velocity has bad norm")
   if r>1.0:
     max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r
   else:
@@ -173,34 +173,11 @@ def make_aberration_tables(r,tol,verbosity):
         else:
           # more generic logic, more likely to be appropriate if not Sch.
           le = (1.0-z)*max_le
-      # Initial position:
-      x = x_obs
-      if le==0.0:
-        v = [1.0,aa,0.0,0.0,0.0]
-      else:
-        z = r*r/(le*le)-aa
-        if z<EPS and z>-10.0*EPS:
-          z=EPS # tiny neg z happens due to rounding; make z big enough so it doesn't cause div by zero below
-        if z<0.0:
-          break # a photon with angular momentum this big can't exist at this r; won't happen with current algorithm
-        dphi_dr = (1.0/r)/sqrt(z)
-        if in_n_out==1:
-          dphi_dr = -dphi_dr
-        dphi_dt = le*aa/(r*r)
-        v = [1.0,dphi_dt/dphi_dr,0.0,dphi_dt,0.0] # tangent vector
-      v_observation = CLONE_ARRAY_OF_FLOATS(v)
-      # ... will get rescaled later, see comments below, but clone it to make sure it can't get munged
-      norm = vector.norm(spacetime,chart,pars,x,v)
-      if abs(norm)>EPS*10:
-        THROW("norm="+str(norm))
-      v_perp = vector.proj(spacetime,chart,pars,x_obs,v_obs,v)
-      # ... part of photon's velocity orthogonal to observer's velocity
-      v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
-      # ... normalized
-      zzz = math_util.force_into_range(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp),-1.0,1.0)
-      alpha = acos(zzz)
-      # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
-      #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
+      alpha,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+      x = x_obs # initial position
+      v = CLONE_ARRAY_OF_FLOATS(v_observation)
+      # ... Initial velocity of ray, which is simulated going backward in time, as if emitted rather than absorbed.
+      #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
       if skip_this:
         beta,done = [NONE,FALSE] # fill in later by interpolation
       else:
@@ -337,6 +314,49 @@ def fill_in_aberration_table_by_interpolation(table,r):
   while IS_NAN(table[len(table)-1][2]):
     table.pop()
 
+def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars):
+  """
+  The main inputs are Schwarzschild radius r of the observer, the ratio L/E of the angular momentum of a photon
+  to its energy, and in_n_out, which equals 0 if the photon is going radially outward, 1 if inward.
+  The other inputs are described in comments in the calling code.
+  Although the inputs include data about the spacetime and chart, this code will not actually work except
+  for Schwarzschild cooordinates in the Schwarzschild spacetime.
+  Output is [alpha,v_observation], where v_observation is the velocity vector of the observer
+  in the standard state of motion (infalling from rest at infinity), and alpha is the azimuthal angle of
+  the photon as measured by the observer.
+  """
+  aa = 1-1/r
+  #----
+  # Find velocity vector of the photon.
+  if le==0.0:
+    v = [1.0,aa,0.0,0.0,0.0]
+  else:
+    z = r*r/(le*le)-aa
+    if z<EPS and z>-10.0*EPS:
+      z=EPS # tiny neg z happens due to rounding; make z big enough so it doesn't cause div by zero below
+    if z<0.0:
+      THROW("z<0, a photon with angular momentum this big can't exist at this r")
+      # ... won't happen with current algorithm
+    dphi_dr = (1.0/r)/sqrt(z)
+    if in_n_out==1:
+      dphi_dr = -dphi_dr
+    dphi_dt = le*aa/(r*r)
+    v = [1.0,dphi_dt/dphi_dr,0.0,dphi_dt,0.0] # tangent vector
+  #----
+  # Check that its norm is zero.
+  norm = vector.norm(spacetime,chart,pars,x_obs,v)
+  if abs(norm)>EPS*10:
+    THROW("norm="+str(norm))
+  #----
+  v_perp = vector.proj(spacetime,chart,pars,x_obs,v_obs,v)
+  # ... part of photon's velocity orthogonal to observer's velocity
+  v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
+  # ... normalized
+  zzz = math_util.force_into_range(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp),-1.0,1.0)
+  alpha = acos(zzz)
+  # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
+  #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
+  return [alpha,v]
 
 def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,ra_out,dec_out,max_mag,\
                     star_catalog_max_mag):
