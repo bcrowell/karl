@@ -26,6 +26,7 @@ def main():
         euclidean
         celestial
         star_properties
+        ray
       """):
     add_target(targets,target,physics_and_math)
 
