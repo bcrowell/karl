@@ -15,8 +15,8 @@ $math_functions = "sqrt|abs|sin|cos|tan|asin|acos|atan2|sinh|cosh|tanh|arcsinh|a
 
 def main()
   module_name = handle_argv(ARGV)
-  t = gets(nil)
-  if t.nil? then exit(-1) end
+  t = $stdin.gets(nil)
+  if t.nil? then t='' end
   is_main = false
   if t=~/\A#!/ then is_main=true end # If it has #!/usr/bin/python3 at the top, it's a program, not a module.
   $protected_strings = Hash.new
