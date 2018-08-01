@@ -298,9 +298,8 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   The other inputs are described in comments in the calling code.
   Although the inputs include data about the spacetime and chart, this code will not actually work except
   for Schwarzschild cooordinates in the Schwarzschild spacetime.
-  Output is [alpha,v_observation], where v_observation is the velocity vector of the observer
-  in the standard state of motion (infalling from rest at infinity), and alpha is the azimuthal angle of
-  the photon as measured by the observer.
+  Output is [alpha,v_observation], where v_observation is the velocity vector of the photon
+  and alpha is the azimuthal angle of the photon as measured by the observer.
   """
   aa = 1-1/r
   #----

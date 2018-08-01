@@ -6,6 +6,10 @@ from io_util import strcat
 #include "math.h"
 #include "precision.h"
 
+def assert_boolean(condition,message):
+  if not condition:
+    THROW(message)
+
 def assert_equal_eps(x,y,eps):
   err = x-y
   if IS_NAN(x) or IS_NAN(y) or abs(err)>eps:
