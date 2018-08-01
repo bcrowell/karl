@@ -1,3 +1,5 @@
+#if "LANG" eq "python"
+# ... I haven't gotten this working in js.
 import random
 
 #include "language.h"
@@ -81,3 +83,5 @@ def log_temperature_to_hue_and_sat(log_temp):
 
 def bv_to_color(bv):
   return log_temperature_to_hue_and_sat(bv_to_log_temperature(bv))
+
+#endif

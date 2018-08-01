@@ -59,6 +59,7 @@ def main():
         math
         euclidean
         celestial
+        ray
       """):
     add_target(targets,target,test)
 

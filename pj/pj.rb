@@ -138,6 +138,7 @@ def translate_stuff_one_line(t,module_name,is_main)
     indentation,modules = [$1,$2]
     indentation+modules.split(/,/)\
       .select{ |m| !$modules_not_to_load.include?(m)}\
+      .map{ |m| m.gsub(/\s*/,'')}\
       .map{ |m| "#{$main_program_name}.load(\"#{m}\")"}\
       .join(";")
   }

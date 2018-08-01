@@ -4,6 +4,7 @@
 # Everything in this module is supposed to translate properly to js.
 
 #include "language.h"
+#include "util.h"
 #include "math.h"
 #include "io_util.h"
 #include "init.h"
@@ -13,9 +14,7 @@
 #include "precision.h"
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial,math_util,\
-       star_properties,render,ray
-
-import copy
+       star_properties
 
 #define SLOPPY TRUE
 # ... I have checks at various places in the code to make sure that, e.g., a vector really is normalized
@@ -25,6 +24,9 @@ import copy
 #     thrown once in a while.
 
 #--------------------------------------------------------------------------------------------------
+
+#if "LANG" eq "python"
+# ... fixme: js doesn't work with the way I did the nested sub and closure for count_winding()
 
 def make_aberration_tables(r,tol,verbosity):
   """
@@ -172,6 +174,8 @@ def make_aberration_tables(r,tol,verbosity):
     table2.append(x)
   return [table2,v_table]
 
+#endif
+
 def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
   n = 100
   ndebug=0
@@ -180,8 +184,8 @@ def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
   ri = r
   lambda_max = 10.0 # fixme, sort of random
   info = {}
-  while True:
-    opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,
+  WHILE(TRUE)
+    opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
           'user_function':count_winding,'no_enter_horizon':TRUE}
     err,final_x,final_v,final_a,final_lambda,info,sigma  = \
             fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
@@ -202,6 +206,7 @@ def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
     x = final_x
     v = final_v
     ri = rf
+  END_WHILE
   w = info['user_data'] # winding number
   beta = atan2(final_x[3],final_x[2]) # returns an angle from -pi to pi
   if beta<0.0:
@@ -217,8 +222,9 @@ def fill_in_aberration_table_by_interpolation(table,r):
     if IS_NONE(table[i][2]):
       continue
     j=i+1
-    while j<=len(table)-1 and IS_NONE(table[j][2]):
+    WHILE(j<=len(table)-1 and IS_NONE(table[j][2]))
       j=j+1
+    END_WHILE
     if j==i+1 or j>len(table)-1:
       continue
     alpha1 = table[i][1]
@@ -229,17 +235,17 @@ def fill_in_aberration_table_by_interpolation(table,r):
     err1 = alpha1/(sqrt(r)-1)-(beta1-alpha1)
     err2 = alpha2/(sqrt(r)-1)-(beta2-alpha2)
     k=i+1
-    while IS_NONE(table[k][2]) and k<j:
+    WHILE(IS_NONE(table[k][2]) and k<j)
       alpha = table[k][1]
       err = math_util.linear_interp(alpha1,alpha2,err1,err2,alpha) # interpolate to find est. of what error would have been
       beta = alpha+alpha/(sqrt(r)-1)-err
       table[k][2] = beta
       k=k+1
+    END_WHILE
   # Remove any uncomputed items from the end of the table:
-  while IS_NONE(table[len(table)-1][2]):
-    table.pop()
-  while IS_NAN(table[len(table)-1][2]):
-    table.pop()
+  WHILE(IS_NONE(table[len(table)-1][2]) or IS_NAN(table[len(table)-1][2]))
+    POP_FROM_ARRAY(table)
+  END_WHILE
 
 def schwarzschild_standard_observer(r,spacetime,chart,pars):
   """
@@ -262,13 +268,7 @@ def schwarzschild_standard_observer(r,spacetime,chart,pars):
   # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
   rho = vector.normalize_spacelike(spacetime,chart,pars,x_obs,rho)
   # ... now normalize it to have |rho|^2=-1
-  if abs(vector.norm(spacetime,chart,pars,x_obs,rho)+1.0)>EPS*10 and not SLOPPY:
-    THROW("norm(rho)!=-1")
-  energy_obs = aa*v_obs[0]
-  if abs(energy_obs-1.0)>EPS*10:
-    THROW("energy of observer="+str(energy_obs))
-  if abs(vector.norm(spacetime,chart,pars,x_obs,v_obs)-1.0)>EPS*10 and not SLOPPY:
-    THROW("observer's velocity has bad norm")
+  # Various checks on these vectors are done in test_ray.
   return [x_obs,v_obs,rho]
 
 def alpha_max_schwarzschild(r):

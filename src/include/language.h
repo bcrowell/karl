@@ -14,11 +14,13 @@
 #define EMPTY2DIM(x) [[0 for i in range(x)] for j in range(x)]
 #define EMPTY3DIM(x) [[[0 for i in range(x)] for j in range(x)] for k in range(x)]
 #define APPEND_TO_ARRAY(x,y) ((x).append(y))
-#define POP_FROM_ARRAY(x) ((x).pop)
+#define POP_FROM_ARRAY(x) ((x).pop())
 #define PRINT print
 #define THROW(message) raise RuntimeError(message)
 #define THROW_ARRAY(aaa) THROW((io_util.strcat(aaa)))
 # ... usage: THROW_ARRAY(([...])) ... extra parens required by filepp so it believes it's a single argument
+#define WHILE(x) while (x):
+#define END_WHILE
 #define EXIT(err) os._exit(err)
 #define BREAK break
 #define MATH_E math.e
@@ -55,6 +57,8 @@ karl.load("lib/array");
 #define THROW(message) throw message;
 #define THROW_ARRAY(aaa) THROW(io_util.strcat(aaa))
 # ... usage: THROW_ARRAY(([...])) ... extra parens required by filepp so it believes it's a single argument
+#define WHILE(x) while (x) {
+#define END_WHILE }
 #define EXIT(err) (quit(err))
 #define BREAK break
 #define MATH_E Math.E
