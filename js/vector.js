@@ -38,6 +38,7 @@
       karl.load("schwarzschild");
       karl.load("angular");
       karl.load("kruskal");
+      karl.load("io_util");
       vector.scalar_mult = function(v0, s) {
         var v, i;
 

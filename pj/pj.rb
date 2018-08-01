@@ -311,7 +311,7 @@ def has_math(l)
 end
 
 def translate_assignment(l,current_function_key)
-  l=~/^(\s*)(.*)\s*=(.*)/
+  l=~/^(\s*)(.*)\s*(?<!=)=(?!=)(.*)/ # the subpattern (?<!=)=(?!=) is meant to match = but not ==
   indentation,lhs,rhs = [$1,$2,$3]
   if lhs.nil? || rhs.nil? then return l end
   list_variables_to_declare(lhs,current_function_key)
