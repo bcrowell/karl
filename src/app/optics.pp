@@ -24,7 +24,7 @@ from PIL import Image
 
 def main():
   if TRUE:
-    r = 10.0
+    r = 15.0
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
@@ -43,7 +43,7 @@ def main():
       do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
 
 def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg):
-  verbosity=1
+  verbosity=2
   star_catalog = '/usr/share/karl/mag'+str(star_catalog_max_mag)+'.sqlite'
   # Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
   # falling inward from the direction of Rigel, https://en.wikipedia.org/wiki/Rigel :

@@ -77,7 +77,7 @@ def make_aberration_tables(r,tol,verbosity):
   table = []
   v_table = []
   last_deflection = 0.0
-  s0 = 2
+  s0 = 10
   # ...scaling factor for number of angular steps
   #    Making this a big value, like 10, makes fake stars take a long time, because the sky is subdivided
   #    very finely. Making it a very small value, like 2, may make interpolation of Doppler shifts too crude.
@@ -134,6 +134,8 @@ def make_aberration_tables(r,tol,verbosity):
         # ... The + here is concatenation of the lists. This won't work in js.
       if got_result:
         if verbosity>=2:
+          PRINT("r=",r,", L/E=",le,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg.")
+        if verbosity>=3:
           if alpha==0.0:
             err_approx = 0.0
           else:
@@ -243,9 +245,11 @@ def fill_in_aberration_table_by_interpolation(table,r):
       k=k+1
     END_WHILE
   # Remove any uncomputed items from the end of the table:
-  WHILE(IS_NONE(table[len(table)-1][2]) or IS_NAN(table[len(table)-1][2]))
+  WHILE(len(table)>0 and (IS_NONE(table[len(table)-1][2]) or IS_NAN(table[len(table)-1][2])))
     POP_FROM_ARRAY(table)
   END_WHILE
+  if len(table)==0:
+    THROW("entire array removed")
 
 def schwarzschild_standard_observer(r,spacetime,chart,pars):
   """
@@ -298,14 +302,20 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   The other inputs are described in comments in the calling code.
   Although the inputs include data about the spacetime and chart, this code will not actually work except
   for Schwarzschild cooordinates in the Schwarzschild spacetime.
-  Output is [alpha,v_observation], where v_observation is the velocity vector of the photon
+  Output is [alpha,v], where v is the velocity vector of the photon at observation
   and alpha is the azimuthal angle of the photon as measured by the observer.
   """
+  spatial_refl = TRUE # Do I need to spatially reflect relative to the static frame? What if r<1?
   aa = 1-1/r
   #----
   # Find velocity vector of the photon.
   if le==0.0:
-    v = [1.0,aa,0.0,0.0,0.0] # should probably change sign of v_r based on in_n_out, but test carefully -- qwe
+    if in_n_out==0:
+      v_r = aa
+    else:
+      # Normally this case is not of much interest, because we don't receive photons along the line from the b.h.
+      v_r = -aa
+    v = [1.0,v_r,0.0,0.0,0.0]
   else:
     z = r*r/(le*le)-aa
     if z<EPS and z>-10.0*EPS:
@@ -318,6 +328,9 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
       dphi_dr = -dphi_dr
     dphi_dt = le*aa/(r*r)
     v = [1.0,dphi_dt/dphi_dr,0.0,dphi_dt,0.0] # tangent vector
+  #----
+  if spatial_refl:
+    v = do_spatrial_refl_schwarzschild(r,v)
   #----
   # Check that its norm is zero.
   norm = vector.norm(spacetime,chart,pars,x_obs,v)
@@ -332,8 +345,26 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   # ... Minus sign is because this is +--- signature, so euclidean dot products have flipped signs.
   #     I thought I convinced myself that there should be another - because we're doing direction
   #     ray appears to have come from, not direction it's going, but that seems to mess things up.
+  if spatial_refl:
+    zzz = -zzz
   alpha = acos(zzz)
   # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
+  if spatial_refl:
+    # reflect it back...
+    v = do_spatrial_refl_schwarzschild(r,v)
   return [alpha,v]
+
+def do_spatrial_refl_schwarzschild(r,v0):
+  """
+  Reflect the vector spatially in the static frame.
+  I think I should do something different if r<1...?
+  """
+  v = CLONE_ARRAY_OF_FLOATS(v0)
+  v[1] = -v[1]
+  v[2] = -v[2]
+  v[3] = -v[3]
+  v[4] = -v[4]
+  return v
+
 
