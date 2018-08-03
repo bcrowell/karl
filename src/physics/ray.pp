@@ -307,7 +307,6 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   Output is [alpha,v], where v is the velocity vector of the photon at observation
   and alpha is the azimuthal angle of the photon as measured by the observer.
   """
-  spatial_refl = TRUE # Do I need to spatially reflect relative to the static frame? What if r<1?
   aa = 1-1/r
   #----
   # Find velocity vector of the photon.
@@ -332,30 +331,19 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
       dr_dt = -dr_dt
     v = [1.0,dr_dt,0.0,dphi_dt,0.0] # tangent vector
   #----
-  if spatial_refl:
-    v = do_spatial_refl_schwarzschild(v)
-  #----
-  # Check that its norm is zero.
-  norm = vector.norm(spacetime,chart,pars,x_obs,v)
-  if abs(norm)>EPS*10 and not SLOPPY:
-    THROW("norm="+str(norm))
-  #----
-  v_perp = vector.proj(spacetime,chart,pars,x_obs,v_obs,v)
+  v_perp = vector.proj(spacetime,chart,pars,x_obs,do_spatial_refl_schwarzschild(v_obs),v)
   # ... part of photon's velocity orthogonal to observer's velocity
   v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
   # ... normalized
-  zzz = math_util.force_into_range(-vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp),-1.0,1.0)
-  # ... Minus sign is because this is +--- signature, so euclidean dot products have flipped signs.
-  #     I thought I convinced myself that there should be another - because we're doing direction
-  #     ray appears to have come from, not direction it's going, but that seems to mess things up.
-  if spatial_refl:
-    zzz = -zzz
-  alpha = acos(zzz)
+  zzz = vector.inner_product(spacetime,chart,pars,x_obs,\
+              do_spatial_refl_schwarzschild(rho),\
+              v_perp)
+  # ... There are two minus signs that cancel here. One is because this is +--- signature, so euclidean
+  #     dot products have flipped signs. The other is because we're doing the direction the
+  #     ray appears to have come from, not direction it's going.
+  alpha = acos(math_util.force_into_range(zzz,-1.0,1.0))
   # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
-  if spatial_refl:
-    # reflect it back...
-    v = do_spatial_refl_schwarzschild(v)
   return [alpha,v]
 
 def do_spatial_refl_schwarzschild(v0):
