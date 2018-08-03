@@ -16,15 +16,34 @@ def test_obs_and_alpha(r):
   test_le_to_alpha_schwarzschild(r)
 
 def test_riazuelo_deflection():
-  le_over_max = 0.728
-  alpha,beta = test_riazuelo_deflection_one(le_over_max)
-  print("test_riazuelo_deflection(): alpha=",alpha,", beta=",beta)
-
-def test_riazuelo_deflection_one(le_over_max):
   r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
+#if "LANG" eq "python"
   # Interpolating from his graph, he has lines crossing at alpha=beta=2.48+-0.1.
   # Working backwards, this requires about L/E=11.3, which is 0.728 of max:
   #     calc -e "r=15; aa=1-1/r; lemax=r/sqrtaa; le=11.3/lemax"
+  # This is an important test of whether I'm getting SR aberration and GR deflection right;
+  # this is a case in which the two effects cancel out. Previously I had been getting this
+  # wrong because of confusion about hendling of aberration with time-reversed ray tracing.
+  le_over_max = 0.728
+  in_n_out = 1
+  alpha,beta = test_riazuelo_deflection_one(r,le_over_max,in_n_out)
+  assert_equal_eps(alpha,2.48,0.1)
+  assert_equal_eps(beta,alpha,0.1)
+
+  # Check sign of aberration for outward angles, should have alpha>beta because SR dominates:
+  le_over_max = 0.1
+  in_n_out = 0
+  alpha,beta = test_riazuelo_deflection_one(r,le_over_max,in_n_out)
+  assert_boolean(alpha>beta,"should have alpha>beta at outward angles, because SR dominates")  
+
+  # Check sign of aberration for grazing angles, should have alpha<beta because deflection dominates:
+  le_over_max = 0.2 # anything large compared to 1/((3/2)r)=0.04 should avoid absorption; 0.2 gives big defl
+  in_n_out = 1
+  alpha,beta = test_riazuelo_deflection_one(r,le_over_max,in_n_out)
+  assert_boolean(alpha<beta,"should have alpha<beta at grazing angles, because deflection dominates")  
+#endif
+
+def test_riazuelo_deflection_one(r,le_over_max,in_n_out):
   spacetime = SP_SCH
   chart = CH_SCH
   pars = {}
@@ -32,7 +51,6 @@ def test_riazuelo_deflection_one(le_over_max):
   aa = 1-1/r
   le_max = r/sqrt(abs(aa)) # abs is so we still get a test at r<1, see above
   le = le_over_max*le_max
-  in_n_out = 1
   alpha,v = ray.le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
   tol = 1.0e-6
   count_winding(0.0,[],[],0,0,{})
@@ -54,10 +72,10 @@ def count_winding(lam,x,v,spacetime,chart,pars):
     count_winding.last_angle = angle
   return count_winding.winding
 
+
 def test_le_to_alpha_schwarzschild(r):
   le_over_max = 0.1
   alpha,v = test_le_to_alpha_schwarzschild_one(r,le_over_max,1) # glancing inward
-  print("r=",r,", le_over_max=",0.1,", alpha=",alpha)
 
   alpha,v = test_le_to_alpha_schwarzschild_one(r,0.0,0) # directly outward
   assert_equal_eps(alpha,0.0,1.0e-6)

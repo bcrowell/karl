@@ -77,7 +77,7 @@ def make_aberration_tables(r,tol,verbosity):
   table = []
   v_table = []
   last_deflection = 0.0
-  s0 = 10
+  s0 = 2
   # ...scaling factor for number of angular steps
   #    Making this a big value, like 10, makes fake stars take a long time, because the sky is subdivided
   #    very finely. Making it a very small value, like 2, may make interpolation of Doppler shifts too crude.
@@ -141,8 +141,9 @@ def make_aberration_tables(r,tol,verbosity):
           else:
             approx = alpha/(sqrt(r)-1)
             err_approx = (approx-abs(alpha-beta))/alpha
-            PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
-                " deg, rel err in approx=",err_approx)
+            print("alpha-beta=",alpha-beta,", approx=",approx)
+            #PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
+            #    " deg, rel err in approx=",err_approx)
         last_deflection = abs(alpha-beta)
         if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
           PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
@@ -330,7 +331,7 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
     v = [1.0,dphi_dt/dphi_dr,0.0,dphi_dt,0.0] # tangent vector
   #----
   if spatial_refl:
-    v = do_spatrial_refl_schwarzschild(r,v)
+    v = do_spatial_refl_schwarzschild(r,v)
   #----
   # Check that its norm is zero.
   norm = vector.norm(spacetime,chart,pars,x_obs,v)
@@ -352,10 +353,10 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
   if spatial_refl:
     # reflect it back...
-    v = do_spatrial_refl_schwarzschild(r,v)
+    v = do_spatial_refl_schwarzschild(r,v)
   return [alpha,v]
 
-def do_spatrial_refl_schwarzschild(r,v0):
+def do_spatial_refl_schwarzschild(r,v0):
   """
   Reflect the vector spatially in the static frame.
   I think I should do something different if r<1...?
