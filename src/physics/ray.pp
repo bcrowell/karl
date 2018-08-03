@@ -333,7 +333,7 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
     v = [1.0,dr_dt,0.0,dphi_dt,0.0] # tangent vector
   #----
   if spatial_refl:
-    v = do_spatial_refl_schwarzschild(r,v)
+    v = do_spatial_refl_schwarzschild(v)
   #----
   # Check that its norm is zero.
   norm = vector.norm(spacetime,chart,pars,x_obs,v)
@@ -355,13 +355,13 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
   if spatial_refl:
     # reflect it back...
-    v = do_spatial_refl_schwarzschild(r,v)
+    v = do_spatial_refl_schwarzschild(v)
   return [alpha,v]
 
-def do_spatial_refl_schwarzschild(r,v0):
+def do_spatial_refl_schwarzschild(v0):
   """
   Reflect the vector spatially in the static frame.
-  I think I should do something different if r<1...?
+  Only makes sense for r>1, there is no static frame for r<=1.
   """
   v = CLONE_ARRAY_OF_FLOATS(v0)
   v[1] = -v[1]
