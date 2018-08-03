@@ -299,7 +299,8 @@ def alpha_max_schwarzschild(r):
 def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars):
   """
   The main inputs are Schwarzschild radius r of the observer, the ratio L/E of the angular momentum of a photon
-  to its energy, and in_n_out, which equals 0 if the photon is going radially outward, 1 if inward.
+  to its energy, and in_n_out, which equals 0 if the time-reversed photon is going radially outward, 1 if inward.
+  The sign of L/E is ignored.
   The other inputs are described in comments in the calling code.
   Although the inputs include data about the spacetime and chart, this code will not actually work except
   for Schwarzschild cooordinates in the Schwarzschild spacetime.
@@ -325,10 +326,11 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
       THROW("z<0, a photon with angular momentum this big can't exist at this r")
       # ... won't happen with current algorithm
     dphi_dr = (1.0/r)/sqrt(z)
+    dphi_dt = abs(le*aa)/(r*r)
+    dr_dt = abs(dphi_dt/dphi_dr)
     if in_n_out==1:
-      dphi_dr = -dphi_dr
-    dphi_dt = le*aa/(r*r)
-    v = [1.0,dphi_dt/dphi_dr,0.0,dphi_dt,0.0] # tangent vector
+      dr_dt = -dr_dt
+    v = [1.0,dr_dt,0.0,dphi_dt,0.0] # tangent vector
   #----
   if spatial_refl:
     v = do_spatial_refl_schwarzschild(r,v)
