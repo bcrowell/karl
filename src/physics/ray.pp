@@ -331,6 +331,10 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
       dr_dt = -dr_dt
     v = [1.0,dr_dt,0.0,dphi_dt,0.0] # tangent vector
   #----
+  alpha = v_photon_and_obs_frame_to_alpha(spacetime,chart,pars,x_obs,v,v_obs,rho)
+  return [alpha,v]
+
+def v_photon_and_obs_frame_to_alpha(spacetime,chart,pars,x_obs,v,v_obs,rho):
   v_perp = vector.proj(spacetime,chart,pars,x_obs,do_spatial_refl_schwarzschild(v_obs),v)
   # ... part of photon's velocity orthogonal to observer's velocity
   v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
@@ -344,7 +348,7 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
   alpha = acos(math_util.force_into_range(zzz,-1.0,1.0))
   # ... angle at which the observer says the photon is emitted, see docs; the force_into_range() is
   #     necessary because sometimes we get values for zzz like 1.0000000000000002 due to rounding
-  return [alpha,v]
+  return alpha
 
 def do_spatial_refl_schwarzschild(v0):
   """
