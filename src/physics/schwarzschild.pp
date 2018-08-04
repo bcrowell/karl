@@ -127,4 +127,3 @@ def christoffel_sch4(t,r,sin_theta,cos_theta):
   ch[3][2][3] = cot
   return ch
 
-

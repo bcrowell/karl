@@ -307,6 +307,7 @@
         /*
         Returns the matrix of partial derivatives of (a,b) with respect to (t,r), given t and r.
         The first index is 0 for a, 1 for b. The second index is 0 for t, 1 for r.
+        The relevant equations are written up more legibly in the docs.
         For non-horizon points, assumes region I or II.
         For points on the horizon, the result contains some infinite matrix elements.
         */
@@ -384,4 +385,16 @@
         v = ks_t + ks_x;
         w = ks_t - ks_x;
         return [Math.arcsinh(v), Math.arcsinh(w)];
+      };
+      transform.sch_is_in_future_light_cone = function(x, v) {
+        var v_kruskal, va, vb;
+
+        /*
+        Given vector v in Schwarzschild coordinates, determines whether it's in the future light cone.
+        */
+        /* There is probably a more efficient way to do this, but this way seems bulletproof and manifestly correct. */
+        v_kruskal = transform.transform_vector(v, x, 256, 1, {}, 2);
+        va = v_kruskal[0];
+        vb = v_kruskal[1];
+        return (va >= 0 && vb >= 0);
       };

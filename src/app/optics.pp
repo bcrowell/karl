@@ -23,8 +23,22 @@ from PIL import Image
 #endif
 
 def main():
+  r = 15.0
+  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
+  r = 1.51
+  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
+  r = 1.49
+  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
+  r = 1.01
+  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
+  r = 0.99
+  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
+  r = 0.01
+  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
+  exit(-1)
+
   if TRUE:
-    r = 1.1
+    r = 1.6
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]

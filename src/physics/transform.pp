@@ -178,6 +178,7 @@ def jacobian_schwarzschild_to_kruskal(t,r):
   Returns the matrix of partial derivatives of (a,b) with respect to (t,r), given t and r.
   The first index is 0 for a, 1 for b. The second index is 0 for t, 1 for r.
 
+  The relevant equations are written up more legibly in the docs.
   For non-horizon points, assumes region I or II.
   For points on the horizon, the result contains some infinite matrix elements.
   """
@@ -250,3 +251,12 @@ def schwarzschild_to_kruskal_small(t,r):
   w = ks_t-ks_x
   return [arcsinh(v),arcsinh(w)]
 
+def sch_is_in_future_light_cone(x,v):
+  """
+  Given vector v in Schwarzschild coordinates, determines whether it's in the future light cone.
+  """
+  # There is probably a more efficient way to do this, but this way seems bulletproof and manifestly correct.
+  v_kruskal = transform_vector(v,x,SP_SCH,CH_SCH,{},CH_AKS)
+  va = v_kruskal[0]
+  vb = v_kruskal[1]
+  return (va>=0 and vb>=0)

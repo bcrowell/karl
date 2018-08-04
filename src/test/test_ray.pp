@@ -9,7 +9,15 @@
 #include "precision.h"
 #include "spacetimes.h"
 
-import test,vector,ray,star_properties
+import test,vector,ray,star_properties,transform
+
+def test_alpha_max_schwarzschild():
+  assert_equal_eps(ray.alpha_max_schwarzschild(15.0),3.02,0.02)
+  # ... estimating asymptote from Riazuelo fig. 1
+  assert_equal_eps(ray.alpha_max_schwarzschild(1.0001),MATH_PI-acos(23/31),1.0e-4)
+  # ... Riazuelo eq. 86 (note that his 82.1 deg. should be 84.2 deg.)
+  assert_equal_eps(ray.alpha_max_schwarzschild(1.50001),ray.alpha_max_schwarzschild(1.49999),1.0e-5)
+  # ... logic changes at r=3/2, but result should be a continuous function of r
 
 def test_obs_and_alpha(r):
   test_schwarzschild_standard_observer(r) 
@@ -99,6 +107,9 @@ def test_le_to_alpha_schwarzschild_one(r,le_over_max,in_n_out):
   alpha,v = ray.le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
   # v has norm 0:
   assert_equal_eps(vector.norm(spacetime,chart,pars,x_obs,v),0.0,10*EPS)
+  # v is in future light cone:
+  assert_boolean(transform.sch_is_in_future_light_cone(x_obs,v),"v of photon is not future-oriented")
+
   return [alpha,v]
 
 def test_schwarzschild_standard_observer(r):
@@ -121,26 +132,22 @@ def test_schwarzschild_standard_observer(r):
   # v_obs is orthogonal to rho:
   assert_equal_eps(vector.inner_product(spacetime,chart,pars,x_obs,v_obs,rho),0.0,10*EPS)
 
-  if chart==CH_SCH:
-    # rho has a positive r component:
-    if r>1.0:
-      assert_boolean(rho[1]>0.0,"observer's radial vector has a negative r component in Schwarzschild coordinates")
+  # rho has a positive r component:
+  if r>1.0:
+    assert_boolean(rho[1]>0.0,"observer's radial vector has a negative r component in Schwarzschild coordinates")
 
-    # rho has vanishing angular components, observer is supposed to be radially infalling:
-    assert_equal_eps(rho[2],0.0,10*EPS)
-    assert_equal_eps(rho[3],0.0,10*EPS)
-    assert_equal_eps(rho[4],0.0,10*EPS)
+  # rho has vanishing angular components, observer is supposed to be radially infalling:
+  assert_equal_eps(rho[2],0.0,10*EPS)
+  assert_equal_eps(rho[3],0.0,10*EPS)
+  assert_equal_eps(rho[4],0.0,10*EPS)
 
-    # v_obs is oriented in the future-timelike direction:
-    if r>1.0:
-      assert_boolean(v_obs[0]>0.0,"observer has r>1 and v_t<=0, i.e., velocity is not future-oriented")
-    if r<1.0:
-      assert_boolean(v_obs[1]<0.0,"observer has r<1 and v_t>=0, i.e., velocity is not future-oriented")
-
+  # v_obs is oriented in the future-timelike direction:
+  assert_boolean(transform.sch_is_in_future_light_cone(x_obs,v_obs),"v_obs is not future-oriented")
  
 r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
 test_obs_and_alpha(r)
 r = 0.5 # test inside horizon
-#test_obs_and_alpha(r) # ... fails, possibly std observer is messed up for r<1?
+test_obs_and_alpha(r) # ... fails, possibly std observer is messed up for r<1?
 
 test_riazuelo_deflection()
+test_alpha_max_schwarzschild()

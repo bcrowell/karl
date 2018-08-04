@@ -1,7 +1,8 @@
 # This module contains general-relativistic ray-tracing code that isn't
 # related to human vision or rendering, doesn't need to read or write
 # image files or databases, and doesn't use the python ephem library.
-# Everything in this module is supposed to translate properly to js.
+# Everything in this module is supposed to translate properly to js, but
+# some functions currently don't, and are commented out with conditionals.
 
 #include "language.h"
 #include "util.h"
@@ -15,13 +16,6 @@
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial,math_util,\
        star_properties
-
-#define SLOPPY TRUE
-# ... I have checks at various places in the code to make sure that, e.g., a vector really is normalized
-#     after I've constructed it in a way that should make it normalized. Sometimes these checks fail
-#     due to rounding, e.g., near the horizon. Setting sloppy=TRUE disables these checks, so that
-#     once the code is tested and I'm pretty sure it's correct, I no longer get exceptions being
-#     thrown once in a while.
 
 #--------------------------------------------------------------------------------------------------
 
@@ -267,7 +261,7 @@ def schwarzschild_standard_observer(r,spacetime,chart,pars):
   # Calculate the velocity vector of the observer, for the standard state of motion:
   v_obs = [1/aa,-sqrt(1-aa),0.0,0.0,0.0]
   #    ... solution of the equations E=Atdot=1, |v|^2=Atdot^2-(1/A)rdot^2=1
-  #        We check below that it actually is a solution.
+  #        We check in test_ray that it actually is a solution.
   # Calculate the observer's radial vector rho, parallel-transported in from infinity.
   rho = vector.proj(spacetime,chart,pars,x_obs,v_obs,[0.0,1.0,0.0,0.0,0.0])
   # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
@@ -286,13 +280,10 @@ def alpha_max_schwarzschild(r):
   aa = 1-1/r
   le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
   x_obs,v_obs,rho = schwarzschild_standard_observer(r,spacetime,chart,pars)
-  # In the following, there is no reverse ray-tracing going on, so inward means the observer really
-  # absorbs the photon at a point where it has dr/dt<0.
-  # in_n_out is 0 if outward, 1 if inward
   if r>=1.5:
-    in_n_out = 0 # ray peeled off of the photon sphere and came outward to us
+    in_n_out = 1 # ray peeled off of the photon sphere and came outward to us
   else:
-    in_n_out = 1 # limiting rays peel off of the photon sphere and fall inward to us
+    in_n_out = 0 # limiting rays peel off of the photon sphere and fall inward to us
   alpha_max,v_observation = le_to_alpha_schwarzschild(r,le_ph,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
   return alpha_max
 
@@ -331,6 +322,8 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
       dr_dt = -dr_dt
     v = [1.0,dr_dt,0.0,dphi_dt,0.0] # tangent vector
   #----
+  if not transform.sch_is_in_future_light_cone(x_obs,v):
+    v = vector.scalar_mult(v,-1.0)
   alpha = v_photon_and_obs_frame_to_alpha(spacetime,chart,pars,x_obs,v,v_obs,rho)
   return [alpha,v]
 
