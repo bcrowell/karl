@@ -24,7 +24,7 @@ from PIL import Image
 
 def main():
   if TRUE:
-    r = 1.6
+    r = 1.1
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]

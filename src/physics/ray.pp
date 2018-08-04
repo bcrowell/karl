@@ -336,7 +336,10 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
 
 def v_photon_and_obs_frame_to_alpha(spacetime,chart,pars,x_obs,v,v_obs,rho):
   v_perp = vector.proj(spacetime,chart,pars,x_obs,v_obs,do_time_refl_schwarzschild(v))
-  # ... part of photon's velocity orthogonal to observer's velocity
+  # ... the part of the photon's velocity orthogonal to the observer's velocity.
+  #     The time reflection is necessary empirically in order to get the right direction for
+  #     the kinematic aberration, and sort of makes sense because we're doing reverse ray
+  #     tracing, but I'm uneasy about the underlying logic and whether this makes sense on the interior.
   v_perp = vector.normalize_spacelike(spacetime,chart,pars,x_obs,v_perp)
   # ... normalized
   zzz = -vector.inner_product(spacetime,chart,pars,x_obs,rho,v_perp)
