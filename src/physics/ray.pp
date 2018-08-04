@@ -284,6 +284,10 @@ def alpha_max_schwarzschild(r):
     in_n_out = 1 # ray peeled off of the photon sphere and came outward to us
   else:
     in_n_out = 0 # limiting rays peel off of the photon sphere and fall inward to us
+  if r<1.0:
+    in_n_out = 1
+    # ...I'm not clear on why this is necessary, but the opposite choice gives discontinuous
+    #    and obviously wrong results, while this choice gives a correct result at r=1-epsilon.
   alpha_max,v_observation = le_to_alpha_schwarzschild(r,le_ph,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
   return alpha_max
 

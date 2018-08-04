@@ -16,6 +16,8 @@ def test_alpha_max_schwarzschild():
   # ... estimating asymptote from Riazuelo fig. 1
   assert_equal_eps(ray.alpha_max_schwarzschild(1.0001),MATH_PI-acos(23/31),1.0e-4)
   # ... Riazuelo eq. 86 (note that his 82.1 deg. should be 84.2 deg.)
+  assert_equal_eps(ray.alpha_max_schwarzschild(1.0001),ray.alpha_max_schwarzschild(0.9999),1.0e-4)
+  # ... should be a continuous function as we cross the horizon
   assert_equal_eps(ray.alpha_max_schwarzschild(1.50001),ray.alpha_max_schwarzschild(1.49999),1.0e-5)
   # ... logic changes at r=3/2, but result should be a continuous function of r
   assert_equal_eps(ray.alpha_max_schwarzschild(1.5),acos(-sqrt(2/3)),1.0e-7)
