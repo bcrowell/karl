@@ -18,6 +18,12 @@ def test_alpha_max_schwarzschild():
   # ... Riazuelo eq. 86 (note that his 82.1 deg. should be 84.2 deg.)
   assert_equal_eps(ray.alpha_max_schwarzschild(1.50001),ray.alpha_max_schwarzschild(1.49999),1.0e-5)
   # ... logic changes at r=3/2, but result should be a continuous function of r
+  assert_equal_eps(ray.alpha_max_schwarzschild(1.5),acos(-sqrt(2/3)),1.0e-7)
+  # ... I don't actually know that this is correct, but it interpolates in a sensible way between the
+  #     known-good results at r=1 and r=infty, and it's what I seem to get from the code. The conjectured
+  #     value smells right, since the photon sphere involves expressions with sqrt(3) in them.
+  assert_equal_eps(ray.alpha_max_schwarzschild(1.0e-16),MATH_PI/2,1.0e-7)
+  # ... Riazuelo, p. 15, eq. 87
 
 def test_obs_and_alpha(r):
   test_schwarzschild_standard_observer(r) 

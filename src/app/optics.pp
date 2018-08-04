@@ -25,15 +25,15 @@ from PIL import Image
 def main():
   r = 15.0
   print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 1.51
+  r = 1.500001
   print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 1.49
+  r = 1.499999
   print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
   r = 1.01
   print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
   r = 0.99
   print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 0.01
+  r = 0.00001
   print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
   exit(-1)
 
