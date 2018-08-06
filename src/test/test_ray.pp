@@ -24,6 +24,7 @@ def test_alpha_max_schwarzschild():
   # ... I don't actually know that this is correct, but it interpolates in a sensible way between the
   #     known-good results at r=1 and r=infty, and it's what I seem to get from the code. The conjectured
   #     value smells right, since the photon sphere involves expressions with sqrt(3) in them.
+  #     The value in radians is 2.52611294491941.
   assert_equal_eps(ray.alpha_max_schwarzschild(1.0e-16),MATH_PI/2,1.0e-7)
   # ... Riazuelo, p. 15, eq. 87
 

@@ -50,7 +50,7 @@ def bv_to_log_temperature(bv):
   Given a B-V color, find an approximate blackbody temperature.
   """
   table = [[-0.33,10.65],[-0.30,10.31],[-0.02,9.19],[0.30,8.90],[0.58,8.69],[0.81,8.55],[1.40,8.25]]
-  return math_util.linear_interp_from_table(table,0,1,bv,0,len(table)-1)
+  return math_util.linear_interp_from_table(table,0,1,bv)
 
 
 def log_temperature_to_hue_and_sat(log_temp):
@@ -76,9 +76,8 @@ def log_temperature_to_hue_and_sat(log_temp):
   # Force it into a range corresponding to 500 to 50,000 K.
   # At temps below 500 K, it's basically just saturated red.
   # At temps above 50,000 K, you just approach a certain bluish color (it does *not* shift into the violet).
-  n = len(table)
-  hue = math_util.linear_interp_from_table(table,0,1,log_temp,0,n-1)
-  sat = math_util.linear_interp_from_table(table,0,2,log_temp,0,n-1)
+  hue = math_util.linear_interp_from_table(table,0,1,log_temp)
+  sat = math_util.linear_interp_from_table(table,0,2,log_temp)
   return [hue,sat]
 
 def bv_to_color(bv):

@@ -23,20 +23,6 @@ from PIL import Image
 #endif
 
 def main():
-  r = 15.0
-  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 1.500001
-  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 1.499999
-  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 1.01
-  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 0.99
-  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  r = 0.00001
-  print("r=",r,", alpha_max=",ray.alpha_max_schwarzschild(r))
-  exit(-1)
-
   if TRUE:
     r = 1.6
     if_fake = TRUE
@@ -141,10 +127,12 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
     if mag>max_mag:
       continue
     beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
-    alpha = math_util.linear_interp_from_table(aberration_table,2,1,beta,0,len(aberration_table)-1)
+    alpha,unsafe = math_util.linear_interp_from_table_safe(aberration_table,2,1,beta,FALSE,FALSE,0.0)
+    if unsafe:
+      THROW('unsafe extrapolation')
     count_drawn = count_drawn+1
     if if_black_hole:
-      f = math_util.linear_interp_from_table(aberration_table,2,4,beta,0,len(aberration_table)-1)
+      f = math_util.linear_interp_from_table(aberration_table,2,4,beta)
       if f<EPS: # can have f<0 due to interpolation
         f=EPS
     else:
@@ -248,7 +236,9 @@ def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m
             alpha = uniform_random(alpha1,alpha2)
             phi = uniform_random(phi1,phi2)
             mag = uniform_random(star_catalog_max_mag+i,star_catalog_max_mag+i+1)
-            beta = math_util.linear_interp(alpha1,alpha2,beta1,beta2,alpha)
+            beta,unsafe = math_util.linear_interp_safe(alpha1,alpha2,beta1,beta2,alpha,FALSE,FALSE,0.0)
+            if unsafe:
+              THROW('unsafe extrapolation in aberration table')
             brightness = brightness_helper(beta,mag,ab1[4],ab2[4],beta1,beta2,if_black_hole)
             bv = star_properties.spectral_class_to_bv(star_properties.random_spectral_class())
             ln_temp = star_properties.bv_to_log_temperature(bv)
@@ -285,8 +275,8 @@ def doppler_helper(r,v_table,alpha):
   # ... Covariant form of (t,r) components of observer's velocity. Assumes Sch. and observer radially infalling
   #     from rest at infinity. u0=1 because it's the conserved energy in Sch. spacetime and we started from
   #     rest at infinity. u1 follows from normalization.
-  v0 = math_util.linear_interp_from_table(v_table,0,1,alpha,0,len(v_table)-1)
-  v1 = math_util.linear_interp_from_table(v_table,0,2,alpha,0,len(v_table)-1)
+  v0 = math_util.linear_interp_from_table(v_table,0,1,alpha)
+  v1 = math_util.linear_interp_from_table(v_table,0,2,alpha)
   numerator = u0*v0+u1*v1 # inner product of u' (covariant) with v' (contravariant).
   doppler = numerator/denominator
   return doppler

@@ -5,6 +5,7 @@ import scipy
 from numpy import arctanh,arcsinh,arccosh
 from scipy import sign
 
+#include "language.h"
 #include "precision.h"
 
 def safe_exp(x):
@@ -58,16 +59,61 @@ def force_into_range(x,a,b):
   return x
 
 def linear_interp(x1,x2,y1,y2,x):
+  # Consider using the _safe version of this, below.
   return ((y2-y1)/(x2-x1))*(x-x1)+y1
 
-def linear_interp_from_table(table,x_col,y_col,x,i,j):
+def linear_interp_safe(x1,x2,y1,y2,x,allow_extrap,sanity_check_extrap,max_extrap):
+  unsafe = FALSE
+  requires_extrap = not (x1<=x and x2>=x)
+  if requires_extrap:
+    if allow_extrap:
+      if sanity_check_extrap:
+        if x<x1:
+          unsafe = abs(x-x1)>max_extrap
+        else:
+          unsafe = abs(x-x2)>max_extrap
+    else:
+      unsafe = TRUE
+  result = linear_interp(x1,x2,y1,y2,x)
+  return [result,unsafe]
+
+def linear_interp_from_table_safe(table,x_col,y_col,x,allow_extrap,sanity_check_extrap,max_extrap):
+  """
+  Returns [result,unsafe].
+  """
+  return linear_interp_from_table_recurse(table,x_col,y_col,x,0,len(table)-1,\
+              allow_extrap,sanity_check_extrap,max_extrap)
+
+def linear_interp_from_table(table,x_col,y_col,x):
+  # Better to use the _safe version of this, above.
+  result,unsafe = linear_interp_from_table_recurse(table,x_col,y_col,x,0,len(table)-1,TRUE,FALSE,0.0)
+  return result
+
+def linear_interp_from_table_recurse(table,x_col,y_col,x,i,j,allow_extrap,sanity_check_extrap,max_extrap):
+  # We don't normally call this directly, we call linear_interp_from_table() or linear_interp_from_table_safe(),
+  # which calls this routine.
   # Do a binary search through the table, so this is O(log(n)).
-  # The i,j parameters at the end are really here for recursion; normally call this with 0,len(table)-1.
-  # If x is outside the range of values in the table, this algorithm results in silent linear extrapolation.
+  # During recursion, the i,j parameters keep track of what range of row numbers we've narrowed in on.
+  # The x column has to be sorted in ascending order.
+  # Returns [result,unsafe], where unsafe is a boolean that tells us whether extrapolation was necessary
+  # and violated the sanity limits.
   if j==i+1:
-    return linear_interp(table[i][x_col],table[j][x_col],table[i][y_col],table[j][y_col],x)
+    unsafe = FALSE
+    requires_extrap = not (table[i][x_col]<=x and table[j][x_col]>=x)
+    if requires_extrap:
+      if allow_extrap:
+        if sanity_check_extrap:
+          if x<table[i][x_col]:
+            unsafe = abs(x-table[i][x_col])>max_extrap
+          else:
+            unsafe = abs(x-table[j][x_col])>max_extrap
+      else:
+        unsafe = TRUE
+    result = linear_interp(table[i][x_col],table[j][x_col],table[i][y_col],table[j][y_col],x)
+    return [result,unsafe]
   k=(i+j)//2
   if table[k][x_col]>x:
-    return linear_interp_from_table(table,x_col,y_col,x,i,k)
+    return linear_interp_from_table_recurse(table,x_col,y_col,x,i,k,allow_extrap,sanity_check_extrap,max_extrap)
   else:
-    return linear_interp_from_table(table,x_col,y_col,x,k,j)
+    return linear_interp_from_table_recurse(table,x_col,y_col,x,k,j,allow_extrap,sanity_check_extrap,max_extrap)
+
