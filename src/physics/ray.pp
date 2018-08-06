@@ -105,7 +105,7 @@ def make_aberration_tables(r,tol,verbosity):
       if skip_this:
         beta,done = [NONE,FALSE] # fill in later by interpolation
       else:
-        beta,done,v_emission = do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha)
+        beta,done,v_emission = do_ray_schwarzschild(r,tol,count_winding,alpha)
       table.append([r,alpha,beta])
       got_result = not (IS_NONE(beta) or IS_NAN(beta))
       #---
@@ -176,7 +176,14 @@ def make_aberration_tables(r,tol,verbosity):
 
 #endif
 
-def do_ray(spacetime,chart,pars,x,v,r,tol,count_winding,alpha):
+def do_ray_schwarzschild(r,tol,count_winding,alpha):
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  x,v_obs,rho,j = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
+  alpha2,v = le_to_alpha_schwarzschild(r,le,in_n_out,x,v_obs,rho,spacetime,chart,pars)
+  # don't need alpha, just need v of photon
   n = 100
   ndebug=0
   if verbosity>=3:

@@ -25,22 +25,6 @@ from PIL import Image
 def main():
   if TRUE:
     r = 5.0
-    spacetime = SP_SCH
-    chart = CH_SCH
-    pars = {}
-    aa = 1-1/r
-    le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
-    max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r (not the max. for visibility)
-    tol = 1.0e-10
-    le = 0.0
-    in_n_out = 0
-    count_winding(0.0,[],[],0,0,{})
-    x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
-    alpha,v_observation = ray.le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
-    beta,done,v_emission = ray.do_ray(spacetime,chart,pars,x_obs,v_obs,r,tol,count_winding,alpha)
-    print("r=",r,", alpha=",alpha,", beta-alpha=",beta-alpha)
-  if TRUE:
-    r = 5.0
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
