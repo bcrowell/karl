@@ -47,7 +47,7 @@ def make_aberration_tables(r,tol,verbosity):
   chart = CH_SCH
   pars = {}
   aa = 1-1/r
-  x_obs,v_obs,rho = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  x_obs,v_obs,rho,j = schwarzschild_standard_observer(r,spacetime,chart,pars)
   if r>1.0:
     max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r (not the max. for visibility)
   else:
@@ -71,10 +71,11 @@ def make_aberration_tables(r,tol,verbosity):
   table = []
   v_table = []
   last_deflection = 0.0
-  s0 = 2
+  s0 = 4
   # ...scaling factor for number of angular steps
   #    Making this a big value, like 10, makes fake stars take a long time, because the sky is subdivided
-  #    very finely. Making it a very small value, like 2, may make interpolation of Doppler shifts too crude.
+  #    very finely. Making it a very small value, like 2, may make interpolation of Doppler shifts too crude,
+  #    and also causes poor behavior for r just inside the photon sphere.
   s1 = 2 # for moderate deflections, reduce step size by this factor
   s2 = 10 # ... additional factor for large deflections
   n_angles = s0*s1*s2 # we actually skip most of these angles
@@ -128,14 +129,15 @@ def make_aberration_tables(r,tol,verbosity):
         # ... The + here is concatenation of the lists. This won't work in js.
       if got_result:
         if verbosity>=2:
-          PRINT("r=",r,", L/E=",le,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg.")
+          pass
+          #PRINT("r=",r,", L/E=",le,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg.")
         if verbosity>=3:
           if alpha==0.0:
             err_approx = 0.0
           else:
-            approx = alpha/(sqrt(r)-1)
+            approx = -0.5*alpha/(sqrt(r)-1)
             err_approx = (approx-abs(alpha-beta))/alpha
-            print("alpha-beta=",alpha-beta,", approx=",approx)
+            print("alpha=",alpha,", beta-alpha=",beta-alpha,", approx=",approx)
             #PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
             #    " deg, rel err in approx=",err_approx)
         last_deflection = abs(alpha-beta)
@@ -163,7 +165,8 @@ def make_aberration_tables(r,tol,verbosity):
     dbeta  = table[jj][2]-table[ii][2]
     f = abs(sin(alpha)*dalpha/(sin(beta)*dbeta))
     if verbosity>=2:
-      print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
+      pass
+      #print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
     # =dOmega(obs)/dOmega(infinity)=amplification, by Liouville's thm (?)
     # is abs() right?; beta can be >pi
     x.append(beta-alpha)
@@ -252,9 +255,10 @@ def schwarzschild_standard_observer(r,spacetime,chart,pars):
   The other inputs are described in comments in the calling code.
   Although the inputs include data about the spacetime and chart, this code will not actually work except
   for Schwarzschild cooordinates in the Schwarzschild spacetime.
-  The output is the three vectors [x_obs,v_obs,rho] describing an observer at the standard state of motion,
-  free-falling from rest at infinity. These are the observer's position and velocity, and
-  the observer's radial vector rho, parallel-transported in from infinity.
+  The output is the four vectors [x_obs,v_obs,rho,j] describing an observer at the standard state of motion,
+  free-falling from rest at infinity. These are the observer's position and velocity;
+  the observer's radial vector rho, parallel-transported in from infinity; and the observer's azimuthal
+  unit vector (in the direction of increasing j coordinate in the 5-dimensional coordinates).
   """
   aa = 1-1/r
   x_obs = [0.0,r,1.0,0.0,0.0]
@@ -267,8 +271,12 @@ def schwarzschild_standard_observer(r,spacetime,chart,pars):
   # ... take rhat and project out the part orthogonal to the observer's velocity; not yet normalized
   rho = vector.normalize_spacelike(spacetime,chart,pars,x_obs,rho)
   # ... now normalize it to have |rho|^2=-1
+  # Gram-Schmidt process to determine j:
+  j = vector.proj(spacetime,chart,pars,x_obs,v_obs,[0.0,0.0,0.0,1.0,0.0])
+  j = vector.proj_spacelike(spacetime,chart,pars,x_obs,rho,j)
+  j = vector.normalize_spacelike(spacetime,chart,pars,x_obs,j)
   # Various checks on these vectors are done in test_ray.
-  return [x_obs,v_obs,rho]
+  return [x_obs,v_obs,rho,j]
 
 def alpha_max_schwarzschild(r):
   """
@@ -279,7 +287,7 @@ def alpha_max_schwarzschild(r):
   pars = {}
   aa = 1-1/r
   le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
-  x_obs,v_obs,rho = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  x_obs,v_obs,rho,j = schwarzschild_standard_observer(r,spacetime,chart,pars)
   if r>=1.5:
     in_n_out = 1 # ray peeled off of the photon sphere and came outward to us
   else:

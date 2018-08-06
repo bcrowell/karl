@@ -24,12 +24,30 @@ from PIL import Image
 
 def main():
   if TRUE:
-    r = 1.6
+    r = 5.0
+    spacetime = SP_SCH
+    chart = CH_SCH
+    pars = {}
+    aa = 1-1/r
+    le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
+    max_le = r/sqrt(aa) # maximum possible L/E for a photon at this r (not the max. for visibility)
+    tol = 1.0e-10
+    le = 0.0
+    in_n_out = 0
+    count_winding(0.0,[],[],0,0,{})
+    x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
+    alpha,v_observation = ray.le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+    beta,done,v_emission = ray.do_ray(spacetime,chart,pars,x_obs,v_obs,r,tol,count_winding,alpha)
+    print("r=",r,", alpha=",alpha,", beta-alpha=",beta-alpha)
+  if TRUE:
+    r = 5.0
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
+    verbosity = 3
     do_image(r,"stars.png",if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
-  else:
+    exit(0)
+  if FALSE:
     # animation
     if_fake = FALSE # random stars wouldn't be at fixed locations
     star_catalog_max_mag = 9 # use dim stars to try to make up for lack of fake stars
@@ -41,6 +59,22 @@ def main():
       print("---------------------- r=",r,", file=",outfile," ------------------------------")
       width,height,fov_deg,view_rot_deg = [600,300,90,100]
       do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
+
+def count_winding(lam,x,v,spacetime,chart,pars):
+  # not normally needed, just used by some test code
+  if lam==0.0:
+    count_winding.winding = 0
+    count_winding.last_angle = 0.0
+  else:
+    angle = atan2(x[3],x[2]) # returns an angle from -pi to pi
+    if angle<0.0:
+      angle = angle+2.0*MATH_PI
+    if count_winding.last_angle>5.0 and angle<1.0:
+      count_winding.winding = count_winding.winding+1
+    if count_winding.last_angle<1.0 and angle>5.0:
+      count_winding.winding = count_winding.winding-1
+    count_winding.last_angle = angle
+  return count_winding.winding
 
 def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg):
   verbosity=3
@@ -129,7 +163,7 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
     beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
     alpha,unsafe = math_util.linear_interp_from_table_safe(aberration_table,2,1,beta,FALSE,FALSE,0.0)
     if unsafe:
-      THROW('unsafe extrapolation')
+      THROW('unsafe extrapolation, this can happen if the grid for tabulating beta(alpha) is too coarse')
     count_drawn = count_drawn+1
     if if_black_hole:
       f = math_util.linear_interp_from_table(aberration_table,2,4,beta)

@@ -71,6 +71,14 @@ def proj(spacetime,chart,pars,p,u,v):
   s = inner_product(spacetime,chart,pars,p,u,v)/norm(spacetime,chart,pars,p,u)
   return add(v,scalar_mult(u,-s))
 
+def proj_spacelike(spacetime,chart,pars,p,u,v):
+  """
+  Returns v+[(v.u)/(u.u)]u, the part of v that is perpendicular to u.
+  Both u and v should be spacelike.
+  """
+  s = inner_product(spacetime,chart,pars,p,u,v)/norm(spacetime,chart,pars,p,u)
+  return add(v,scalar_mult(u,s))
+
 def get_metric(spacetime,chart,pars,p):
   """
   Returns the lower-index form of the metric at the point p, in 5-dimensional

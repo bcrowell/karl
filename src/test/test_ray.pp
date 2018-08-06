@@ -64,7 +64,7 @@ def test_riazuelo_deflection_one(r,le_over_max,in_n_out):
   spacetime = SP_SCH
   chart = CH_SCH
   pars = {}
-  x_obs,v_obs,rho = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
+  x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
   aa = 1-1/r
   le_max = r/sqrt(abs(aa)) # abs is so we still get a test at r<1, see above
   le = le_over_max*le_max
@@ -109,7 +109,7 @@ def test_le_to_alpha_schwarzschild_one(r,le_over_max,in_n_out):
   spacetime = SP_SCH
   chart = CH_SCH
   pars = {}
-  x_obs,v_obs,rho = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
+  x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
   aa = 1-1/r
   le_max = r/sqrt(abs(aa)) # abs is so we still get a test at r<1, see above
   le = le_over_max*le_max
@@ -126,24 +126,30 @@ def test_schwarzschild_standard_observer(r):
   chart = CH_SCH
   pars = {}
 
-  x_obs,v_obs,rho = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
+  x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
   aa = 1.0-1.0/r
 
   # observer's energy is 1:
   assert_equal_eps(aa*v_obs[0],1.0,10*EPS) 
 
-  # rho has norm -1:
+  # rho and j both have norm -1:
   assert_equal_eps(vector.norm(spacetime,chart,pars,x_obs,rho),-1.0,10*EPS)
+  assert_equal_eps(vector.norm(spacetime,chart,pars,x_obs,j),-1.0,10*EPS)
 
   # v_obs has norm 1:
   assert_equal_eps(vector.norm(spacetime,chart,pars,x_obs,v_obs),1.0,10*EPS)
 
-  # v_obs is orthogonal to rho:
+  # v_obs, rho, and j are all orthogonal to one another:
   assert_equal_eps(vector.inner_product(spacetime,chart,pars,x_obs,v_obs,rho),0.0,10*EPS)
+  assert_equal_eps(vector.inner_product(spacetime,chart,pars,x_obs,v_obs,j),0.0,10*EPS)
+  assert_equal_eps(vector.inner_product(spacetime,chart,pars,x_obs,rho,j),0.0,10*EPS)
 
   # rho has a positive r component:
   if r>1.0:
     assert_boolean(rho[1]>0.0,"observer's radial vector has a negative r component in Schwarzschild coordinates")
+
+  # j has a positive j component:
+  assert_boolean(j[3]>0.0,"observer's azimuthal vector j has a negative j component")
 
   # rho has vanishing angular components, observer is supposed to be radially infalling:
   assert_equal_eps(rho[2],0.0,10*EPS)
