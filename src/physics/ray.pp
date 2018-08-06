@@ -177,6 +177,9 @@ def make_aberration_tables(r,tol,verbosity):
 #endif
 
 def do_ray_schwarzschild(r,tol,count_winding,alpha):
+  """
+  Returns [beta,if_incomplete,final_v]  
+  """
   spacetime = SP_SCH
   chart = CH_SCH
   pars = {}

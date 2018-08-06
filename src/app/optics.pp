@@ -24,6 +24,11 @@ from PIL import Image
 
 def main():
   if TRUE:
+    alpha = 0.1
+    beta,if_incomplete,final_v = do_ray_schwarzschild(r,tol,count_winding,alpha)
+    print("alpha=",alpha,", beta=",beta)
+    exit(0)
+  if TRUE:
     r = 5.0
     if_fake = TRUE
     star_catalog_max_mag = 7
