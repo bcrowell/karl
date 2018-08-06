@@ -23,6 +23,15 @@ def add(u,v):
     w[i] = w[i]+v[i]
   return w
 
+def sub(u,v):
+  """
+  Returns u-v.
+  """
+  w = CLONE_ARRAY_OF_FLOATS(u)
+  for i in range(len(u)):
+    w[i] = w[i]-v[i]
+  return w
+
 def normalize(spacetime,chart,pars,p,v):
   """
   Returns a copy of v, which has been normalized. Works for 4 or 5 dimensions.

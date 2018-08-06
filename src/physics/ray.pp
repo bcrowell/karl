@@ -299,6 +299,36 @@ def alpha_max_schwarzschild(r):
   alpha_max,v_observation = le_to_alpha_schwarzschild(r,le_ph,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
   return alpha_max
 
+def alpha_to_le_schwarzschild(alpha,r):
+  """
+  Inputs are Schwarzschild r coordinate and alpha, the angle away from the zenith as measured by the
+  standard observer. Return value is [|L/E|,in_n_out]. 
+  """
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  x_obs,v_obs,rho,j = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  v_rho = vector.scalar_mult(rho,cos(alpha))
+  v_j   = vector.scalar_mult(j,sin(alpha))
+  v_s = vector.add(v_rho,v_j) # purely spacelike part of photon's velocity vector; is normalized by construction
+  aa = 1-1/r
+  # Loop over four possibilities and pick the one that gives the closest result on the inverse transformation:
+  smallest_error = 999.9
+  for timelike_sign in range(2):
+    # Either of the following gives v.v=0.
+    if timelike_sign==0:
+      v = vector.add(v_s,v_obs)
+    else:
+      v = vector.sub(v_s,v_obs)
+    le = abs((r*r*v[3])/(aa*v[0]))
+    for in_n_out in range(2):
+      alpha2,vv = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+      err = abs(alpha2-alpha)
+      if err<smallest_error:
+        best = [le,in_n_out]
+        smallest_error = err
+  return best
+
 def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars):
   """
   The main inputs are Schwarzschild radius r of the observer, the ratio L/E of the angular momentum of a photon

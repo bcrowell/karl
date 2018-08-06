@@ -31,6 +31,28 @@ def test_alpha_max_schwarzschild():
 def test_obs_and_alpha(r):
   test_schwarzschild_standard_observer(r) 
   test_le_to_alpha_schwarzschild(r)
+  test_alpha_to_le_schwarzschild(r)
+
+def test_alpha_to_le_schwarzschild(r):
+  # Test the trivial special cases of alpha=0 and pi:
+  le,in_n_out = ray.alpha_to_le_schwarzschild(0,r)
+  assert_equal_eps(le,0.0,10*EPS)
+  le,in_n_out = ray.alpha_to_le_schwarzschild(MATH_PI,r)
+  assert_equal_eps(le,0.0,1.0e-14)
+  # Test for correct round-trip behavior through the function and its inverse:
+  for i in range(10):
+    alpha = 0.1+(2.9/9)*i # values of alpha from 0.1 to 3.0
+    test_alpha_to_le_schwarzschild_round_trip(r,alpha)
+
+def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
+  le,in_n_out = ray.alpha_to_le_schwarzschild(alpha,r)
+  alpha2,vv = ray.le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+  #print("r=",r,", alpha=",alpha,", le=",le,", in_n_out=",in_n_out,", alpha2=",alpha2)
+  assert_equal_eps(alpha2,alpha,1.0e-14)
 
 def test_riazuelo_deflection():
   r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
@@ -159,10 +181,10 @@ def test_schwarzschild_standard_observer(r):
   # v_obs is oriented in the future-timelike direction:
   assert_boolean(transform.sch_is_in_future_light_cone(x_obs,v_obs),"v_obs is not future-oriented")
  
+r = 0.5 # test inside horizon
+test_obs_and_alpha(r)
 r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
 test_obs_and_alpha(r)
-r = 0.5 # test inside horizon
-test_obs_and_alpha(r) # ... fails, possibly std observer is messed up for r<1?
 
 test_riazuelo_deflection()
 test_alpha_max_schwarzschild()
