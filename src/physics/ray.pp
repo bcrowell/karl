@@ -70,82 +70,53 @@ def make_aberration_tables(r,tol,verbosity):
   count_winding(0.0,[],[],0,0,{})
   table = []
   v_table = []
-  last_deflection = 0.0
-  s0 = 4
-  # ...scaling factor for number of angular steps
-  #    Making this a big value, like 10, makes fake stars take a long time, because the sky is subdivided
-  #    very finely. Making it a very small value, like 2, may make interpolation of Doppler shifts too crude,
-  #    and also causes poor behavior for r just inside the photon sphere.
-  s1 = 2 # for moderate deflections, reduce step size by this factor
-  s2 = 10 # ... additional factor for large deflections
-  n_angles = s0*s1*s2 # we actually skip most of these angles
-  for in_n_out in range(2): # 0=outward, 1=inward
-    for i in range(n_angles):
-      frac_skip = s1*s2 # normally we fill in most of the angles by interpolation
-      if last_deflection>0.5:
-        frac_skip = frac_skip//s1
-      if last_deflection>2.0:
-        frac_skip = frac_skip//s2
-      skip_this = not (i%frac_skip==0)
-      z = (float(i)/float(n_angles)) # note that this should *not* be n_angles-1
-      if in_n_out==0:
-        le = z*max_le
+
+  n_angles = 100
+  alpha_max = alpha_max_schwarzschild(r)
+  for i in range(n_angles):
+    alpha = alpha_max*(float(i)/float(n_angles)) # note that this should *not* be n_angles-1
+    le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
+    alpha2,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+    x = x_obs # initial position
+    v = CLONE_ARRAY_OF_FLOATS(v_observation)
+    # ... Initial velocity of ray, which is simulated going backward in time, as if emitted rather than absorbed.
+    #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
+    beta,done,v_emission = do_ray_schwarzschild(r,tol,count_winding,alpha)
+    table.append([r,alpha,beta])
+    #---
+    # Calculate the velocity of the ray at observation. This would actually be pretty trivial, since
+    # v is the "initial" velocity for solving the diffeq, but is actually the final
+    # velocity of the ray, at observation. However, we do need v_emission for normalization.
+    # Because the Schwarzschild coordinates are spherical coordinates, v_emission is guaranteed
+    # to have the form v^kappa=(q,-q,0,0,0). We need to retrofit v=v_observation to have a normalization
+    # that would have resulted from emission with v^kappa=(1,-1,0,0,0), which corresponds to a different  
+    # choice of affine parameter. In the Schwarzschild case, v_t is conserved, so the result for
+    # v_observation should always be v^t=1/(1-1/r), and we would not need the results of ray-tracing
+    # to tell us this, but I want this code to be more general, so I don't use that assumption.
+    q = v_emission[0]
+    v_observation = vector.scalar_mult(v_observation,1.0/q)
+    # This vector was set up for an outgoing ray, but we're flipping this around, treating it as an incoming
+    # ray that was observed here. Therefore we need to flip components 1...4:
+    v_observation = vector.scalar_mult(v_observation,-1.0)
+    v_observation[0] = -v_observation[0] # flip 0 component back to what it was
+    v_table.append([alpha,]+v_observation)
+    # ... The + here is concatenation of the lists. This won't work in js.
+    if verbosity>=2:
+      pass
+      #PRINT("r=",r,", L/E=",le,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg.")
+    if verbosity>=3:
+      if alpha==0.0:
+        err_approx = 0.0
       else:
-        if is_schwarzschild:
-          le_ph = 0.5*3**1.5 # L/E of the photon sphere, unstable circular orbits for photons in Schwarzschild
-          le = math_util.linear_interp(0.0,1.0,max_le,le_ph,z)
-        else:
-          # more generic logic, more likely to be appropriate if not Sch.
-          le = (1.0-z)*max_le
-      alpha,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
-      x = x_obs # initial position
-      v = CLONE_ARRAY_OF_FLOATS(v_observation)
-      # ... Initial velocity of ray, which is simulated going backward in time, as if emitted rather than absorbed.
-      #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
-      if skip_this:
-        beta,done = [NONE,FALSE] # fill in later by interpolation
-      else:
-        beta,done,v_emission = do_ray_schwarzschild(r,tol,count_winding,alpha)
-      table.append([r,alpha,beta])
-      got_result = not (IS_NONE(beta) or IS_NAN(beta))
-      #---
-      # Calculate the velocity of the ray at observation. This would actually be pretty trivial, since
-      # v is the "initial" velocity for solving the diffeq, but is actually the final
-      # velocity of the ray, at observation. However, we do need v_emission for normalization.
-      # Because the Schwarzschild coordinates are spherical coordinates, v_emission is guaranteed
-      # to have the form v^kappa=(q,-q,0,0,0). We need to retrofit v=v_observation to have a normalization
-      # that would have resulted from emission with v^kappa=(1,-1,0,0,0), which corresponds to a different  
-      # choice of affine parameter. In the Schwarzschild case, v_t is conserved, so the result for
-      # v_observation should always be v^t=1/(1-1/r), and we would not need the results of ray-tracing
-      # to tell us this, but I want this code to be more general, so I don't use that assumption.
-      if got_result:
-        q = v_emission[0]
-        v_observation = vector.scalar_mult(v_observation,1.0/q)
-        # This vector was set up for an outgoing ray, but we're flipping this around, treating it as an incoming
-        # ray that was observed here. Therefore we need to flip components 1...4:
-        v_observation = vector.scalar_mult(v_observation,-1.0)
-        v_observation[0] = -v_observation[0] # flip 0 component back to what it was
-        v_table.append([alpha,]+v_observation)
-        # ... The + here is concatenation of the lists. This won't work in js.
-      if got_result:
-        if verbosity>=2:
-          pass
-          #PRINT("r=",r,", L/E=",le,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg.")
-        if verbosity>=3:
-          if alpha==0.0:
-            err_approx = 0.0
-          else:
-            approx = -0.5*alpha/(sqrt(r)-1)
-            err_approx = (approx-abs(alpha-beta))/alpha
-            print("alpha=",alpha,", beta-alpha=",beta-alpha,", approx=",approx)
-            #PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
-            #    " deg, rel err in approx=",err_approx)
-        last_deflection = abs(alpha-beta)
-        if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
-          PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
-          done = TRUE
-      if done:
-        break
+        approx = -0.5*alpha/(sqrt(r)-1)
+        err_approx = (approx-abs(alpha-beta))/alpha
+        print("alpha=",alpha,", beta-alpha=",beta-alpha,", approx=",approx)
+        #PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
+        #    " deg, rel err in approx=",err_approx)
+    last_deflection = abs(alpha-beta)
+    if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
+      PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
+      done = TRUE
     if done:
       break
   fill_in_aberration_table_by_interpolation(table,r)
