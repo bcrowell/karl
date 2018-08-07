@@ -18,44 +18,54 @@ import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclid
        star_properties,render,ray
 #if "LANG" eq "python"
 import sys,os,copy,sqlite3,csv,random
-import PIL,ephem
+import PIL,ephem,datetime
 from PIL import Image
 #endif
 
+
 def main():
-  if FALSE:
-    r = 5.0
-    tol = 1.0e-9
-    d = 0.1
+  do_what = 2
+  if do_what==1:
+    r = 0.99
+    tol = 1.0e-3
     alpha_max = ray.alpha_max_schwarzschild(r)
-    print("r=",r)
-    for i in range(7):
-      alpha = alpha_max-d
-      count_winding(0.0,[],[],0,0,{})
-      beta,if_incomplete,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
-      print(log(d),",",beta,",",beta+log(d))
-      d = d*0.1
+    print("r=",r,", alpha_max=",alpha_max)
+    alpha = 0.1
+    count_winding(0.0,[],[],0,0,{})
+    beta,if_incomplete,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
+    print("alpha=",alpha,", beta=",beta)
     exit(0)
-  if TRUE:
-    r = 5.0
+  if do_what==2:
+    # Make one image.
+    r = 3.0
+    # r = 0.9715656474624751
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
     verbosity = 3
     do_image(r,"stars.png",if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
     exit(0)
-  if FALSE:
+  if do_what==3:
     # animation
     if_fake = FALSE # random stars wouldn't be at fixed locations
     star_catalog_max_mag = 9 # use dim stars to try to make up for lack of fake stars
     n = 100
+    r = 9.0
+    dtau = 0.18
     for i in range(n):
-      z = float(i)/float(n)
-      r = 9.0-7.9*z*z # accelerating, but not real physics for the state of motion we're using
-      outfile = "animation"+("%03d" % i)+".png"
-      print("---------------------- r=",r,", file=",outfile," ------------------------------")
-      width,height,fov_deg,view_rot_deg = [600,300,90,100]
-      do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
+      if i>96: # qwe
+        outfile = "animation"+("%03d" % i)+".png"
+        print("---------------------- r=",r,", file=",outfile," --------------- ",\
+               datetime.datetime.now().strftime('%H:%M:%S'))
+        width,height,fov_deg,view_rot_deg = [600,300,90,100]
+        do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
+      spacetime = SP_SCH
+      chart = CH_SCH
+      pars = {}
+      x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
+      r = r+dtau*v_obs[1]
+      if r<0.0:
+        break
 
 def count_winding(lam,x,v,spacetime,chart,pars):
   # not normally needed, just used by some test code

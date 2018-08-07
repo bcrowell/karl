@@ -109,6 +109,9 @@
           user_function = temp[13];
           force_chart = temp[14]
         })();
+        if (dlambda <= 0) {
+          throw "dlambda<=0";;
+        }
         /*-- initial setup */
         (function() {
           var temp = runge_kutta.runge_kutta_init_helper(lambda_max, lambda0, dlambda, ndebug, spacetime, chart, pars);
@@ -234,7 +237,9 @@
         and for small r,
         p is an estimate of the exponent in r ~ lambda^p, and lam_left is an estimate of the distance
         left before the singularity in terms of the affine parameter. For values of r that are not small,
-        the p and lam_left outputs would be meaningless, and are returned as NaN.
+        the p and lam_left outputs would be meaningless, and are returned as NaN. For trajectories on the
+        interior but moving away from the singularity, lam_left is returned as a positive number that reflects
+        our distance from the singularity.
         The arrays acc_p and pt_p are pointers to arrays that have already been allocated,
         or None if this is the js implementation. If r<0, err=1.
         If r==1, then we return [0,r,(NaN),(NaN),(NaN),(NaN)].
@@ -279,7 +284,9 @@
           if (p > 1.0) {
             p = 1.0;
           }
-          lam_left = -p * r / rdot; /* estimate of when we'd hit the singularity */
+          lam_left = Math.abs(-p * r / rdot);
+          /* ... estimate of when we'd hit the singularity */
+          /*     abs() is to cover cases where we're moving away from the singularity */
         }
         return [0, r, rdot, rddot, p, lam_left];
       };

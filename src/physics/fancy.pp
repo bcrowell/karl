@@ -21,7 +21,7 @@ from io_util import fl
 
 import schwarzschild,kruskal,angular,transform,runge_kutta,conserved
 
-def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
+def trajectory_schwarzschild(spacetime,chart0,pars,x0,v0,opt):
   """
   A specialized wrapper for trajectory_simple(), optimized for speed and numerical precision in the
   Schwarzschild spacetime, for causal world-lines.
@@ -64,7 +64,8 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
 #endif
   x = CLONE_ARRAY_OF_FLOATS(x0)
   v = CLONE_ARRAY_OF_FLOATS(v0)
-  user_chart = chart
+  user_chart = chart0+0 # retain a cloned copy of the user's original chart
+  chart = chart0+0 # make sure the user's copy of the variable can't get munged
   #---------------- Read options. ------------------
   if HAS_KEY(opt,'allow_transitions'):
     allow_transitions = opt['allow_transitions']
@@ -108,13 +109,18 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
       if chart!=optimal_chart:
         x2 = transform.transform_point(x,spacetime,chart,pars,optimal_chart)
         v2 = transform.transform_vector(v,x,spacetime,chart,pars,optimal_chart)
+#if 0
+        r_stuff2 = runge_kutta.r_stuff(spacetime,optimal_chart,pars,x2,v2,acc,pt,acc_p,pt_p)
+        r2 = r_stuff2[1]
+        PRINT("changing from chart ",chart," to ",optimal_chart,", r=",r,", r2=",r2)
+        PRINT("v2=",io_util.vector_to_str(v2))
+        PRINT("a=",x2[0],"b=",x2[1])
+        #PRINT("changing from chart ",chart," to ",optimal_chart,", r=",r,", r2=",r2,\
+        #        " x=",io_util.vector_to_str(x)," x2=",io_util.vector_to_str(x2))
+#endif
         x = x2
         v = v2
-#if 0
-        PRINT("changing from chart ",chart," to ",optimal_chart,\
-                " x=",io_util.vector_to_str(x)," x2=",io_util.vector_to_str(x2))
-#endif
-      chart = optimal_chart
+        chart = optimal_chart
     opt['triggers'] = triggers
     pop_trigger = FALSE
     if no_enter_horizon and chart==CH_AKS and x[0]>0.0 and x[1]<0.0:
@@ -163,9 +169,10 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
     # Find final Schwarzschild r:
     xs = transform.transform_point(x,spacetime,chart,pars,CH_SCH)
     r = xs[1]
+    if opt['dlambda']<=0.0:
+      THROW('dlambda<=0')
     # Check for incomplete geodesic, or terminate due to entering horizon, if that's what the user wants.
-    if r<EPS or opt['dlambda']<EPS or (no_enter_horizon and r<1.0 and visited_exterior):
-      #PRINT(strcat(["r=",r,", dlambda=",opt['dlambda'],", no_enter_horizon=",no_enter_horizon]))
+    if r<EPS or abs(opt['dlambda'])<EPS or (no_enter_horizon and r<1.0 and visited_exterior):
       r_stuff = runge_kutta.r_stuff(spacetime,chart,pars,x,v,acc,pt,acc_p,pt_p)
       err,r,rdot,rddot,p,lam_left = r_stuff
       final_lambda = final_lambda+lam_left
@@ -245,7 +252,7 @@ def choose_step_size_interior(r,p,tol,lam_left):
   if r<r_min:
     return [0,0.0,TRUE]
   # set step size
-  dlambda = k*tol**0.25*lam_left**alpha
+  dlambda = k*tol**0.25*abs(lam_left)**alpha # abs() is because we could be in region III or past-oriented
   n=100 # Try to do enough steps with fixed step size to avoid excessive overhead.
   safety = 0.3 # margin of safety so that we never hit singularity
   if n*dlambda>safety*lam_left:
@@ -277,7 +284,10 @@ def chart_and_triggers(r,triggers,sigma,future_oriented):
       approaching_singularity = ((sigma>0.0 and future_oriented) or (sigma<0.0 and not future_oriented))
       # It's not useful to try to make a trigger that prevents or detects hitting the singularity. Triggers
       # are too crude for that purpose, don't work reliably because the coordinate velocities diverge.
-      optimal_chart = CH_SCH
+      if approaching_singularity:
+        optimal_chart = CH_SCH
+      else:
+        optimal_chart = CH_AKS
       if not approaching_singularity:
         # receding from the singularity
         APPEND_TO_ARRAY(triggers,([ 1.0,1,0.95,0.3]))

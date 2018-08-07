@@ -107,6 +107,8 @@ def make_aberration_tables(r,tol,verbosity):
     v_observation[0] = -v_observation[0] # flip 0 component back to what it was
     v_table.append([alpha,]+v_observation)
     # ... The + here is concatenation of the lists. This won't work in js.
+  if len(table)==0:
+    THROW('no data points in aberration table')
   table2 = []
   for i in range(len(table)):
     x = CLONE_ARRAY_OF_FLOATS(table[i])
@@ -152,14 +154,29 @@ def do_ray_schwarzschild(r,tol,count_winding,alpha):
   ri = r
   lambda_max = 10.0 # fixme, sort of random
   info = {}
+  lam = 0.0
+  if r>1.0:
+    no_enter_horizon = TRUE
+  else:
+    no_enter_horizon = FALSE
   WHILE(TRUE)
+#if 0
+    print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
+#endif
+#if 0
+    print("before fancy, r=",x[1])
+#endif
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
-          'user_function':count_winding,'no_enter_horizon':TRUE}
+          'user_function':count_winding,'no_enter_horizon':no_enter_horizon}
     err,final_x,final_v,final_a,final_lambda,info,sigma  = \
             fancy.trajectory_schwarzschild(spacetime,chart,pars,x,v,opt)
+#if 0
+    print("after fancy, r=",final_x[1])
+#endif
+    lam = lam+final_lambda
     if err!=0:
       if err==RK_INCOMPLETE or err==RK_TRIGGER:
-        PRINT("Geodesic at alpha=",alpha*180.0/MATH_PI," deg. is incomplete or entered horizon, done.")
+        PRINT("Geodesic at alpha=",alpha," radians is incomplete or entered horizon, err=",err,", done.")
         return [NAN,TRUE,NONE]
       THROW("error: "+str(err))
     rf = final_x[1]
