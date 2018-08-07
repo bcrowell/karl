@@ -74,15 +74,20 @@ def make_aberration_tables(r,tol,verbosity):
   n_angles = 100
   alpha_max = alpha_max_schwarzschild(r)
   for i in range(n_angles):
-    alpha = alpha_max*(float(i)/float(n_angles)) # note that this should *not* be n_angles-1
+    ii = (n_angles-1)-i # ii decreases, so that z decreases and alpha increases
+    z = (float(ii+1)/float(n_angles)) # z varies from 1/n_angles to 1
+    alpha = alpha_max*(1-z*z) # points are closely spaced near the vertical asymptote
     le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
     alpha2,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
     x = x_obs # initial position
     v = CLONE_ARRAY_OF_FLOATS(v_observation)
     # ... Initial velocity of ray, which is simulated going backward in time, as if emitted rather than absorbed.
     #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
+    d = alpha_max-alpha
     beta,done,v_emission = do_ray_schwarzschild(r,tol,count_winding,alpha)
     table.append([r,alpha,beta])
+    smooth = beta+log(d)
+    #print("r=",r,", alpha=",alpha,", beta=",beta,", tol=",real_tol,", smooth=",smooth)
     #---
     # Calculate the velocity of the ray at observation. This would actually be pretty trivial, since
     # v is the "initial" velocity for solving the diffeq, but is actually the final
@@ -101,25 +106,6 @@ def make_aberration_tables(r,tol,verbosity):
     v_observation[0] = -v_observation[0] # flip 0 component back to what it was
     v_table.append([alpha,]+v_observation)
     # ... The + here is concatenation of the lists. This won't work in js.
-    if verbosity>=2:
-      pass
-      #PRINT("r=",r,", L/E=",le,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI," deg.")
-    if verbosity>=3:
-      if alpha==0.0:
-        err_approx = 0.0
-      else:
-        approx = -0.5*alpha/(sqrt(r)-1)
-        err_approx = (approx-abs(alpha-beta))/alpha
-        print("alpha=",alpha,", beta-alpha=",beta-alpha,", approx=",approx)
-        #PRINT("r=",r,", alpha=",alpha*180.0/MATH_PI," deg, beta=",beta*180.0/MATH_PI,\
-        #    " deg, rel err in approx=",err_approx)
-    last_deflection = abs(alpha-beta)
-    if abs(alpha-beta)>5.0*MATH_PI: # Riazuelo says 5pi is enough to get all visual effects.
-      PRINT("Deflection=",abs(alpha-beta)*180.0/MATH_PI," deg. is >5pi, done.")
-      done = TRUE
-    if done:
-      break
-  fill_in_aberration_table_by_interpolation(table,r)
   table2 = []
   for i in range(len(table)):
     x = CLONE_ARRAY_OF_FLOATS(table[i])
@@ -194,41 +180,6 @@ def do_ray_schwarzschild(r,tol,count_winding,alpha):
     beta = beta+2.0*MATH_PI
   beta = beta+w*2.0*MATH_PI
   return [beta,FALSE,final_v]
-
-def fill_in_aberration_table_by_interpolation(table,r):
-  #-------------------
-  # Use interpolation to fill in missing values.
-  # Find i and j that both have real data.
-  for i in range(len(table)-2):
-    if IS_NONE(table[i][2]):
-      continue
-    j=i+1
-    WHILE(j<=len(table)-1 and IS_NONE(table[j][2]))
-      j=j+1
-    END_WHILE
-    if j==i+1 or j>len(table)-1:
-      continue
-    alpha1 = table[i][1]
-    alpha2 = table[j][1]
-    beta1 = table[i][2]
-    beta2 = table[j][2]
-    # Find error compared to small-angle approx:
-    err1 = alpha1/(sqrt(r)-1)-(beta1-alpha1)
-    err2 = alpha2/(sqrt(r)-1)-(beta2-alpha2)
-    k=i+1
-    WHILE(IS_NONE(table[k][2]) and k<j)
-      alpha = table[k][1]
-      err = math_util.linear_interp(alpha1,alpha2,err1,err2,alpha) # interpolate to find est. of what error would have been
-      beta = alpha+alpha/(sqrt(r)-1)-err
-      table[k][2] = beta
-      k=k+1
-    END_WHILE
-  # Remove any uncomputed items from the end of the table:
-  WHILE(len(table)>0 and (IS_NONE(table[len(table)-1][2]) or IS_NAN(table[len(table)-1][2])))
-    POP_FROM_ARRAY(table)
-  END_WHILE
-  if len(table)==0:
-    THROW("entire array removed")
 
 def schwarzschild_standard_observer(r,spacetime,chart,pars):
   """

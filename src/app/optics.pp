@@ -24,20 +24,17 @@ from PIL import Image
 
 def main():
   if FALSE:
-    tol = 1.0e-12
+    r = 5.0
+    tol = 1.0e-9
+    d = 0.1
+    alpha_max = ray.alpha_max_schwarzschild(r)
+    print("r=",r)
     for i in range(7):
-      r = 1.0+10**(i-2)
-      alpha_max = ray.alpha_max_schwarzschild(r)
-      print("r=",r)
-      d = 1.0e-8
       alpha = alpha_max-d
       count_winding(0.0,[],[],0,0,{})
       beta,if_incomplete,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
-      k = beta+log(d)
-      b = 1.14
-      c = 3.67
-      k2 = -sqrt(c*c+(b*log(r))**2)
-      print(log(d),",",k,",",k2)
+      print(log(d),",",beta,",",beta+log(d))
+      d = d*0.1
     exit(0)
   if TRUE:
     r = 5.0
@@ -163,6 +160,7 @@ def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,sta
     beta,phi = celestial.celestial_to_beta(ra,dec,m_inv)
     alpha,unsafe = math_util.linear_interp_from_table_safe(aberration_table,2,1,beta,FALSE,FALSE,0.0)
     if unsafe:
+      PRINT("beta=",beta)
       THROW('unsafe extrapolation, this can happen if the grid for tabulating beta(alpha) is too coarse')
     count_drawn = count_drawn+1
     if if_black_hole:
