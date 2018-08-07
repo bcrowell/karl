@@ -70,13 +70,12 @@ def make_aberration_tables(r,tol,verbosity):
   count_winding(0.0,[],[],0,0,{})
   table = []
   v_table = []
-
   n_angles = 100
   alpha_max = alpha_max_schwarzschild(r)
   for i in range(n_angles):
     ii = (n_angles-1)-i # ii decreases, so that z decreases and alpha increases
     z = (float(ii+1)/float(n_angles)) # z varies from 1/n_angles to 1
-    alpha = alpha_max*(1-z*z) # points are closely spaced near the vertical asymptote
+    alpha = alpha_max*(1-z**4) # points are closely spaced near the vertical asymptote
     le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
     alpha2,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
     x = x_obs # initial position
@@ -85,9 +84,11 @@ def make_aberration_tables(r,tol,verbosity):
     #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
     d = alpha_max-alpha
     beta,done,v_emission = do_ray_schwarzschild(r,tol,count_winding,alpha)
+    if done:
+      BREAK # can get incomplete geodesic at alpha<alpha_max due to numerical precision
     table.append([r,alpha,beta])
     smooth = beta+log(d)
-    #print("r=",r,", alpha=",alpha,", beta=",beta,", tol=",real_tol,", smooth=",smooth)
+    #print("r=",r,", alpha=",alpha,", beta=",beta,", tol=",tol,", smooth=",smooth)
     #---
     # Calculate the velocity of the ray at observation. This would actually be pretty trivial, since
     # v is the "initial" velocity for solving the diffeq, but is actually the final
