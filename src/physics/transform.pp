@@ -254,9 +254,14 @@ def schwarzschild_to_kruskal_small(t,r):
 def sch_is_in_future_light_cone(x,v):
   """
   Given vector v in Schwarzschild coordinates, determines whether it's in the future light cone.
+  Returns [is_future,a_plus_b], where is_future is a boolean, and ab_sum is the value of v_a+v_b in
+  KS coordinates. The boolean can be unreliable due to rounding if v is lightline; if you have a vector
+  that is known lightlike and you just want to know whether it's future-oriented, it's better to test
+  whether the sign of ab_sum is positive.
   """
   # There is probably a more efficient way to do this, but this way seems bulletproof and manifestly correct.
   v_kruskal = transform_vector(v,x,SP_SCH,CH_SCH,{},CH_AKS)
   va = v_kruskal[0]
   vb = v_kruskal[1]
-  return (va>=0 and vb>=0)
+  tol = 10*EPS
+  return [(va>=-tol and vb>=-tol),va+vb]

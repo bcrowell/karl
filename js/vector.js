@@ -63,6 +63,18 @@
         }
         return w;
       };
+      vector.sub = function(u, v) {
+        var w, i;
+
+        /*
+        Returns u-v.
+        */
+        w = (karl.clone_array1d(u));
+        for (var i = 0; i < u.length; i++) {
+          w[i] = w[i] - v[i];
+        }
+        return w;
+      };
       vector.normalize = function(spacetime, chart, pars, p, v) {
         var n, s;
 
@@ -124,6 +136,16 @@
         */
         s = vector.inner_product(spacetime, chart, pars, p, u, v) / vector.norm(spacetime, chart, pars, p, u);
         return vector.add(v, vector.scalar_mult(u, -s));
+      };
+      vector.proj_spacelike = function(spacetime, chart, pars, p, u, v) {
+        var s;
+
+        /*
+        Returns v+[(v.u)/(u.u)]u, the part of v that is perpendicular to u.
+        Both u and v should be spacelike.
+        */
+        s = vector.inner_product(spacetime, chart, pars, p, u, v) / vector.norm(spacetime, chart, pars, p, u);
+        return vector.add(v, vector.scalar_mult(u, s));
       };
       vector.get_metric = function(spacetime, chart, pars, p) {
         var r;

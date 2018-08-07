@@ -11,6 +11,13 @@
       ;;
 
 
+      /* ... note that (NaN)==(NaN) is false, so use IS_(NaN) */
+      karl.load("lib/array");;
+      /* ... works in rhino and d8 */
+      /* ... https://stackoverflow.com/q/26738943/1142217 */
+      /* ... usage: throw io_util.strcat(([...])); ... extra parens required by filepp so it believes it's a single argument */
+      /*           ... see notes above about usage with array literals */
+      /*                 ... works in rhino */
       /* ... relative precision for arithmetic */
       /* ... ln of (1.0e-16) */
       /* ... ln of greatest number we can store in floating point; IEEE-754 floating point can store 2^128-1 */
@@ -79,21 +86,81 @@
       };
       math_util.linear_interp = function(x1, x2, y1, y2, x) {
 
+        /* Consider using the _safe version of this, below. */
         return ((y2 - y1) / (x2 - x1)) * (x - x1) + y1;
       };
-      math_util.linear_interp_from_table = function(table, x_col, y_col, x, i, j) {
-        var k;
+      math_util.linear_interp_safe = function(x1, x2, y1, y2, x, allow_extrap, sanity_check_extrap, max_extrap) {
+        var unsafe, requires_extrap, result;
 
+        unsafe = (false);
+        requires_extrap = !(x1 <= x && x2 >= x);
+        if (requires_extrap) {
+          if (allow_extrap) {
+            if (sanity_check_extrap) {
+              if (x < x1) {
+                unsafe = Math.abs(x - x1) > max_extrap;
+              } else {
+                unsafe = Math.abs(x - x2) > max_extrap;
+              }
+            }
+          } else {
+            unsafe = (true);
+          }
+        }
+        result = math_util.linear_interp(x1, x2, y1, y2, x);
+        return [result, unsafe];
+      };
+      math_util.linear_interp_from_table_safe = function(table, x_col, y_col, x, allow_extrap, sanity_check_extrap, max_extrap) {
+
+        /*
+        Returns [result,unsafe].
+        */
+        return math_util.linear_interp_from_table_recurse(table, x_col, y_col, x, 0, len(table) - 1, allow_extrap, sanity_check_extrap, max_extrap);
+      };
+      math_util.linear_interp_from_table = function(table, x_col, y_col, x) {
+        var result, unsafe;
+
+        /* Better to use the _safe version of this, above. */
+        (function() {
+          var temp = math_util.linear_interp_from_table_recurse(table, x_col, y_col, x, 0, table.length - 1, (true), (false), 0.0);
+          result = temp[0];
+          unsafe = temp[1]
+        })();
+        return result;
+      };
+      math_util.linear_interp_from_table_recurse = function(table, x_col, y_col, x, i, j, allow_extrap, sanity_check_extrap, max_extrap) {
+        var unsafe, requires_extrap, result, k;
+
+        /* We don't normally call this directly, we call linear_interp_from_table() or linear_interp_from_table_safe(), */
+        /* which calls this routine. */
         /* Do a binary search through the table, so this is O(log(n)). */
-        /* The i,j parameters at the end are really here for recursion; normally call this with 0,len(table)-1. */
-        /* If x is outside the range of values in the table, this algorithm results in silent linear extrapolation. */
+        /* During recursion, the i,j parameters keep track of what range of row numbers we've narrowed in on. */
+        /* The x column has to be sorted in ascending order. */
+        /* Returns [result,unsafe], where unsafe is a boolean that tells us whether extrapolation was necessary */
+        /* and violated the sanity limits. */
         if (j == i + 1) {
-          return math_util.linear_interp(table[i][x_col], table[j][x_col], table[i][y_col], table[j][y_col], x);
+          unsafe = (false);
+          requires_extrap = !(table[i][x_col] <= x && table[j][x_col] >= x);
+          if (requires_extrap) {
+            if (allow_extrap) {
+              if (sanity_check_extrap) {
+                if (x < table[i][x_col]) {
+                  unsafe = Math.abs(x - table[i][x_col]) > max_extrap;
+                } else {
+                  unsafe = Math.abs(x - table[j][x_col]) > max_extrap;
+                }
+              }
+            } else {
+              unsafe = (true);
+            }
+          }
+          result = math_util.linear_interp(table[i][x_col], table[j][x_col], table[i][y_col], table[j][y_col], x);
+          return [result, unsafe];
         }
         k = (i + j) //2;
         if (table[k][x_col] > x) {
-          return math_util.linear_interp_from_table(table, x_col, y_col, x, i, k);
+          return math_util.linear_interp_from_table_recurse(table, x_col, y_col, x, i, k, allow_extrap, sanity_check_extrap, max_extrap);
         } else {
-          return math_util.linear_interp_from_table(table, x_col, y_col, x, k, j);
+          return math_util.linear_interp_from_table_recurse(table, x_col, y_col, x, k, j, allow_extrap, sanity_check_extrap, max_extrap);
         }
       };

@@ -374,8 +374,10 @@ def le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars
       dr_dt = -dr_dt
     v = [1.0,dr_dt,0.0,dphi_dt,0.0] # tangent vector
   #----
-  if not transform.sch_is_in_future_light_cone(x_obs,v):
+  is_future,a_plus_b = transform.sch_is_in_future_light_cone(x_obs,v)
+  if not (a_plus_b>0):
     v = vector.scalar_mult(v,-1.0)
+
   alpha = v_photon_and_obs_frame_to_alpha(spacetime,chart,pars,x_obs,v,v_obs,rho)
   return [alpha,v]
 

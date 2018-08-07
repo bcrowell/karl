@@ -23,10 +23,21 @@ from PIL import Image
 #endif
 
 def main():
-  if TRUE:
-    alpha = 0.1
-    beta,if_incomplete,final_v = do_ray_schwarzschild(r,tol,count_winding,alpha)
-    print("alpha=",alpha,", beta=",beta)
+  if FALSE:
+    tol = 1.0e-12
+    for i in range(7):
+      r = 1.0+10**(i-2)
+      alpha_max = ray.alpha_max_schwarzschild(r)
+      print("r=",r)
+      d = 1.0e-8
+      alpha = alpha_max-d
+      count_winding(0.0,[],[],0,0,{})
+      beta,if_incomplete,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
+      k = beta+log(d)
+      b = 1.14
+      c = 3.67
+      k2 = -sqrt(c*c+(b*log(r))**2)
+      print(log(d),",",k,",",k2)
     exit(0)
   if TRUE:
     r = 5.0

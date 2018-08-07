@@ -128,8 +128,6 @@ def trajectory_schwarzschild(spacetime,chart,pars,x0,v0,opt):
       final_lambda = final_lambda+lam_left
       err = RK_INCOMPLETE
       BREAK
-    #qweif n_unproductive>0:
-    #  print("n_unproductive=",n_unproductive,", r=",r,", x=",io_util.vector_to_str(x))
     if n_unproductive>0:
       dlambda = dlambda*2**(-n_unproductive)
     opt['dlambda'] = dlambda

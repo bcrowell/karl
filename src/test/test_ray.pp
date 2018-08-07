@@ -52,7 +52,7 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
   le,in_n_out = ray.alpha_to_le_schwarzschild(alpha,r)
   alpha2,vv = ray.le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
   #print("r=",r,", alpha=",alpha,", le=",le,", in_n_out=",in_n_out,", alpha2=",alpha2)
-  assert_equal_eps(alpha2,alpha,1.0e-14)
+  assert_equal_eps(alpha2,alpha,1.0e-12)
 
 def test_riazuelo_deflection():
   r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
@@ -123,7 +123,10 @@ def test_le_to_alpha_schwarzschild_one(r,le_over_max,in_n_out):
   # v has norm 0:
   assert_equal_eps(vector.norm(spacetime,chart,pars,x_obs,v),0.0,10*EPS)
   # v is in future light cone:
-  assert_boolean(transform.sch_is_in_future_light_cone(x_obs,v),"v of photon is not future-oriented")
+  is_future,a_plus_b = transform.sch_is_in_future_light_cone(x_obs,v)
+  if a_plus_b<=0.0:
+    PRINT("r=",r,", a_plus_b=",a_plus_b,", v=",v)
+  assert_boolean(a_plus_b>0.0,"v of photon is not future-oriented")
 
   return [alpha,v]
 
@@ -163,9 +166,12 @@ def test_schwarzschild_standard_observer(r):
   assert_equal_eps(rho[4],0.0,10*EPS)
 
   # v_obs is oriented in the future-timelike direction:
-  assert_boolean(transform.sch_is_in_future_light_cone(x_obs,v_obs),"v_obs is not future-oriented")
- 
+  is_future,a_plus_b = transform.sch_is_in_future_light_cone(x_obs,v_obs)
+  assert_boolean(is_future,"v_obs is not future-oriented")
+
 r = 0.5 # test inside horizon
+test_obs_and_alpha(r)
+r = 5.0
 test_obs_and_alpha(r)
 r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
 test_obs_and_alpha(r)
