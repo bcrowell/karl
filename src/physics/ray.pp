@@ -15,7 +15,7 @@
 #include "precision.h"
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial,math_util,\
-       star_properties
+       star_properties,kruskal
 
 #--------------------------------------------------------------------------------------------------
 
@@ -137,8 +137,17 @@ def make_aberration_tables(r,tol,verbosity):
 #endif
 
 def do_ray_schwarzschild(r,tol,count_winding,alpha):
+  if r>=1.0:
+    return do_ray_schwarzschild1(r,tol,count_winding,alpha)
+  else:
+    return do_ray_schwarzschild2(r,tol,count_winding,alpha)
+
+def do_ray_schwarzschild1(r,tol,count_winding,alpha):
   """
-  Returns [beta,if_incomplete,final_v]  
+  Returns [beta,if_incomplete,final_v].
+  This algorithm tends to fail for past-oriented geodesics that exit the event horizon. It oscillates
+  back and forth across the horizon, I think because of either a bug or a lack of numerical stability.
+  The alternative do_ray_schwarzschild2() is meant to work for those cases.
   """
   spacetime = SP_SCH
   chart = CH_SCH
@@ -188,6 +197,90 @@ def do_ray_schwarzschild(r,tol,count_winding,alpha):
       f = (rf-ri)/ri # fractional change in r from the iteration we just completed
       if f<0.1:
         lambda_max = lambda_max*(0.1/f) # try to get at least a 10% change in r with each iteration
+    x = final_x
+    v = final_v
+    ri = rf
+  END_WHILE
+  w = info['user_data'] # winding number
+  beta = atan2(final_x[3],final_x[2]) # returns an angle from -pi to pi
+  if beta<0.0:
+    beta = beta+2.0*MATH_PI
+  beta = beta+w*2.0*MATH_PI
+  return [beta,FALSE,final_v]
+
+def do_ray_schwarzschild2(r,tol,count_winding,alpha):
+  """
+  Returns [beta,if_incomplete,final_v].
+  Experimental alternative version that only uses KS coordinates, assumes we're starting inside
+  horizon and heading outward.
+  """
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  x,v_obs,rho,j = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
+  alpha2,v = le_to_alpha_schwarzschild(r,le,in_n_out,x,v_obs,rho,spacetime,chart,pars)
+  # don't need alpha, just need v of photon
+  #----
+  # Convert from Schwarzschild to KS.
+  x_ks = transform.transform_point(x,spacetime,chart,pars,CH_AKS)
+  v_ks = transform.transform_vector(v,x,spacetime,chart,pars,CH_AKS)
+  chart = CH_AKS
+  x = x_ks
+  v = v_ks
+  # Flip a and b components of velocity so it's past-oriented. Don't flip angular part, because
+  # that has the effect of flipping the sign of beta.
+  v[0] = -v[0]
+  v[1] = -v[1]
+  #----
+  n = 100
+  ndebug=0
+  if verbosity>=3:
+    ndebug=n/10
+  ri = r
+  lambda_max = 0.2 # fixme, sort of random
+  dlambda = 0.01
+  info = {}
+  lam = 0.0
+  WHILE(TRUE)
+    opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
+          'user_function':count_winding,'dlambda':dlambda,'ndebug':0}
+#if 0
+    print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
+#endif
+#if 1
+    if ri<5.0:
+      print("before simple, r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
+           vector.norm(spacetime,chart,pars,x,v))
+#endif
+    err,final_x,final_v,final_a,final_lambda,info  = \
+            runge_kutta.trajectory_simple(spacetime,chart,pars,x,v,opt)
+    tf,rf,mu = kruskal.aux(final_x[0],final_x[1])
+#if 0
+    if rf<5.0:
+      print("after simple, r=",rf)
+#endif
+    lam = lam+final_lambda
+    if err!=0:
+      if err==RK_INCOMPLETE:
+        PRINT("Geodesic at alpha=",alpha," radians is incomplete, done.")
+        return [NAN,TRUE,NONE]
+      THROW("error: "+str(err))
+    if IS_NAN(rf):
+      THROW("rf is NaN")
+    if rf>1.0e6 and rf>100.0*r:
+      print("quitting, rf=",rf,", lambda=",lam,", dlambda=",dlambda)
+      break
+    if rf>1.01 and rf>ri:
+      f = (rf-ri)/ri # fractional change in r from the iteration we just completed
+      if rf>1.1:
+        desired_f = 0.1
+      else:
+        desired_f = 0.01
+      if f<desired_f:
+        z = (desired_f/f) # try to get at least a certain fractional change in r with each iteration
+        lambda_max = lambda_max*z
+        dlambda = dlambda*z
     x = final_x
     v = final_v
     ri = rf

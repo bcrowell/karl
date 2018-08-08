@@ -67,6 +67,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
         force_acts,force_function,user_function,force_chart =\
         runge_kutta_get_options_helper(opt)
   if dlambda<=0:
+    PRINT("dlambda=",dlambda)
     THROW("dlambda<=0")
   #-- initial setup
   n,steps_between_debugging,debug_count,lam,ok,ndim,christoffel_function = \

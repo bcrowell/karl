@@ -24,13 +24,14 @@ from PIL import Image
 
 
 def main():
-  do_what = 2
+  do_what = 1
   if do_what==1:
-    r = 0.99
+    r = 0.9999
+    #r = 1.0001
+    alpha = 2.0
     tol = 1.0e-3
     alpha_max = ray.alpha_max_schwarzschild(r)
     print("r=",r,", alpha_max=",alpha_max)
-    alpha = 0.1
     count_winding(0.0,[],[],0,0,{})
     beta,if_incomplete,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
     print("alpha=",alpha,", beta=",beta)
