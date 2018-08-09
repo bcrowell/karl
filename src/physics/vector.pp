@@ -14,6 +14,9 @@ def scalar_mult(v0,s):
     v[i] = v[i]*s
   return v
 
+def negate(v):
+  return scalar_mult(v,-1.0)
+
 def add(u,v):
   """
   Returns the sum of vectors u and v.

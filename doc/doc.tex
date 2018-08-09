@@ -218,7 +218,8 @@ $\tanh^{-1}[(V-W)/(V+W)]$.
 I ended up not doing the sliding chart idea, but did implement a function 
 \texttt{transform.kruskal\_to\_time\_zero}. There seems to be a problem where null trajectories fly
 out along a horizon, and we get problems with numerical precision in Christoffel symbols.
-In ray-tracing, we don't care about t, so I'm going to try simply zeroing out t at various times.
+In ray-tracing, we don't care about t, so I've added an option to RK
+to simply zero out t at various times. This seems to work well.
 
 Plan: Represent points in sch spacetime using three data structures for different regions of spacetime:
 

@@ -24,7 +24,7 @@ from PIL import Image
 
 
 def main():
-  do_what = 1
+  do_what = 2
   if do_what==1:
     r = 0.9
     alpha = 2.3754638 # very close to alpha_max=2.3759564949418355

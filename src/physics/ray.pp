@@ -238,7 +238,6 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   ndebug=0
   if verbosity>=3:
     ndebug=n/10
-  ndebug=1 # qwe
   ri = r
   lambda_max = 0.2 # fixme, sort of random
   dlambda = 0.01

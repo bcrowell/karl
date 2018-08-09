@@ -118,23 +118,10 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
       est[step][ndim+i] = acc[i]
   user_data = NONE
   for iter in range(n):
-
-    if chart==CH_AKS and time_is_irrelevant:
+    if time_is_irrelevant:
       # See comments at top of function on why this is helpful for ray tracing.
-      a = x[0]
-      b = x[1]
-      # Results are not particularly sensitive to the sizes of the following parameters, except that if I
-      # make the power of ten very big, like 6, then this code never gets executed and can't serve its
-      # purpose, while if I made them very small, like 1, then this code would get executed frequently,
-      # causing big rounding errors.
-      big = 1.0e3
-      small = 1.0e-3
-      if (abs(a)>big or abs(b)>big) and (abs(a)<small or abs(b)<small):
-        # Near horizon, one coordinate very big and one very small.
-        a,b = transform.kruskal_to_time_zero(x[0],x[1])
-        x[0] = a
-        x[1] = b
-
+      x,v,t,did_it = transform.kruskal_to_time_zero(x,v,spacetime|chart,FALSE)
+      # ... is a no-op if coords are not AKS, or if we're not at a point where doing this would be helpful
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors

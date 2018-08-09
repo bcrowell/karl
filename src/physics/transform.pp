@@ -266,36 +266,59 @@ def sch_is_in_future_light_cone(x,v):
   tol = 10*EPS
   return [(va>=-tol and vb>=-tol),va+vb]
 
-def kruskal_to_time_zero(a,b):
+def kruskal_to_time_zero(x,v,spacetime_or_chart,force):
   """
-  Change kruskal coordinates (a,b) to equivalent coordinates that correspond to Schwarzschild time t=0.
+  Change kruskal coordinates to equivalent coordinates that correspond to Schwarzschild time t=0.
+  If boolean input force is false, then nothing is done unless the point is the type of point near
+  the horizon at large t for which this operation is likely to be helpful to precision.
+  If the point is on the horizon, this operation is a no-op. As a convenience, this function can
+  also be called when coords are not AKS, and then it's also a no-op.
+  Returns [x2,v2,dt,did_it], where dt is the change in the Schwarzschild time that resulted from the
+  transformation, and dit_it is true if anything actually happened.
   """
-  if b==0.0 or a==0.0:
-    return [0.0,0.0]
+  if spacetime_or_chart!=(SP_SCH|CH_AKS):
+    return [x,v,0.0,FALSE]
+  a = x[0]
+  b = x[1]
+  # --
+  # Results are not particularly sensitive to the sizes of the following two parameters, except that if I
+  # make the power of ten very big, like 6, then for method 0 this code never gets executed and can't serve its
+  # purpose, while if I made them very small, like 1, then this code would get executed frequently,
+  # causing more rounding errors.
+  big = 1.0e3
+  small = 1.0e-3
+  #--
+  do_it = TRUE
+  if not force:
+    do_it = ((abs(a)>big or abs(b)>big) and (abs(a)<small or abs(b)<small))
+  if not do_it:
+    return [x,v,0.0,FALSE]
+  if b==0.0 or a==0.0: # can't define this operation for points on the horizon
+    return [x,v,0.0,FALSE]
+  # If we're in region III or IV, then simply doing AKS->Schwarzschild->AKS would lose that information.
+  # In that case, transform into I or II and recurse.
   if a<0.0:
-    a2,b2 = kruskal_to_time_zero(-a,-b)
-    return [-a2,-b2]
-  # From now on, we know that a>0 (i.e., we're in region I or II).
-  # We may want to do this for points near the horizon, where a is big and b is small, or vice versa.
-  # For such points, transforming to Schwarzschild and then back is likely to have poor precision.
-  # Therefore the following is split into two main cases.
-  max_ab = 1000.0
-  if not (abs(a)>max_ab or abs(b)>max_ab):
-    t,r = kruskal_to_schwarzschild(a,b)
-    return schwarzschild_to_kruskal(0.0,r)
-  # From here on out, we can treat a and b totally symmetrically. (Couldn't do that before, because a point
-  # (a,b) in region I may not have a partner (b,a) in region II, so kruskal_to_schwarzschild(b,a) could have
-  # failed.)
-  if b<0.0:
-    a2,b2 = kruskal_to_time_zero(a,-b)
-    return [a2,-b2]
-  if a<max_ab:
-    b2,a2 = kruskal_to_time_zero(b,a)
-    return [a2,b2]
-  # We now know that a is large and positive, and b is >0.
-  # Basically we're computing a2 = +-asinh(sqrt(abs(sinh(a)sinh(b)))), b2 = same expression.
-  # Let z = sinh(a)sinh(b). Since b can be stored in floating point and is nonzero, we know z is big enough so
-  # that O(1/z) is negligible. Also, z>0. Therefore asinh(z)=ln(2z).
-  a2 = abs(log(b)+a)
-  b2 = a2
-  return [a2,b2]
+    # Invert in the origin in AKS.
+    x2 = CLONE_ARRAY_OF_FLOATS(x)
+    v2 = CLONE_ARRAY_OF_FLOATS(v)
+    x2[0] = -x2[0]
+    x2[1] = -x2[1]
+    v2[0] = -v2[0]
+    v2[1] = -v2[1]
+    x3,v3,dt,did_it = kruskal_to_time_zero(x2,v2,spacetime_or_chart,force)
+    x3[0] = -x3[0]
+    x3[1] = -x3[1]
+    v3[0] = -v3[0]
+    v3[1] = -v3[1]
+    return [x3,v3,dt,did_it]
+  # Beyond this point, we're guaranteed to be in region I or II, and not at a horizon.
+  # The following is a composition of three transformations: (1) AKS to Schwarzschild, (2) a time
+  # translation, and (3) back to AKS. The jacobian for 2 is just the identity matrix, so the velocity
+  # is not affected by it.
+  x_s = transform_point(x,SP_SCH,CH_AKS,{},CH_SCH)
+  v_s = transform_vector(v,x,SP_SCH,CH_AKS,{},CH_SCH)
+  dt = x_s[0]
+  x_s[0] = 0.0
+  x2 = transform_point(x_s,SP_SCH,CH_SCH,{},CH_AKS)
+  v2 = transform_vector(v_s,x_s,SP_SCH,CH_SCH,{},CH_AKS)
+  return [x2,v2,dt,TRUE]
