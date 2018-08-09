@@ -55,8 +55,13 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
   assert_equal_eps(alpha2,alpha,1.0e-12)
 
 def test_deflection_naughty_cases():
+  # The following is a smoke test. What tends to happen is that for points very close to the photon sphere,
+  # where |a|>>|b| or |b|>>|a|, application of the Christoffel symbols gives a point beyond the
+  # singularity, resulting in a crash.
   r = 0.9
-  alpha = 2.3754638 # very close to alpha_max=2.3759564949418355
+  alpha_max = 2.3759564949418355
+  d = 1.0e-10
+  alpha = alpha_max-d
   beta = alpha_to_beta(r,alpha)
 
 def test_deflection_continuity():
@@ -95,7 +100,7 @@ def test_riazuelo_deflection():
 def alpha_to_beta(r,alpha):
   tol = 1.0e-6
   count_winding(0.0,[],[],0,0,{})
-  beta,done,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
+  beta,done,final_v,region = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
   return beta
 
 def count_winding(lam,x,v,spacetime,chart,pars):

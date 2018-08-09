@@ -118,10 +118,18 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
       est[step][ndim+i] = acc[i]
   user_data = NONE
   for iter in range(n):
+    if iter%1==0:
+      t,r,mu = kruskal.aux(x[0],x[1])
+      theta = atan2(x[2],x[3])
+      #print("iter=",iter," x=",io_util.vector_to_str(x),", r=",r,", theta=",theta,", mu=",mu)
+      #print("          v=",io_util.vector_to_str(v)," dlambda=",dlambda)
     if time_is_irrelevant:
       # See comments at top of function on why this is helpful for ray tracing.
       x,v,t,did_it = transform.kruskal_to_time_zero(x,v,spacetime|chart,FALSE)
       # ... is a no-op if coords are not AKS, or if we're not at a point where doing this would be helpful
+      if did_it:
+        pass
+        #print("  kruskal_to_time_zero-> x=",io_util.vector_to_str(x)," v=",io_util.vector_to_str(v))
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors

@@ -77,6 +77,7 @@ def make_aberration_tables(r,tol,verbosity):
     ii = (n_angles-1)-i # ii decreases, so that z decreases and alpha increases
     z = (float(ii+1)/float(n_angles)) # z varies from 1/n_angles to 1
     alpha = alpha_max*(1-z**4) # points are closely spaced near the vertical asymptote
+    #print("r=",r,", alpha=",alpha)
     le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
     alpha2,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
     x = x_obs # initial position
@@ -84,12 +85,12 @@ def make_aberration_tables(r,tol,verbosity):
     # ... Initial velocity of ray, which is simulated going backward in time, as if emitted rather than absorbed.
     #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
     d = alpha_max-alpha
-    beta,done,v_emission = do_ray_schwarzschild(r,tol,count_winding,alpha)
+    beta,done,v_emission,region = do_ray_schwarzschild(r,tol,count_winding,alpha)
     if done:
       BREAK # can get incomplete geodesic at alpha<alpha_max due to numerical precision
     table.append([r,alpha,beta])
     smooth = beta+log(d)
-    #print("r=",r,", alpha=",alpha,", beta=",beta,", tol=",tol,", smooth=",smooth)
+    #print("r=",r,", alpha=",alpha,", beta=",beta,", region=",region[2])
     #---
     # Calculate the velocity of the ray at observation. This would actually be pretty trivial, since
     # v is the "initial" velocity for solving the diffeq, but is actually the final
@@ -187,7 +188,7 @@ def do_ray_schwarzschild1(r,tol,count_winding,alpha):
     if err!=0:
       if err==RK_INCOMPLETE or err==RK_TRIGGER:
         PRINT("Geodesic at alpha=",alpha," radians is incomplete or entered horizon, err=",err,", done.")
-        return [NAN,TRUE,NONE]
+        return [NAN,TRUE,NONE,[2,0,"interior"]]
       THROW("error: "+str(err))
     rf = final_x[1]
     if IS_NAN(rf):
@@ -207,7 +208,7 @@ def do_ray_schwarzschild1(r,tol,count_winding,alpha):
   if beta<0.0:
     beta = beta+2.0*MATH_PI
   beta = beta+w*2.0*MATH_PI
-  return [beta,FALSE,final_v]
+  return [beta,FALSE,final_v,[1,0,"exterior"]]
 
 def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   """
@@ -272,7 +273,7 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
     if rf>1.0e6 and rf>100.0*r:
       #print("quitting, rf=",rf,", lambda=",lam,", dlambda=",dlambda)
       break
-    if rf>1.01 and rf>ri:
+    if rf>2.0 and rf>ri: # make sure we're well clear of the photon sphere, where rf-ri may be small
       f = (rf-ri)/ri # fractional change in r from the iteration we just completed
       if rf>1.1:
         desired_f = 0.1
@@ -291,7 +292,7 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   if beta<0.0:
     beta = beta+2.0*MATH_PI
   beta = beta+w*2.0*MATH_PI
-  return [beta,FALSE,final_v]
+  return [beta,FALSE,final_v,kruskal.describe_region(x[0],x[1])]
 
 def schwarzschild_standard_observer(r,spacetime,chart,pars):
   """

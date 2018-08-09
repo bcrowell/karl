@@ -97,6 +97,29 @@ def sigma(a,b):
   else:
     return -1
 
+def describe_region(a,b):
+  """
+  Return [region,horizon,name], where region=1, 2, 3, or 4, horizon=0 or 1, and name is a string
+  describing the region. For points on a horizon, we return horizon=1, and region is the region
+  clockwise from that horizon on the Penrose diagram.
+  """
+  if a>0.0 and b<0.0:
+    return [1,0,"I"]
+  if a>0.0 and b==0.0:
+    return [1,1,"horizon I/II"]
+  if a>0.0 and b>0.0:
+    return [2,0,"II"]
+  if a==0.0 and b>0.0:
+    return [2,1,"horizon II/III"]
+  if a<0.0 and b>0.0:
+    return [3,0,"III"]
+  if a<0.0 and b==0.0:
+    return [3,1,"horizon III/IV"]
+  if a<0.0 and b<0.0:
+    return [4,0,"IV"]
+  if a==0.0 and b<0.0:
+    return [4,1,"horizon I/IV"]
+
 def metric(p):
   """
   For the Schwarzschild spacetime, compute the metric.

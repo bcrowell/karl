@@ -270,7 +270,7 @@ def kruskal_to_time_zero(x,v,spacetime_or_chart,force):
   """
   Change kruskal coordinates to equivalent coordinates that correspond to Schwarzschild time t=0.
   If boolean input force is false, then nothing is done unless the point is the type of point near
-  the horizon at large t for which this operation is likely to be helpful to precision.
+  the horizon or photon sphere at large t for which this operation is likely to be helpful to precision.
   If the point is on the horizon, this operation is a no-op. As a convenience, this function can
   also be called when coords are not AKS, and then it's also a no-op.
   Returns [x2,v2,dt,did_it], where dt is the change in the Schwarzschild time that resulted from the
@@ -281,16 +281,15 @@ def kruskal_to_time_zero(x,v,spacetime_or_chart,force):
   a = x[0]
   b = x[1]
   # --
-  # Results are not particularly sensitive to the sizes of the following two parameters, except that if I
+  # Results are not particularly sensitive to the sizes of the following parameter, except that if I
   # make the power of ten very big, like 6, then for method 0 this code never gets executed and can't serve its
-  # purpose, while if I made them very small, like 1, then this code would get executed frequently,
+  # purpose, while if I made it very small, like 1, then this code would get executed frequently,
   # causing more rounding errors.
   big = 1.0e3
-  small = 1.0e-3
   #--
   do_it = TRUE
   if not force:
-    do_it = ((abs(a)>big or abs(b)>big) and (abs(a)<small or abs(b)<small))
+    do_it = (abs(a)>big*abs(b)) or (abs(b)>big*abs(a))
   if not do_it:
     return [x,v,0.0,FALSE]
   if b==0.0 or a==0.0: # can't define this operation for points on the horizon

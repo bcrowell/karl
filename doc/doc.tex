@@ -216,10 +216,13 @@ express this not as $\coth^{-1}[(V+W)/(V-W)]$ but as
 $\tanh^{-1}[(V-W)/(V+W)]$.
 
 I ended up not doing the sliding chart idea, but did implement a function 
-\texttt{transform.kruskal\_to\_time\_zero}. There seems to be a problem where null trajectories fly
-out along a horizon, and we get problems with numerical precision in Christoffel symbols.
+\texttt{transform.kruskal\_to\_time\_zero}. There seems to be a problem where null trajectories
+get close to a horizon or to the photon sphere (both of which are unstable conditions for a photon),
+and we get problems with numerical precision in Christoffel symbols.
 In ray-tracing, we don't care about t, so I've added an option to RK
-to simply zero out t at various times. This seems to work well.
+to simply zero out t at various times. This seems to help, but I still get cases where L/E is
+very close to the critical value for the photon sphere, and the photon inserts itself into
+the photon sphere and then we get misbehavior.
 
 Plan: Represent points in sch spacetime using three data structures for different regions of spacetime:
 
