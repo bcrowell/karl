@@ -213,7 +213,7 @@ def do_ray_schwarzschild1(r,tol,count_winding,alpha):
 def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   """
   Returns [beta,if_incomplete,final_v].
-  Experimental alternative version that only uses KS coordinates, assumes we're starting inside
+  Algorithm that only uses KS coordinates, assumes we're starting inside
   horizon and heading outward.
   """
   spacetime = SP_SCH
@@ -244,6 +244,9 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   dlambda = 0.01
   info = {}
   lam = 0.0
+#if 0
+  print("  starting")
+#endif
   WHILE(TRUE)
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
           'user_function':count_winding,'dlambda':dlambda,'ndebug':0,'time_is_irrelevant':TRUE}
@@ -262,6 +265,14 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
     if rf<5.0:
       print("after simple, r=",rf)
 #endif
+#if 0
+    if ri<1.0 and rf>1.0:
+      print("crossed horizon")
+    if ri<1.5 and rf>1.5:
+      print("crossed photon sphere")
+    if ri<5.0 and rf>5.0:
+      print("crossed r=5")
+#endif
     lam = lam+final_lambda
     if err!=0:
       if err==RK_INCOMPLETE:
@@ -273,12 +284,13 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
     if rf>1.0e6 and rf>100.0*r:
       #print("quitting, rf=",rf,", lambda=",lam,", dlambda=",dlambda)
       break
-    if rf>2.0 and rf>ri: # make sure we're well clear of the photon sphere, where rf-ri may be small
+    if rf>1.7 and rf>ri: # make sure we're well clear of the photon sphere, where rf-ri may be small
       f = (rf-ri)/ri # fractional change in r from the iteration we just completed
-      if rf>1.1:
-        desired_f = 0.1
-      else:
-        desired_f = 0.01
+      desired_f = 0.2
+      if rf>5.0:
+        desired_f = 1.0
+      if rf>20.0:
+        desired_f = 3.0
       if f<desired_f:
         z = (desired_f/f) # try to get at least a certain fractional change in r with each iteration
         lambda_max = lambda_max*z
@@ -292,7 +304,10 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   if beta<0.0:
     beta = beta+2.0*MATH_PI
   beta = beta+w*2.0*MATH_PI
-  return [beta,FALSE,final_v,kruskal.describe_region(x[0],x[1])]
+  return [beta,FALSE,final_v,kruskal.describe_region(-x[0],-x[1])]
+  # ...Minus signs because something about the way I'm treating the time-reversed ray tracing seems
+  #    to result in exiting into III when it should be I. Presumably rays that exit into I are
+  #    really exiting into III...? fixme -- investigate this
 
 def schwarzschild_standard_observer(r,spacetime,chart,pars):
   """
