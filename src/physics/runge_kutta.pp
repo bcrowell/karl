@@ -44,6 +44,9 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
                              so the function does not need to clone it before returning it
     force_chart = chart that the function wants for its inputs and outputs
     user_function = an optional user-defined function that is called on every iteration
+    time_is_irrelevant = boolean; if this is set, and coordinates are AKS, then we freely manipulate the
+           coordinates so as to change t, avoiding problems with numerical precision that occur near the
+           horizon for very large a and very small b, or vice versa; useful for ray tracing
   triggers
     These allow the integration to be halted when it appears that in the next iteration,
     a certain coordinate or velocity would cross a certain threshold.
@@ -64,7 +67,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   #-- process input options
   lambda_max,dlambda,ndebug,debug_function,lambda0,norm_final,\
         n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha,\
-        force_acts,force_function,user_function,force_chart =\
+        force_acts,force_function,user_function,force_chart,time_is_irrelevant =\
         runge_kutta_get_options_helper(opt)
   if dlambda<=0:
     PRINT("dlambda=",dlambda)
@@ -115,6 +118,23 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
       est[step][ndim+i] = acc[i]
   user_data = NONE
   for iter in range(n):
+
+    if chart==CH_AKS and time_is_irrelevant:
+      # See comments at top of function on why this is helpful for ray tracing.
+      a = x[0]
+      b = x[1]
+      # Results are not particularly sensitive to the sizes of the following parameters, except that if I
+      # make the power of ten very big, like 6, then this code never gets executed and can't serve its
+      # purpose, while if I made them very small, like 1, then this code would get executed frequently,
+      # causing big rounding errors.
+      big = 1.0e3
+      small = 1.0e-3
+      if (abs(a)>big or abs(b)>big) and (abs(a)<small or abs(b)<small):
+        # Near horizon, one coordinate very big and one very small.
+        a,b = transform.kruskal_to_time_zero(x[0],x[1])
+        x[0] = a
+        x[1] = b
+
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);
     #         =k in the notation of most authors
@@ -249,6 +269,7 @@ def runge_kutta_get_options_helper(opt):
   debug_function =runge_kutta_get_par_helper(opt,"debug_function",default_debug_function)
   lambda0     =runge_kutta_get_par_helper(opt,"lambda0",0.0)
   norm_final  =runge_kutta_get_par_helper(opt,"norm_final",TRUE)
+  time_is_irrelevant  =runge_kutta_get_par_helper(opt,"time_is_irrelevant",FALSE)
   n_triggers = 0
   trigger_s,trigger_on,trigger_threshold,trigger_alpha = [[],[],[],[]]
   if HAS_KEY(opt,"triggers"):
@@ -261,7 +282,7 @@ def runge_kutta_get_options_helper(opt):
   force_chart     =runge_kutta_get_par_helper(opt,"force_chart",0)
   return [lambda_max,dlambda,ndebug,debug_function,lambda0,norm_final, \
                    n_triggers,trigger_s,trigger_on,trigger_threshold,trigger_alpha, \
-                   force_acts,force_function,user_function,force_chart]
+                   force_acts,force_function,user_function,force_chart,time_is_irrelevant]
 
 def runge_kutta_init_helper(lambda_max,lambda0,dlambda,ndebug,spacetime,chart,pars):
   n = CEIL((lambda_max-lambda0)/dlambda) # dlambda will be adjusted slightly in order to deal with the rounding

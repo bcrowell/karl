@@ -72,6 +72,7 @@ def make_aberration_tables(r,tol,verbosity):
   v_table = []
   n_angles = 100
   alpha_max = alpha_max_schwarzschild(r)
+  print("  Calculating table of aberration angles, alpha_max=",alpha_max,", ",n_angles," angles")
   for i in range(n_angles):
     ii = (n_angles-1)-i # ii decreases, so that z decreases and alpha increases
     z = (float(ii+1)/float(n_angles)) # z varies from 1/n_angles to 1
@@ -237,6 +238,7 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   ndebug=0
   if verbosity>=3:
     ndebug=n/10
+  ndebug=1 # qwe
   ri = r
   lambda_max = 0.2 # fixme, sort of random
   dlambda = 0.01
@@ -244,11 +246,11 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   lam = 0.0
   WHILE(TRUE)
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
-          'user_function':count_winding,'dlambda':dlambda,'ndebug':0}
+          'user_function':count_winding,'dlambda':dlambda,'ndebug':0,'time_is_irrelevant':TRUE}
 #if 0
     print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
 #endif
-#if 1
+#if 0
     if ri<5.0:
       print("before simple, r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
            vector.norm(spacetime,chart,pars,x,v))
@@ -269,7 +271,7 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
     if IS_NAN(rf):
       THROW("rf is NaN")
     if rf>1.0e6 and rf>100.0*r:
-      print("quitting, rf=",rf,", lambda=",lam,", dlambda=",dlambda)
+      #print("quitting, rf=",rf,", lambda=",lam,", dlambda=",dlambda)
       break
     if rf>1.01 and rf>ri:
       f = (rf-ri)/ri # fractional change in r from the iteration we just completed

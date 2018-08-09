@@ -265,3 +265,37 @@ def sch_is_in_future_light_cone(x,v):
   vb = v_kruskal[1]
   tol = 10*EPS
   return [(va>=-tol and vb>=-tol),va+vb]
+
+def kruskal_to_time_zero(a,b):
+  """
+  Change kruskal coordinates (a,b) to equivalent coordinates that correspond to Schwarzschild time t=0.
+  """
+  if b==0.0 or a==0.0:
+    return [0.0,0.0]
+  if a<0.0:
+    a2,b2 = kruskal_to_time_zero(-a,-b)
+    return [-a2,-b2]
+  # From now on, we know that a>0 (i.e., we're in region I or II).
+  # We may want to do this for points near the horizon, where a is big and b is small, or vice versa.
+  # For such points, transforming to Schwarzschild and then back is likely to have poor precision.
+  # Therefore the following is split into two main cases.
+  max_ab = 1000.0
+  if not (abs(a)>max_ab or abs(b)>max_ab):
+    t,r = kruskal_to_schwarzschild(a,b)
+    return schwarzschild_to_kruskal(0.0,r)
+  # From here on out, we can treat a and b totally symmetrically. (Couldn't do that before, because a point
+  # (a,b) in region I may not have a partner (b,a) in region II, so kruskal_to_schwarzschild(b,a) could have
+  # failed.)
+  if b<0.0:
+    a2,b2 = kruskal_to_time_zero(a,-b)
+    return [a2,-b2]
+  if a<max_ab:
+    b2,a2 = kruskal_to_time_zero(b,a)
+    return [a2,b2]
+  # We now know that a is large and positive, and b is >0.
+  # Basically we're computing a2 = +-asinh(sqrt(abs(sinh(a)sinh(b)))), b2 = same expression.
+  # Let z = sinh(a)sinh(b). Since b can be stored in floating point and is nonzero, we know z is big enough so
+  # that O(1/z) is negligible. Also, z>0. Therefore asinh(z)=ln(2z).
+  a2 = abs(log(b)+a)
+  b2 = a2
+  return [a2,b2]

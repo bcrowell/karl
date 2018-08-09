@@ -26,9 +26,8 @@ from PIL import Image
 def main():
   do_what = 1
   if do_what==1:
-    r = 0.9999
-    #r = 1.0001
-    alpha = 2.0
+    r = 0.9
+    alpha = 2.3754638 # very close to alpha_max=2.3759564949418355
     tol = 1.0e-3
     alpha_max = ray.alpha_max_schwarzschild(r)
     print("r=",r,", alpha_max=",alpha_max)
@@ -38,8 +37,7 @@ def main():
     exit(0)
   if do_what==2:
     # Make one image.
-    r = 3.0
-    # r = 0.9715656474624751
+    r = 0.9
     if_fake = TRUE
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]

@@ -202,7 +202,7 @@ or T axis.) To canonicalize, we take
 \begin{align*}
   t &\rightarrow t+2\operatorname{tc}^{-1}[(V+W)/(V-W)] \\
   V &\rightarrow \pm\sqrt{\mp VW} = \pm\sqrt{\pm\rho} \quad \text{preserving original sign} \\
-  W &\rightarrow \pm V \text{preserving the original sign}.
+  W &\rightarrow \pm \text{same} \text{preserving the original sign}.
 \end{align*}
 At the step where we  canonicalize $t$, we have to manipulate $V$ and $W$, which in theory could
 be impossible to express in machine floating point. However, as long as we always keep our points
@@ -214,6 +214,11 @@ always express things in terms of $(V+W)/(V-W)$ or its inverse in such a way tha
 infinity. E.g., in region II, where $V$ and $W$ are both positive,
 express this not as $\coth^{-1}[(V+W)/(V-W)]$ but as
 $\tanh^{-1}[(V-W)/(V+W)]$.
+
+I ended up not doing the sliding chart idea, but did implement a function 
+\texttt{transform.kruskal\_to\_time\_zero}. There seems to be a problem where null trajectories fly
+out along a horizon, and we get problems with numerical precision in Christoffel symbols.
+In ray-tracing, we don't care about t, so I'm going to try simply zeroing out t at various times.
 
 Plan: Represent points in sch spacetime using three data structures for different regions of spacetime:
 

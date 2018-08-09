@@ -54,27 +54,45 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
   #print("r=",r,", alpha=",alpha,", le=",le,", in_n_out=",in_n_out,", alpha2=",alpha2)
   assert_equal_eps(alpha2,alpha,1.0e-12)
 
+def test_deflection_naughty_cases():
+  r = 0.9
+  alpha = 2.3754638 # very close to alpha_max=2.3759564949418355
+  beta = alpha_to_beta(r,alpha)
+
+def test_deflection_continuity():
+  # Currently, my algorithms have qualitative differences for r in (0,1), (1,1.5), and (1.5,infty).
+  # Make sure that deflection angles appear to be continuous across these boundaries.
+  # In the following, the alphas are close to the maximums, to make it a severe test.
+  # --
+  beta1 = alpha_to_beta(1.001,2.3)
+  beta2 = alpha_to_beta(0.999,2.3)
+  assert_equal_eps(beta1,beta2,0.01)
+  # --
+  beta1 = alpha_to_beta(1.50001,2.5)
+  beta2 = alpha_to_beta(1.49999,2.5)
+  assert_equal_eps(beta1,beta2,0.001)
+
 def test_riazuelo_deflection():
   r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
 #if "LANG" eq "python"
   # Interpolating from his graph, he has lines crossing at alpha=beta=2.48+-0.1.
   alpha = 2.48
-  beta = test_riazuelo_deflection_one(r,alpha)
+  beta = alpha_to_beta(r,alpha)
   assert_equal_eps(alpha,2.48,0.1)
   assert_equal_eps(beta,alpha,0.1)
 
   # Check sign of aberration for outward angles, should have alpha>beta because SR dominates:
   alpha = 0.1
-  beta = test_riazuelo_deflection_one(r,alpha)
+  beta = alpha_to_beta(r,alpha)
   assert_boolean(alpha>beta,"should have alpha>beta at outward angles, because SR dominates")  
 
   # Check sign of aberration for grazing angles, should have alpha<beta because deflection dominates:
   alpha = 2.9
-  beta = test_riazuelo_deflection_one(r,alpha)
+  beta = alpha_to_beta(r,alpha)
   assert_boolean(alpha<beta,"should have alpha<beta at grazing angles, because deflection dominates")  
 #endif
 
-def test_riazuelo_deflection_one(r,alpha):
+def alpha_to_beta(r,alpha):
   tol = 1.0e-6
   count_winding(0.0,[],[],0,0,{})
   beta,done,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
@@ -176,5 +194,10 @@ test_obs_and_alpha(r)
 r = 30.0/2.0 # the example done in Riazuelo, https://arxiv.org/abs/1511.06025 , p. 7, fig. 1
 test_obs_and_alpha(r)
 
-test_riazuelo_deflection()
 test_alpha_max_schwarzschild()
+
+test_riazuelo_deflection()
+test_deflection_continuity()
+test_deflection_naughty_cases()
+# ... setting time_is_irrelevant in ray.pp fixes this, but breaks other tests
+#     maybe it's doing it too often, and errors are accumulating
