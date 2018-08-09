@@ -281,11 +281,10 @@ def kruskal_to_time_zero(x,v,spacetime_or_chart,force):
   a = x[0]
   b = x[1]
   # --
-  # Results are not particularly sensitive to the sizes of the following parameter, except that if I
-  # make the power of ten very big, like 6, then for method 0 this code never gets executed and can't serve its
-  # purpose, while if I made it very small, like 1, then this code would get executed frequently,
-  # causing more rounding errors.
-  big = 1.0e3
+  big = 100.0
+  # ...If this parameter is very big, like 10^6, then this code never gets executed and can't serve its
+  #    purpose, while if I made it very small, like 1, then this code would get executed frequently,
+  #    causing more rounding errors.
   #--
   do_it = TRUE
   if not force:

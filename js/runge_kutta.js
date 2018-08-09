@@ -46,7 +46,7 @@
       karl.load("angular");
       karl.load("transform");
       runge_kutta.trajectory_simple = function(spacetime, chart, pars, x0, v0, opt) {
-        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, user_function, force_chart, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, est, step, i, user_data, y, tr, tot_est;
+        var x, v, lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, user_function, force_chart, time_is_irrelevant, n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, use_c, ndim2, order, acc, y0, est, step, i, user_data, t, r, mu, theta, did_it, y, tr, tot_est;
 
         /*
         Calculate a trajectory using geodesic equation plus external force term, with 4th-order Runge-Kutta.
@@ -73,6 +73,9 @@
                                    so the function does not need to clone it before returning it
           force_chart = chart that the function wants for its inputs and outputs
           user_function = an optional user-defined function that is called on every iteration
+          time_is_irrelevant = boolean; if this is set, and coordinates are AKS, then we freely manipulate the
+                 coordinates so as to change t, avoiding problems with numerical precision that occur near the
+                 horizon for very large a and very small b, or vice versa; useful for ray tracing
         triggers
           These allow the integration to be halted when it appears that in the next iteration,
           a certain coordinate or velocity would cross a certain threshold.
@@ -107,9 +110,11 @@
           force_acts = temp[11];
           force_function = temp[12];
           user_function = temp[13];
-          force_chart = temp[14]
+          force_chart = temp[14];
+          time_is_irrelevant = temp[15]
         })();
         if (dlambda <= 0) {
+          print("dlambda=", dlambda);
           throw "dlambda<=0";;
         }
         /*-- initial setup */
@@ -153,6 +158,33 @@
         }
         user_data = null;
         for (var iter = 0; iter < n; iter++) {
+          /* qwe */
+          if (iter % 100 == 0) {
+            (function() {
+              var temp = kruskal.aux(x[0], x[1]);
+              t = temp[0];
+              r = temp[1];
+              mu = temp[2]
+            })();
+            theta = Math.atan2(x[2], x[3]);
+            print("iter=", iter, " x=", io_util.vector_to_str(x), ", r=", r, ", theta=", theta, ", mu=", mu);
+            print("          v=", io_util.vector_to_str(v), " dlambda=", dlambda);
+          }
+          if (time_is_irrelevant) {
+            /* See comments at top of function on why this is helpful for ray tracing. */
+            (function() {
+              var temp = transform.kruskal_to_time_zero(x, v, spacetime | chart, (false));
+              x = temp[0];
+              v = temp[1];
+              t = temp[2];
+              did_it = temp[3]
+            })();
+            /* ... is a no-op if coords are not AKS, or if we're not at a point where doing this would be helpful */
+            /* qwe */
+            if (did_it) {
+              print("  kruskal_to_time_zero-> x=", io_util.vector_to_str(x), " v=", io_util.vector_to_str(v));
+            }
+          }
           dlambda = (lambda_max - lam) / (n - iter); /* small readjustment so we land on the right final lambda */
           est = karl.array2d(ndim2, order);
           /*         =k in the notation of most authors */
@@ -306,7 +338,7 @@
         }
       };
       runge_kutta.runge_kutta_get_options_helper = function(opt) {
-        var lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, user_function, force_acts, force_function, force_chart;
+        var lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, time_is_irrelevant, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, user_function, force_acts, force_function, force_chart;
 
         lambda_max = runge_kutta.runge_kutta_get_par_helper(opt, "lambda_max", null);
         dlambda = runge_kutta.runge_kutta_get_par_helper(opt, "dlambda", null);
@@ -314,6 +346,7 @@
         debug_function = runge_kutta.runge_kutta_get_par_helper(opt, "debug_function", runge_kutta.default_debug_function);
         lambda0 = runge_kutta.runge_kutta_get_par_helper(opt, "lambda0", 0.0);
         norm_final = runge_kutta.runge_kutta_get_par_helper(opt, "norm_final", (true));
+        time_is_irrelevant = runge_kutta.runge_kutta_get_par_helper(opt, "time_is_irrelevant", (false));
         n_triggers = 0;
         (function() {
           var temp = [
@@ -337,7 +370,7 @@
         force_acts = runge_kutta.runge_kutta_get_par_helper(opt, "force_acts", (false));
         force_function = runge_kutta.runge_kutta_get_par_helper(opt, "force_function", 0);
         force_chart = runge_kutta.runge_kutta_get_par_helper(opt, "force_chart", 0);
-        return [lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, user_function, force_chart];
+        return [lambda_max, dlambda, ndebug, debug_function, lambda0, norm_final, n_triggers, trigger_s, trigger_on, trigger_threshold, trigger_alpha, force_acts, force_function, user_function, force_chart, time_is_irrelevant];
       };
       runge_kutta.runge_kutta_init_helper = function(lambda_max, lambda0, dlambda, ndebug, spacetime, chart, pars) {
         var n, steps_between_debugging, debug_count, lam, ok, ndim, christoffel_function, name;

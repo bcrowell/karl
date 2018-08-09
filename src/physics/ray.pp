@@ -77,7 +77,10 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
     ii = (n_angles-1)-i # ii decreases, so that z decreases and alpha increases
     z = (float(ii+1)/float(n_angles)) # z varies from 1/n_angles to 1
     alpha = alpha_max*(1-z**4) # points are closely spaced near the vertical asymptote
-    #print("r=",r,", alpha=",alpha)
+#if 0
+    print("--------------------------------------------------------------------------------------")
+    print("r=",r,", alpha=",alpha)
+#endif
     le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
     alpha2,v_observation = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
     x = x_obs # initial position
@@ -251,8 +254,15 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   print("  starting")
 #endif
   WHILE(TRUE)
+    if ri>0.8 and ri<1.0:
+      dlambda_safety = 0.01
+      # ... This is very small, and causes bad performance. But making it any bigger causes failure in
+      #     test suite, test_deflection_naughty_cases(), for r=0.5863, alpha=0.7085.
+    else:
+      dlambda_safety = 1.0
+    #print("ri=",ri," dlambda=",dlambda*dlambda_safety)
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
-          'user_function':count_winding,'dlambda':dlambda,'ndebug':0,'time_is_irrelevant':TRUE}
+          'user_function':count_winding,'dlambda':dlambda*dlambda_safety,'ndebug':0,'time_is_irrelevant':TRUE}
 #if 0
     print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
 #endif

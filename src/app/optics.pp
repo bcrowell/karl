@@ -24,7 +24,7 @@ from PIL import Image
 
 
 def main():
-  do_what = 2
+  do_what = 3
   if do_what==1:
     r = 0.9
     alpha = 2.3754638 # very close to alpha_max=2.3759564949418355
@@ -52,7 +52,7 @@ def main():
     r = 9.0
     dtau = 0.18
     for i in range(n):
-      if i>96: # qwe
+      if i>=99: # qwe
         outfile = "animation"+("%03d" % i)+".png"
         print("---------------------- r=",r,", file=",outfile," --------------- ",\
                datetime.datetime.now().strftime('%H:%M:%S'))

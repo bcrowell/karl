@@ -403,3 +403,71 @@
         tol = 10 * (1.0e-16);
         return [(va >= -tol && vb >= -tol), va + vb];
       };
+      transform.kruskal_to_time_zero = function(x, v, spacetime_or_chart, force) {
+        var a, b, big, do_it, x2, v2, x3, v3, dt, did_it, x_s, v_s;
+
+        /*
+        Change kruskal coordinates to equivalent coordinates that correspond to Schwarzschild time t=0.
+        If boolean input force is false, then nothing is done unless the point is the type of point near
+        the horizon or photon sphere at large t for which this operation is likely to be helpful to precision.
+        If the point is on the horizon, this operation is a no-op. As a convenience, this function can
+        also be called when coords are not AKS, and then it's also a no-op.
+        Returns [x2,v2,dt,did_it], where dt is the change in the Schwarzschild time that resulted from the
+        transformation, and dit_it is true if anything actually happened.
+        */
+        if (spacetime_or_chart != (256 | 2)) {
+          return [x, v, 0.0, (false)];
+        }
+        a = x[0];
+        b = x[1];
+        /* -- */
+        big = 100.0;
+        /* ...If this parameter is very big, like 10^6, then this code never gets executed and can't serve its */
+        /*    purpose, while if I made it very small, like 1, then this code would get executed frequently, */
+        /*    causing more rounding errors. */
+        /*-- */
+        do_it = (true);
+        if (!force) {
+          do_it = (Math.abs(a) > big * Math.abs(b)) || (Math.abs(b) > big * Math.abs(a));
+        }
+        if (!do_it) {
+          return [x, v, 0.0, (false)];
+        }
+        if (b == 0.0 || a == 0.0) { /* can't define this operation for points on the horizon */
+          return [x, v, 0.0, (false)];
+        }
+        /* If we're in region III or IV, then simply doing AKS->Schwarzschild->AKS would lose that information. */
+        /* In that case, transform into I or II and recurse. */
+        if (a < 0.0) {
+          /* Invert in the origin in AKS. */
+          x2 = (karl.clone_array1d(x));
+          v2 = (karl.clone_array1d(v));
+          x2[0] = -x2[0];
+          x2[1] = -x2[1];
+          v2[0] = -v2[0];
+          v2[1] = -v2[1];
+          (function() {
+            var temp = transform.kruskal_to_time_zero(x2, v2, spacetime_or_chart, force);
+            x3 = temp[0];
+            v3 = temp[1];
+            dt = temp[2];
+            did_it = temp[3]
+          })();
+          x3[0] = -x3[0];
+          x3[1] = -x3[1];
+          v3[0] = -v3[0];
+          v3[1] = -v3[1];
+          return [x3, v3, dt, did_it];
+        }
+        /* Beyond this point, we're guaranteed to be in region I or II, and not at a horizon. */
+        /* The following is a composition of three transformations: (1) AKS to Schwarzschild, (2) a time */
+        /* translation, and (3) back to AKS. The jacobian for 2 is just the identity matrix, so the velocity */
+        /* is not affected by it. */
+        x_s = transform.transform_point(x, 256, 2, {}, 1);
+        v_s = transform.transform_vector(v, x, 256, 2, {}, 1);
+        dt = x_s[0];
+        x_s[0] = 0.0;
+        x2 = transform.transform_point(x_s, 256, 1, {}, 2);
+        v2 = transform.transform_vector(v_s, x_s, 256, 1, {}, 2);
+        return [x2, v2, dt, (true)];
+      };

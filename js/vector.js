@@ -51,6 +51,10 @@
         }
         return v;
       };
+      vector.negate = function(v) {
+
+        return vector.scalar_mult(v, -1.0);
+      };
       vector.add = function(u, v) {
         var w, i;
 

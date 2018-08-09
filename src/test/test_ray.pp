@@ -55,13 +55,22 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
   assert_equal_eps(alpha2,alpha,1.0e-12)
 
 def test_deflection_naughty_cases():
-  # The following is a smoke test. What tends to happen is that for points very close to the photon sphere,
+  # This is a smoke test. What tends to happen is that for points very close to the photon sphere,
   # where |a|>>|b| or |b|>>|a|, application of the Christoffel symbols gives a point beyond the
   # singularity, resulting in a crash.
+  #---
+  # A demanding case where a past-oriented geodesic spends a long time in the photon sphere before
+  # emerging.
   r = 0.9
-  alpha_max = 2.3759564949418355
   d = 1.0e-10
-  alpha = alpha_max-d
+  beta = alpha_to_beta(r,ray.alpha_max_schwarzschild(r)-d)
+  #--
+  # Passing the following test seems to require a very small step size in do_ray_schwarzschild2().
+  # See logic involving dlambda_safety.
+  # With larger step sizes, what seems to happen is that as we pass out through the horizon, the
+  # norm of the velocity vector becomes unacceptably large (-0.02) due to numerical errors.
+  r = 0.5863
+  alpha = 0.7085
   beta = alpha_to_beta(r,alpha)
 
 def test_deflection_continuity():
@@ -192,6 +201,8 @@ def test_schwarzschild_standard_observer(r):
   is_future,a_plus_b = transform.sch_is_in_future_light_cone(x_obs,v_obs)
   assert_boolean(is_future,"v_obs is not future-oriented")
 
+test_deflection_naughty_cases()
+
 r = 0.5 # test inside horizon
 test_obs_and_alpha(r)
 r = 5.0
@@ -203,6 +214,3 @@ test_alpha_max_schwarzschild()
 
 test_riazuelo_deflection()
 test_deflection_continuity()
-test_deflection_naughty_cases()
-# ... setting time_is_irrelevant in ray.pp fixes this, but breaks other tests
-#     maybe it's doing it too often, and errors are accumulating
