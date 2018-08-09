@@ -114,7 +114,8 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
   If if_black_hole is false, the star field is drawn as it would appear without any black hole.
   Width and height are in pixels.
   """
-  aberration_table,v_table = ray.make_aberration_tables(r,tol,verbosity)
+  max_deflection = 5.0*MATH_PI  # ... Riazuelo says 5pi is enough to get all important effects.
+  aberration_table,v_table = ray.make_aberration_tables(r,tol,verbosity,max_deflection)
   write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
   write_csv_file(v_table,v_table_csv,TRUE,"Table of ray velocities written to")
   star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,\
@@ -135,6 +136,7 @@ def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fak
   Max_mag gives the maximum apparent magnitude to include.
   The star table returned by this routine is in the format [].
   """
+  PRINT("making star table")
   m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
   m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
@@ -143,13 +145,14 @@ def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fak
                       v_table)
   n_stars = stats_real['n_stars']
   count_drawn = stats_real['count_drawn']
-  PRINT("stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
+  PRINT("  stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
   if if_fake:
     table,stats_fake =\
            fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv,star_catalog_max_mag,\
                       v_table)
     count_fake = stats_fake['count_fake']
-    PRINT("Drew ",count_fake," fake stars.")
+    PRINT("  Drew ",count_fake," fake stars.")
+  PRINT("  Done making star table.")
   return table
 
 def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv,v_table):

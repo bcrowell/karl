@@ -22,7 +22,7 @@ import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclid
 #if "LANG" eq "python"
 # ... fixme: js doesn't work with the way I did the nested sub and closure for count_winding()
 
-def make_aberration_tables(r,tol,verbosity):
+def make_aberration_tables(r,tol,verbosity,max_deflection):
   """
   Determine a table of optical aberration angles for an observer in the Schwarzschild spacetime.
   Each line of the table is in the format [r,alpha,beta,beta-alpha,f].
@@ -88,6 +88,9 @@ def make_aberration_tables(r,tol,verbosity):
     beta,done,v_emission,region = do_ray_schwarzschild(r,tol,count_winding,alpha)
     if done:
       BREAK # can get incomplete geodesic at alpha<alpha_max due to numerical precision
+    if abs(beta-alpha)>max_deflection:
+      PRINT("  Quitting at deflection ",abs(beta-alpha),", greater than limit of ",max_deflection)
+      BREAK
     table.append([r,alpha,beta])
     smooth = beta+log(d)
     #print("r=",r,", alpha=",alpha,", beta=",beta,", region=",region[2])
