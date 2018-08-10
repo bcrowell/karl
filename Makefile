@@ -24,8 +24,9 @@ all:
 
 optics: obj/optics.py
 	make py
+	mkdir -p animation
 	@chmod +x obj/optics.py
-	obj/optics.py
+	obj/optics.py 4 4
 
 animation:
 	convert -delay 20 -loop 0 anim*.png animation.gif

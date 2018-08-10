@@ -15,7 +15,7 @@
 #include "precision.h"
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial,math_util,\
-       star_properties,render,ray
+       star_properties,render,ray,animation
 #if "LANG" eq "python"
 import sys,os,copy,sqlite3,csv,random
 import PIL,ephem,datetime
@@ -46,25 +46,17 @@ def main():
     exit(0)
   if do_what==3:
     # animation
-    if_fake = FALSE # random stars wouldn't be at fixed locations
-    star_catalog_max_mag = 9 # use dim stars to try to make up for lack of fake stars
-    n = 100
-    r = 9.0
-    dtau = 0.18
-    for i in range(n):
-      if i>=99: # qwe
-        outfile = "animation"+("%03d" % i)+".png"
-        print("---------------------- r=",r,", file=",outfile," --------------- ",\
-               datetime.datetime.now().strftime('%H:%M:%S'))
-        width,height,fov_deg,view_rot_deg = [600,300,90,100]
-        do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
-      spacetime = SP_SCH
-      chart = CH_SCH
-      pars = {}
-      x_obs,v_obs,rho,j = ray.schwarzschild_standard_observer(r,spacetime,chart,pars)
-      r = r+dtau*v_obs[1]
-      if r<0.0:
-        break
+    print("Control the following parameters  in makefile with command-line args:")
+    segment = int(sys.argv[1])
+    prep_level = int(sys.argv[2])
+    print("  segment=",segment)
+    print("  prep level=",prep_level)
+    # prep levels:
+    #   1 -- no images generated, just helps with planning motion of observer
+    #   2 -- initial and final frames only, stars only down to magnitude 7
+    #   3 -- initial, final, and every 10th frame
+    #   4 -- real thing
+    animation.do_frames(segment,prep_level,do_image)
 
 def count_winding(lam,x,v,spacetime,chart,pars):
   # not normally needed, just used by some test code
@@ -116,12 +108,15 @@ def draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_table_csv,stars_csv,image_jso
   """
   max_deflection = 5.0*MATH_PI  # ... Riazuelo says 5pi is enough to get all important effects.
   aberration_table,v_table = ray.make_aberration_tables(r,tol,verbosity,max_deflection)
+  sys.stdout.flush()
   write_csv_file(aberration_table,aberration_csv,TRUE,"Table of aberration data written to")
   write_csv_file(v_table,v_table_csv,TRUE,"Table of ray velocities written to")
   star_table = make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,\
                                ra_out,dec_out,max_mag,star_catalog_max_mag)
+  sys.stdout.flush()
   write_csv_file(star_table,stars_csv,TRUE,"Table of star data written to")
   render.render(star_table,image_json,verbosity,width,height,fov_deg,view_rot_deg)
+  sys.stdout.flush()
 
 def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fake,ra_out,dec_out,max_mag,\
                     star_catalog_max_mag):
@@ -137,6 +132,7 @@ def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fak
   The star table returned by this routine is in the format [].
   """
   PRINT("making star table")
+  sys.stdout.flush()
   m = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,1.0)
   m_inv = celestial.rotation_matrix_observer_to_celestial(ra_out,dec_out,-1.0)
   table = []
@@ -146,6 +142,7 @@ def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fak
   n_stars = stats_real['n_stars']
   count_drawn = stats_real['count_drawn']
   PRINT("  stars processed=",count_drawn," out of ",n_stars," with apparent magnitudes under ",max_mag)
+  sys.stdout.flush()
   if if_fake:
     table,stats_fake =\
            fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m_inv,star_catalog_max_mag,\
@@ -153,6 +150,7 @@ def make_star_table(star_catalog,aberration_table,v_table,r,if_black_hole,if_fak
     count_fake = stats_fake['count_fake']
     PRINT("  Drew ",count_fake," fake stars.")
   PRINT("  Done making star table.")
+  sys.stdout.flush()
   return table
 
 def real_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,star_catalog,m,m_inv,v_table):

@@ -34,6 +34,7 @@ def main():
   for target in prep_list("""
         optics
         render
+        animation
       """):
     add_target(targets,target,apps)
 

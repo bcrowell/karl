@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 #include "language.h"
 #include "math.h"
 
