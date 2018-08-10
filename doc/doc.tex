@@ -1031,10 +1031,21 @@ Riazuelo?? For further confusion, he claims it should be $\delta=\pi-\alpha=\cos
 which he says is $2\delta=82.1$ degrees, but in fact the first expression gives about 84 degrees,
 while obtaining the decimal approximation seems to require an input of $23/30.5$ to the inverse cosine.
 
+\subsection{Numerical reliability}
+
+For an observer inside the horizon, I had trouble getting my \texttt{fancy} module to give good
+results, ended up writing a different, specialized routine, \texttt{ray.do\_ray\_schwarzschild2}, which always
+uses KS coordinates and has a different algorithm for adaptive step size. What it does is to use
+a certain step size, but if, after 100 iterations of Runge-Kutta, the norm of the velocity vector
+is nonzero (outside of a certain fixed range of tolerance), it reduces the step size and tries again.
+This seems to work well in terms of both efficiency and reliability.
+In \texttt{test\_ray.test\_deflection\_naughty\_cases}, I've collected a rogues' gallery of rays that
+had problems either at the horizon or at the photon sphere, and this algorithm makes all of those
+work.
 
 \subsection{Doppler shifts}
 
-The Doppler effects are surprisingly subtle, even for observers at highly relativistic $r$.
+The Doppler effects on color are surprisingly subtle, even for observers at highly relativistic $r$.
 For the observer in my standard state of motion, free-falling from rest at infinity, the Doppler
 effect for a star directly overhead can be calculated in closed form. I have this as an example
 in GR 7. At the horizon, it's only a factor of 2. For the standard observer,

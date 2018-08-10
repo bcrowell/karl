@@ -94,7 +94,7 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
     if abs(beta-alpha)>max_deflection:
       PRINT("  Quitting at deflection ",abs(beta-alpha),", greater than limit of ",max_deflection)
       BREAK
-    table.append([r,alpha,beta])
+    table.append([r,alpha,beta,beta-alpha])
     smooth = beta+log(d)
     #print("r=",r,", alpha=",alpha,", beta=",beta,", region=",region[2])
     #---
@@ -118,9 +118,18 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
   if len(table)==0:
     THROW('no data points in aberration table')
   table2 = []
+  # Check for glitches:
+  for i in range(len(table)-2):
+    r,alpha1,beta1,diff = table[i]
+    r,alpha2,beta2,diff = table[i+1]
+    r,alpha3,beta3,diff = table[i+2]
+    if (beta2-beta1)*(beta3-beta2)<0.0:
+      # slope changes sign, shouldn't happen because beta(alpha) is monotonic
+      PRINT("warning: apparent glitch repaired in aberration table, r=",r,", alpha=",alpha2,", beta=",beta2)
+      table[i+1][2] = 0.5*(beta1+beta3)
   for i in range(len(table)):
     x = CLONE_ARRAY_OF_FLOATS(table[i])
-    # x = [r,alpha,beta]
+    # x = [r,alpha,beta,beta-alpha]
     if i==0:
       ii=0
       jj=1
@@ -137,7 +146,6 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
       #print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
     # =dOmega(obs)/dOmega(infinity)=amplification, by Liouville's thm (?)
     # is abs() right?; beta can be >pi
-    x.append(beta-alpha)
     x.append(f)
     table2.append(x)
   return [table2,v_table]
@@ -254,26 +262,37 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   print("  starting")
 #endif
   WHILE(TRUE)
-    if ri>0.8 and ri<1.0:
-      dlambda_safety = 0.01
-      # ... This is very small, and causes bad performance. But making it any bigger causes failure in
-      #     test suite, test_deflection_naughty_cases(), for r=0.5863, alpha=0.7085.
-    else:
-      dlambda_safety = 1.0
-    #print("ri=",ri," dlambda=",dlambda*dlambda_safety)
+    dlambda_safety = 1.0
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
           'user_function':count_winding,'dlambda':dlambda*dlambda_safety,'ndebug':0,'time_is_irrelevant':TRUE}
 #if 0
-    print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
+    print("ri=",ri," dlambda=",dlambda*dlambda_safety)
+    #print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
 #endif
 #if 0
     if ri<5.0:
       print("before simple, r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
            vector.norm(spacetime,chart,pars,x,v))
 #endif
-    err,final_x,final_v,final_a,final_lambda,info  = \
-            runge_kutta.trajectory_simple(spacetime,chart,pars,x,v,opt)
-    tf,rf,mu = kruskal.aux(final_x[0],final_x[1])
+    n_retry = 0
+    WHILE(TRUE)
+      err,final_x,final_v,final_a,final_lambda,info  = \
+              runge_kutta.trajectory_simple(spacetime,chart,pars,x,v,opt)
+      tf,rf,mu = kruskal.aux(final_x[0],final_x[1])
+      norm = vector.norm(spacetime,chart,pars,final_x,final_v)
+      if abs(norm)<1.0e-6:
+        if n_retry>0 and verbosity>=2:
+          PRINT("norm=",norm," is OK after ",n_retry," retries")
+        BREAK
+      if verbosity>=2:
+        PRINT("norm of geodesic is ",norm,", not close to zero, ri=",ri,", rf=",rf,", alpha=",alpha,\
+               ",dlambda=",dlambda*dlambda_safety)
+      n_retry = n_retry+1
+      if n_retry>4:
+        THROW('norm is still bad after retries')
+      dlambda_safety = dlambda_safety*0.1
+      opt['dlambda']=dlambda*dlambda_safety
+    END_WHILE
 #if 0
     if rf<5.0:
       print("after simple, r=",rf)

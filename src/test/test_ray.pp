@@ -57,14 +57,32 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
 def test_deflection_naughty_cases():
   # This is a smoke test. What tends to happen is that for points very close to the photon sphere,
   # where |a|>>|b| or |b|>>|a|, application of the Christoffel symbols gives a point beyond the
-  # singularity, resulting in a crash.
+  # singularity, resulting in a crash. The thing that seems to fix all of these is that in
+  # do_ray_schwarzschild2(), I check whether norm is nonzero, and if it is, I retry with smaller
+  # lambda. Before I figured out that adaptive algorithm, I was also seeing cases where there
+  # was no crash into the singularity, but inaccurate results came out (e.g., there would be
+  # an obvious glitch in the aberration table, where beta(alpha) would not be monotonic).
+  # Some of the crashing cases below were found by playing around with values of alpha close
+  # to such a glitchy value. I also have logic now in make_aberration_table where if there is
+  # a glitch in the aberration table, it tries to detect and patch it, and it prints out a warning.
+  #---
+  # If dlambda isn't small enough, crashes with bad norm near horizon.
+  r = 0.6080841337780387
+  alpha = 2.200625558361262 # close to alpha_max=2.2646182578916436
+  beta = alpha_to_beta(r,alpha)
+  #---
+  # Requires small step size for values of r up to about 1.01. Otherwise it
+  # crashes for these inputs, and also gives inaccurate results for nearby values of alpha.
+  r = 0.608084133778
+  alpha = 0.8387
+  beta = alpha_to_beta(r,alpha)
   #---
   # A demanding case where a past-oriented geodesic spends a long time in the photon sphere before
   # emerging.
   r = 0.9
   d = 1.0e-10
   beta = alpha_to_beta(r,ray.alpha_max_schwarzschild(r)-d)
-  #--
+  #---
   # Passing the following test seems to require a very small step size in do_ray_schwarzschild2().
   # See logic involving dlambda_safety.
   # With larger step sizes, what seems to happen is that as we pass out through the horizon, the

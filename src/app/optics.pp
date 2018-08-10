@@ -26,13 +26,14 @@ from PIL import Image
 def main():
   do_what = 3
   if do_what==1:
-    r = 0.9
-    alpha = 2.3754638 # very close to alpha_max=2.3759564949418355
+    r = 0.608084133778
+    alpha = 0.8387
     tol = 1.0e-3
     alpha_max = ray.alpha_max_schwarzschild(r)
-    print("r=",r,", alpha_max=",alpha_max)
+    le,in_n_out = ray.alpha_to_le_schwarzschild(alpha,r)
+    print("r=",r,", alpha_max=",alpha_max,", |L/E|=",le)
     count_winding(0.0,[],[],0,0,{})
-    beta,if_incomplete,final_v = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
+    beta,if_incomplete,final_v,region = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
     print("alpha=",alpha,", beta=",beta)
     exit(0)
   if do_what==2:
