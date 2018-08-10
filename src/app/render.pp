@@ -51,8 +51,10 @@ def render(table,outfile,verbosity,w,h,fov_deg,view_rot_deg):
       r = w*alpha/(MATH_PI/2.0)
       # ... rough and ready projection; away from b.h.; gives roughly 45-degree radius field of view
       phi2 = phi
-    x = FLOOR(0.5*w+r*cos(phi2)+0.5)
-    y = FLOOR(0.5*h+r*sin(phi2)+0.5)
+    x_real = 0.5*w+r*cos(phi2)
+    y_real = 0.5*h+r*sin(phi2)
+    x = FLOOR(x_real+0.5)
+    y = FLOOR(y_real+0.5)
     if not (x>=0 and x<=w-1 and y>=0 and y<=w-1):
       continue
     brightness = raw_brightness*exposure
@@ -75,7 +77,7 @@ def render(table,outfile,verbosity,w,h,fov_deg,view_rot_deg):
         if not (yy>=0 and yy<=h-1):
           continue
         # gaussian blur
-        r2 = i*i+j*j
+        r2 = pythag(xx-x_real,yy-y_real)
         gaussian_x = r2/blur2
         b = brightness*exp(-0.5*gaussian_x)
         image_i[xx][yy] = image_i[xx][yy]+b
@@ -106,8 +108,5 @@ def render(table,outfile,verbosity,w,h,fov_deg,view_rot_deg):
   if verbosity>=1:
     PRINT("done rendering (render.py)")
 
-
-
-
-
-
+def pythag(x,y):
+  return x*x+y*y

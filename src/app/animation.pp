@@ -48,15 +48,15 @@ def do_frames(segment,prep_level,single_frame,do_image):
         if outfile_exists:
           print("single_frame is set, but output file ",outfile," already exists")
       else:
-        continue
+        do_it = FALSE
     if outfile_exists:
-      continue # never redo a frame that already exists
+      do_it = FALSE # never redo a frame that already exists
     if do_it:
       print("---------------------- r=",r,", file=",outfile," --------------- ",\
            datetime.datetime.now().strftime('%H:%M:%S'))
       sys.stdout.flush()
-      # do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg,\
-      #               "animation/","id") # qwe --uncomment
+      do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg,\
+                     "animation/","_"+id)
     spacetime = SP_SCH
     chart = CH_SCH
     pars = {}
