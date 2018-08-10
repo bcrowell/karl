@@ -6,7 +6,7 @@
 import sys,os,csv,datetime
 import ray,render
 
-def do_frames(segment,prep_level,do_image):
+def do_frames(segment,prep_level,single_frame,do_image):
   width,height,fov_deg,view_rot_deg = [1280,720,110,80]
   # ... 1280x720 with square pixels is 16:9, recommended by youtube
   if_fake = FALSE # random stars wouldn't be at fixed locations
@@ -35,15 +35,28 @@ def do_frames(segment,prep_level,do_image):
     r = 0.5
     dtau = 0.0011918
   for i in range(n):
-    outfile = "animation/seg"+("%01d" % segment)+"frame"+("%03d" % i)+".png"
+    id = "seg"+("%01d" % segment)+"frame"+("%03d" % i)
+    outfile = "animation/"+id+".png"
     do_it = (prep_level==2 and (i==0 or i==n-1)) or \
             (prep_level==3 and (i==0 or i==n-1 or i%10==0)) or \
             prep_level==4
+    outfile_exists = os.path.isfile(outfile)
+    if single_frame!=-1:
+      if i==single_frame:
+        if not do_it:
+          print("single_frame is set, but that frame is not rendered for this prep_level")
+        if outfile_exists:
+          print("single_frame is set, but output file ",outfile," already exists")
+      else:
+        continue
+    if outfile_exists:
+      continue # never redo a frame that already exists
     if do_it:
       print("---------------------- r=",r,", file=",outfile," --------------- ",\
            datetime.datetime.now().strftime('%H:%M:%S'))
       sys.stdout.flush()
-      # do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg) # qwe --uncomment
+      # do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg,\
+      #               "animation/","id") # qwe --uncomment
     spacetime = SP_SCH
     chart = CH_SCH
     pars = {}

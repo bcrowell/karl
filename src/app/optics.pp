@@ -42,21 +42,26 @@ def main():
     star_catalog_max_mag = 7
     width,height,fov_deg,view_rot_deg = [1200,600,130,100]
     verbosity = 3
-    do_image(r,"stars.png",if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
+    do_image(r,"stars.png",if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg,"","")
     exit(0)
   if do_what==3:
     # animation
     print("Control the following parameters  in makefile with command-line args:")
     segment = int(sys.argv[1])
     prep_level = int(sys.argv[2])
+    if len(sys.argv)>=4:
+      single_frame = int(sys.argv[3])
+    else:
+      single_frame = -1
     print("  segment=",segment)
     print("  prep level=",prep_level)
+    print("  single frame=",single_frame)
     # prep levels:
     #   1 -- no images generated, just helps with planning motion of observer
     #   2 -- initial and final frames only, stars only down to magnitude 7
     #   3 -- initial, final, and every 10th frame
     #   4 -- real thing
-    animation.do_frames(segment,prep_level,do_image)
+    animation.do_frames(segment,prep_level,single_frame,do_image)
 
 def count_winding(lam,x,v,spacetime,chart,pars):
   # not normally needed, just used by some test code
@@ -74,7 +79,8 @@ def count_winding(lam,x,v,spacetime,chart,pars):
     count_winding.last_angle = angle
   return count_winding.winding
 
-def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg):
+def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg,\
+                        data_file_prefix,data_file_suffix):
   verbosity=3
   star_catalog = '/usr/share/karl/mag'+str(star_catalog_max_mag)+'.sqlite'
   # Star catalog is built by a script in the directory data/star_catalog, see README in that directory.
@@ -85,9 +91,13 @@ def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height,fov_deg,view
   tol = 1.0e-3
   if_black_hole = TRUE
   max_mag = 12
-  draw_sky(r,ra_out,dec_out,tol,"aberration.csv","v.csv","stars.csv","stars.json",verbosity,if_black_hole,\
+  aberration_csv = data_file_prefix+"aberration"+data_file_suffix+".csv"
+  v_csv          = data_file_prefix+"v"+data_file_suffix+".csv"
+  stars_csv      = data_file_prefix+"stars"+data_file_suffix+".csv"
+  stars_json     = data_file_prefix+"stars"+data_file_suffix+".json"
+  draw_sky(r,ra_out,dec_out,tol,aberration_csv,v_csv,stars_csv,stars_json,verbosity,if_black_hole,\
             if_fake,max_mag,star_catalog,star_catalog_max_mag,width,height,fov_deg,view_rot_deg)
-  os.system("src/render/render.rb stars.json "+image_file)
+  os.system("src/render/render.rb "+stars_json+" "+image_file)
 
 #--------------------------------------------------------------------------------------------------
 
