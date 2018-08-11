@@ -24,7 +24,7 @@ from PIL import Image
 
 
 def main():
-  do_what = 3
+  do_what = 2
   if do_what==1:
     r = 0.608084133778
     alpha = 0.8387
@@ -299,7 +299,7 @@ def fake_stars(table,aberration_table,r,if_black_hole,ra_out,dec_out,max_mag,m,m
             star_table_entry_helper(table,alpha,phi,brightness,ln_temp,beta,if_black_hole,r,v_table)
   return [table,{'count_fake':count_fake}]
 
-def star_table_entry_helper(table,alpha,phi,brightness,ln_temp,beta,if_black_hole,r,v_table):
+def star_table_entry_helper(table,alpha,phi,brightness0,ln_temp,beta,if_black_hole,r,v_table):
   if if_black_hole:
     angle = alpha
     doppler = doppler_helper(r,v_table,alpha)
@@ -309,10 +309,12 @@ def star_table_entry_helper(table,alpha,phi,brightness,ln_temp,beta,if_black_hol
   ln_temp_doppler_corr = log(doppler)
   # ... https://en.wikipedia.org/wiki/Black-body_radiation#Doppler_effect_for_a_moving_black_body
   #     A Doppler-shifted blackbody spectrum is still a blackbody spectrum, with a shifted temp.
-  #     Doppler effect on whole-spectrum intensity is not handled here, was included in the
-  #     factor f that we got from Liouville's theorem.
   #     Doppler shifts can shift energy into or out of the visible-light spectrum, but we don't do anything
   #     about that here. This is just physics, not vision.
+  brightness = brightness0*doppler**4
+  # ... Riazuelo claims that this correction should be applied in addition to the geometrical one (p. 12),
+  #     and that the exponent should be 4. I need to understand this better, have a feeling that the exponent
+  #     should really be 1.
   table.append([angle,phi,brightness,ln_temp+ln_temp_doppler_corr])
 
 def doppler_helper(r,v_table,alpha):

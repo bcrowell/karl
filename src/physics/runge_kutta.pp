@@ -119,7 +119,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   user_data = NONE
   for iter in range(n):
 #if 0
-    if iter%100==0:
+    if iter%10==0:
       t,r,mu = kruskal.aux(x[0],x[1])
       theta = atan2(x[2],x[3])
       print("iter=",iter," x=",io_util.vector_to_str(x),", r=",r,", theta=",theta,", mu=",mu)
@@ -129,19 +129,24 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
 #if 0
     # The following is debugging code that only applies to null geodesics.
     norm_v = vector.norm(spacetime,chart,pars,x,v)
-    if abs(norm_v)>1.0e-9:
+    if abs(norm_v)>1.0e-6:
       t,r,mu = kruskal.aux(x[0],x[1])
       print("norm_v=",norm_v," at r=",r,", x=",x,", v=",v)
-      THROW('ugh')
 #endif
     if time_is_irrelevant:
       # See comments at top of function on why this is helpful for ray tracing.
+#if 0
+      x_before = CLONE_ARRAY_OF_FLOATS(x)
+      v_before = CLONE_ARRAY_OF_FLOATS(v)
+#endif
       x,v,t,did_it = transform.kruskal_to_time_zero(x,v,spacetime|chart,FALSE)
       # ... is a no-op if coords are not AKS, or if we're not at a point where doing this would be helpful
 #if 0
       if did_it:
-        print("  kruskal_to_time_zero-> x=",io_util.vector_to_str(x)," v=",io_util.vector_to_str(v))
-        print("  norm before=",norm_v,", after=",vector.norm(spacetime,chart,pars,x,v))
+        print("  kruskal_to_time_zero:")
+        print("    before, x=",io_util.vector_to_str(x_before)," v=",io_util.vector_to_str(v_before))
+        print("    after,  x=",io_util.vector_to_str(x)," v=",io_util.vector_to_str(v))
+        print("    norm before=",norm_v,", after=",vector.norm(spacetime,chart,pars,x,v))
 #endif
     dlambda = (lambda_max-lam)/(n-iter) # small readjustment so we land on the right final lambda
     est = [[0 for i in range(ndim2)] for step in range(order)] #js est=karl.array2d(ndim2,order);

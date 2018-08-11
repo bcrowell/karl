@@ -259,20 +259,18 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   info = {}
   lam = 0.0
 #if 0
-  print("  starting")
+  print("  starting, observer at r=",r,", alpha=",alpha)
 #endif
   WHILE(TRUE)
     dlambda_safety = 1.0
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
           'user_function':count_winding,'dlambda':dlambda*dlambda_safety,'ndebug':0,'time_is_irrelevant':TRUE}
 #if 0
-    print("ri=",ri," dlambda=",dlambda*dlambda_safety)
-    #print("x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
-#endif
-#if 0
-    if ri<5.0:
-      print("before simple, r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
+    print("before simple")
+    print("  r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
            vector.norm(spacetime,chart,pars,x,v))
+    print("  ri=",ri," dlambda=",dlambda*dlambda_safety)
+    print("  x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
 #endif
     n_retry = 0
     WHILE(TRUE)

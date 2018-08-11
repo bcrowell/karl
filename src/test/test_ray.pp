@@ -66,6 +66,12 @@ def test_deflection_naughty_cases():
   # to such a glitchy value. I also have logic now in make_aberration_table where if there is
   # a glitch in the aberration table, it tries to detect and patch it, and it prints out a warning.
   #---
+  # A trajectory parallel to the horizon. If we use kruskal_to_time_zero() too enthusiastically, this
+  # trajectory gets sucked toward (a,b)=0 and ends up with nonzero norm.
+  r = 0.9
+  alpha = 0.0
+  beta = alpha_to_beta(r,alpha)
+  #---
   # If dlambda isn't small enough, crashes with bad norm near horizon.
   r = 0.6080841337780387
   alpha = 2.200625558361262 # close to alpha_max=2.2646182578916436

@@ -288,7 +288,9 @@ def kruskal_to_time_zero(x,v,spacetime_or_chart,force):
   #--
   do_it = TRUE
   if not force:
-    do_it = (abs(a)>big*abs(b)) or (abs(b)>big*abs(a))
+    do_it = (abs(a)>big*abs(b) and abs(a)>big) or (abs(b)>big*abs(a) and abs(b)>big)
+    # The parts about abs(a)>big and abs(b)>big are necessary to keep it from failing the test with
+    # r=0.9, alpha=0.
   if not do_it:
     return [x,v,0.0,FALSE]
   if b==0.0 or a==0.0: # can't define this operation for points on the horizon
