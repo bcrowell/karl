@@ -226,9 +226,45 @@ def do_ray_schwarzschild1(r,tol,count_winding,alpha):
 
 def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   """
-  Returns [beta,if_incomplete,final_v].
+  Returns [beta,if_incomplete,final_v,region].
   Algorithm that only uses KS coordinates, assumes we're starting inside
-  horizon and heading outward.
+  horizon and heading outward. Calls do_ray_schwarzschild2_one_try(), and normally
+  that works and we're done. But if the "bad" flag is set, we start over from scratch
+  with a smaller basic step size and see if that helps.
+  The parameter tol is normally 1.0e-6;
+  this is not really calibrated against anything absolute, but has an effect on both the
+  step size and the maximum norm that we allow.
+  """
+  n = 100
+  max_norm = tol
+  basic_dlambda = 0.01*(tol/1.0e-6)**0.25
+  max_retries_from_scratch = 2
+  n_retries_from_scratch = 0
+  WHILE(n_retries_from_scratch<max_retries_from_scratch)
+#if 0
+    if n_retries_from_scratch>0:
+      PRINT("retrying from scratch, basic_dlambda=",basic_dlambda)
+#endif
+    result = do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm)
+    retry_code = result.pop()
+    if retry_code==0:
+      return result
+    if retry_code==2:
+      THROW('failed with norm too big after first block')
+    n_retries_from_scratch = n_retries_from_scratch+1
+    basic_dlambda = basic_dlambda*0.1
+  END_WHILE
+
+def do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm):
+  """
+  Returns [beta,if_incomplete,final_v,region,retry_code].
+  Algorithm that only uses KS coordinates, assumes we're starting inside
+  horizon and heading outward. Do Runge-Kutta in blocks of n iterations.
+  If the norm gets bigger than max_norm, indicating
+  an inaccurate result, we first try redoing the most recent block with
+  exponentially decreasing step sizes. If that doesn't work, we return
+  with retry_code=1. A normal return is retry_code=0, and retry_code=2 means
+  that we failed on the first block, so retrying won't help.
   """
   spacetime = SP_SCH
   chart = CH_SCH
@@ -249,23 +285,27 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   v[0] = -v[0]
   v[1] = -v[1]
   #----
-  n = 100
   ndebug=0
   if verbosity>=3:
     ndebug=n/10
   ri = r
   lambda_max = 0.2 # fixme, sort of random
-  dlambda = 0.01
+  dlambda = basic_dlambda
   info = {}
   lam = 0.0
-#if 0
+#define DEBUG_DO_RAY_SCHWARZSCHILD2 0
+#if DEBUG_DO_RAY_SCHWARZSCHILD2
+  print("\n\n\n\n\n\n\n\n\n\n=============================================================\n\n\n\n\n\n\n\n\n\n")
   print("  starting, observer at r=",r,", alpha=",alpha)
 #endif
+  max_retries = 3
+  block = 0
   WHILE(TRUE)
+    block = block+1
     dlambda_safety = 1.0
-    opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,'tol':tol,\
+    opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,\
           'user_function':count_winding,'dlambda':dlambda*dlambda_safety,'ndebug':0,'time_is_irrelevant':TRUE}
-#if 0
+#if DEBUG_DO_RAY_SCHWARZSCHILD2
     print("before simple")
     print("  r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
            vector.norm(spacetime,chart,pars,x,v))
@@ -278,24 +318,31 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
               runge_kutta.trajectory_simple(spacetime,chart,pars,x,v,opt)
       tf,rf,mu = kruskal.aux(final_x[0],final_x[1])
       norm = vector.norm(spacetime,chart,pars,final_x,final_v)
-      if abs(norm)<1.0e-6:
+      if abs(norm)<max_norm:
         if n_retry>0 and verbosity>=2:
           PRINT("norm=",norm," is OK after ",n_retry," retries")
-        BREAK
-      if verbosity>=2:
+        BREAK #--- normal exit from loop ---
+      if verbosity>=2 or (DEBUG_DO_RAY_SCHWARZSCHILD2==1):
         PRINT("norm of geodesic is ",norm,", not close to zero, ri=",ri,", rf=",rf,", alpha=",alpha,\
                ",dlambda=",dlambda*dlambda_safety)
       n_retry = n_retry+1
-      if n_retry>4:
-        THROW('norm is still bad after retries')
+      if n_retry>max_retries:
+        if block>1:
+          retry_code = 1
+        else:
+          # In the situation where it fails on the first block, redoing from scratch won't help.
+          retry_code = 2
+        return [NAN,FALSE,NONE,kruskal.describe_region(-final_x[0],-final_x[1]),retry_code]
       dlambda_safety = dlambda_safety*0.1
+      if verbosity>=2 or (DEBUG_DO_RAY_SCHWARZSCHILD2==1):
+        PRINT("*** retry ",n_retry,": redoing with safety=",dlambda_safety)
       opt['dlambda']=dlambda*dlambda_safety
     END_WHILE
-#if 0
+#if DEBUG_DO_RAY_SCHWARZSCHILD2
     if rf<5.0:
       print("after simple, r=",rf)
 #endif
-#if 0
+#if DEBUG_DO_RAY_SCHWARZSCHILD2
     if ri<1.0 and rf>1.0:
       print("crossed horizon")
     if ri<1.5 and rf>1.5:
@@ -307,7 +354,7 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
     if err!=0:
       if err==RK_INCOMPLETE:
         PRINT("Geodesic at alpha=",alpha," radians is incomplete, done.")
-        return [NAN,TRUE,NONE]
+        return [NAN,TRUE,NONE,kruskal.describe_region(-x[0],-x[1]),0]
       THROW("error: "+str(err))
     if IS_NAN(rf):
       THROW("rf is NaN")
@@ -334,7 +381,7 @@ def do_ray_schwarzschild2(r,tol,count_winding,alpha):
   if beta<0.0:
     beta = beta+2.0*MATH_PI
   beta = beta+w*2.0*MATH_PI
-  return [beta,FALSE,final_v,kruskal.describe_region(-x[0],-x[1])]
+  return [beta,FALSE,final_v,kruskal.describe_region(-x[0],-x[1]),0]
   # ...Minus signs because something about the way I'm treating the time-reversed ray tracing seems
   #    to result in exiting into III when it should be I. Presumably rays that exit into I are
   #    really exiting into III...? fixme -- investigate this

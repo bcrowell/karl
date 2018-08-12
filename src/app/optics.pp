@@ -24,7 +24,7 @@ from PIL import Image
 
 
 def main():
-  do_what = 2
+  do_what = 3
   if do_what==1:
     r = 0.608084133778
     alpha = 0.8387
@@ -60,7 +60,7 @@ def main():
     # prep levels:
     #   1 -- no images generated, just helps with planning motion of observer
     #   2 -- initial and final frames only, stars only down to magnitude 7
-    #   3 -- initial, final, and every 10th frame
+    #   3 -- initial, final, and every 50th frame
     #   4 -- real thing
     animation.do_frames(segment,prep_level,single_frame,do_image)
 
@@ -89,7 +89,7 @@ def do_image(r,image_file,if_fake,star_catalog_max_mag,width,height,fov_deg,view
   ra_out,dec_out = celestial.rigel_ra_dec()
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.rigel_ra_dec())
   #ra_out,dec_out = celestial.antipodes_of_ra_and_dec(celestial.lmc_ra_dec())
-  tol = 1.0e-3
+  tol = 1.0e-6
   if_black_hole = TRUE
   max_mag = 12
   aberration_csv = data_file_prefix+"aberration"+data_file_suffix+".csv"

@@ -119,7 +119,7 @@ def trajectory_simple(spacetime,chart,pars,x0,v0,opt):
   user_data = NONE
   for iter in range(n):
 #if 0
-    if iter%10==0:
+    if iter%1000==0 and r>644796.0:
       t,r,mu = kruskal.aux(x[0],x[1])
       theta = atan2(x[2],x[3])
       print("iter=",iter," x=",io_util.vector_to_str(x),", r=",r,", theta=",theta,", mu=",mu)

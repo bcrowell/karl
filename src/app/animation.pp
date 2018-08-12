@@ -34,11 +34,12 @@ def do_frames(segment,prep_level,single_frame,do_image):
     n = 200
     r = 0.5
     dtau = 0.0011918
+  print("segment=",segment," initial r=",r)
   for i in range(n):
     id = "seg"+("%01d" % segment)+"frame"+("%03d" % i)
     outfile = "animation/"+id+".png"
     do_it = (prep_level==2 and (i==0 or i==n-1)) or \
-            (prep_level==3 and (i==0 or i==n-1 or i%10==0)) or \
+            (prep_level==3 and (i==0 or i==n-1 or i%50==0)) or \
             prep_level==4
     outfile_exists = os.path.isfile(outfile)
     if single_frame!=-1:
@@ -51,10 +52,11 @@ def do_frames(segment,prep_level,single_frame,do_image):
         do_it = FALSE
     if outfile_exists:
       do_it = FALSE # never redo a frame that already exists
-    if do_it:
+    if do_it or prep_level==1:
       print("---------------------- r=",r,", file=",outfile," --------------- ",\
            datetime.datetime.now().strftime('%H:%M:%S'))
       sys.stdout.flush()
+    if do_it:
       do_image(r,outfile,if_fake,star_catalog_max_mag,width,height,fov_deg,view_rot_deg,\
                      "animation/","_"+id)
     spacetime = SP_SCH

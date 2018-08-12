@@ -11,6 +11,8 @@
 
 import test,vector,ray,star_properties,transform
 
+verbosity = 1
+
 def test_alpha_max_schwarzschild():
   assert_equal_eps(ray.alpha_max_schwarzschild(15.0),3.02,0.02)
   # ... estimating asymptote from Riazuelo fig. 1
@@ -66,28 +68,42 @@ def test_deflection_naughty_cases():
   # to such a glitchy value. I also have logic now in make_aberration_table where if there is
   # a glitch in the aberration table, it tries to detect and patch it, and it prints out a warning.
   #---
+  test_number = 1
+  #---
+  # Chokes at the very end, when it gets to large r. Norm creeps up bigger and bigger, finally
+  # just barely crosses the threshold of 1.0e-6 so that it triggers an exception.
+  r = 0.39681846091970896
+  alpha = 2.085642127611168 # close to alpha_max=2.1526252824191947
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
+  beta = alpha_to_beta(r,alpha)
+  #---
   # A trajectory parallel to the horizon. If we use kruskal_to_time_zero() too enthusiastically, this
   # trajectory gets sucked toward (a,b)=0 and ends up with nonzero norm.
   r = 0.9
   alpha = 0.0
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
   beta = alpha_to_beta(r,alpha)
   #---
   # If dlambda isn't small enough, crashes with bad norm near horizon.
   r = 0.6080841337780387
   alpha = 2.200625558361262 # close to alpha_max=2.2646182578916436
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
   beta = alpha_to_beta(r,alpha)
   #---
   # Requires small step size for values of r up to about 1.01. Otherwise it
   # crashes for these inputs, and also gives inaccurate results for nearby values of alpha.
   r = 0.608084133778
   alpha = 0.8387
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
   beta = alpha_to_beta(r,alpha)
   #---
   # A demanding case where a past-oriented geodesic spends a long time in the photon sphere before
   # emerging.
   r = 0.9
   d = 1.0e-10
-  beta = alpha_to_beta(r,ray.alpha_max_schwarzschild(r)-d)
+  alpha = ray.alpha_max_schwarzschild(r)-d
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
+  beta = alpha_to_beta(r,alpha)
   #---
   # Passing the following test seems to require a very small step size in do_ray_schwarzschild2().
   # See logic involving dlambda_safety.
@@ -95,7 +111,13 @@ def test_deflection_naughty_cases():
   # norm of the velocity vector becomes unacceptably large (-0.02) due to numerical errors.
   r = 0.5863
   alpha = 0.7085
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
   beta = alpha_to_beta(r,alpha)
+
+def naughty_cases_debug_helper(verbosity,r,alpha,test_number):
+  if verbosity>=2:
+    print("testing naughty case ",test_number,", r=",r,", alpha=",alpha)
+  return test_number+1
 
 def test_deflection_continuity():
   # Currently, my algorithms have qualitative differences for r in (0,1), (1,1.5), and (1.5,infty).
