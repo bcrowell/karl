@@ -70,8 +70,14 @@ def test_deflection_naughty_cases():
   #---
   test_number = 1
   #---
+  # Small initial r value, seems to require step size propto r^2 rather than r.
+  r = 0.1
+  alpha = 1.0
+  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
+  beta = alpha_to_beta(r,alpha)
+  #---
   # Chokes at the very end, when it gets to large r. Norm creeps up bigger and bigger, finally
-  # just barely crosses the threshold of 1.0e-6 so that it triggers an exception.
+  # just barely crosses the threshold of 1.0e-6 so that it triggers an error.
   r = 0.39681846091970896
   alpha = 2.085642127611168 # close to alpha_max=2.1526252824191947
   test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)

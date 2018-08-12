@@ -177,6 +177,7 @@ def do_ray_schwarzschild1(r,tol,count_winding,alpha):
   if verbosity>=3:
     ndebug=n/10
   ri = r
+  r_obs = r
   lambda_max = 10.0 # fixme, sort of random
   info = {}
   lam = 0.0
@@ -207,7 +208,7 @@ def do_ray_schwarzschild1(r,tol,count_winding,alpha):
     rf = final_x[1]
     if IS_NAN(rf):
       THROW("rf is NaN")
-    if rf>1.0e9 and rf>100.0*r:
+    if rf>1.0e9*r_obs and rf>100.0*r:
       break
     if rf>10.0 and final_v[1]>0 and rf>ri: # quick and dirty test, far away and getting farther
       f = (rf-ri)/ri # fractional change in r from the iteration we just completed
@@ -306,7 +307,7 @@ def do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm
     if ri>1.0:
       dlambda_small_r_safety = 1.0
     else:
-      dlambda_small_r_safety = ri
+      dlambda_small_r_safety = ri*ri
     dlambda_actual = dlambda*dlambda_safety*dlambda_small_r_safety
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,\
           'user_function':count_winding,'dlambda':dlambda_actual,'ndebug':0,'time_is_irrelevant':TRUE}

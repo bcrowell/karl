@@ -985,16 +985,8 @@ Interpolate between geodesics that I simulate, until I get to angles that are
 either outside of the projection screen or that intersect the horizon.
 
 Riazuelo goes to deflection angles of up to $5\pi$, says that's usually enough to
-get all interesting visible effects. He seems to say that the small deflections are basically
-SR doppler shifts, because the observer is free-falling (same idea I had). Although this seems to get the sign
-wrong, it does seem to correctly predict the absolute value of the slope to be $\approx r^{-1/2}$,
-which seems close to what I see numerically. Numerically, what I think I actually see for
-small $\alpha$ is
-\begin{equation*}
-  \alpha-\beta\approx (r^{1/2}-1)^{-1}\alpha.
-\end{equation*}
-The actual results drop lower than this before coming back up. I use this approximation to
-improve the quality of interpolation.
+get all interesting visible effects. Small deflections are basically
+SR doppler shifts, because the observer is free-falling.
 
 For $\alpha>\pi/2$, $L/E=\pm (1/2)3^{3/2}$ corresponds to the photon sphere, the unstable innermost
 circular orbit (at $r=3/2$), which can be occupied only by massless particles. For an observer at $r>3/2$,
@@ -1038,10 +1030,52 @@ results, ended up writing a different, specialized routine, \texttt{ray.do\_ray\
 uses KS coordinates and has a different algorithm for adaptive step size. What it does is to use
 a certain step size, but if, after 100 iterations of Runge-Kutta, the norm of the velocity vector
 is nonzero (outside of a certain fixed range of tolerance), it reduces the step size and tries again.
+If that doesn't work, then it restarts the whole calculation over again from scratch with a smaller step
+size.
+Step size is chosen to be $\propto r^2$ according to the initial $r$ of each block. This makes it very
+slow for small $r$, but seems necessary --- $\propto r$ wasn't enough.
 This seems to work well in terms of both efficiency and reliability.
 In \texttt{test\_ray.test\_deflection\_naughty\_cases}, I've collected a rogues' gallery of rays that
 had problems either at the horizon or at the photon sphere, and this algorithm makes all of those
 work.
+
+\subsection{Approximations to the deflection angle}
+
+See subdirectory approx.
+
+For small $\alpha$, the slope of the graph appears to be exactly
+\begin{equation*}
+  \left.\frac{d\beta}{d\alpha}\right|_0 = 1-(1+\sqrt{r})^{-1}.
+\end{equation*}
+See slope.csv. This appears to work to within the numerical accuracy of the Runge-Kutta for all
+values of $r$ inside and outside the horizon. At large $r$, this is simply the semi-Newtonian
+aberration of $r^{-1/2}$.
+
+Behavior of deflection at grazing: For angles near $\alpha_\text{max}$, it seems empirically
+that $k=\beta+\ln(\alpha_\text{max}-\alpha)+\ln r$ is a slowly
+varying function of $\alpha$ and of $\ln r$, and approaches a constant as
+$r\rightarrow\infty$. There is a close physical analogy
+with a pendulum at large amplitudes, for which the period varies as an elliptic integral,
+whose asymptotic behavior is $K(1-\epsilon)\approx(1/2)\ln(2\epsilon)$.
+It seems fortuitous that the coefficients on the second and third terms are
+exactly 1.
+This is hard to verify at large $\beta$, since calculations may be inaccurate, motion is unstable.
+At large $r$, $k\approx 3.70$. For $0.16\le r\le\infty$, it looks like $k$ varies by about
+6 radians.
+
+This is good enough to tame the logarithmic divergence
+in the function $\beta(\alpha)$ and allow excellent interpolation and extrapolation.
+I spent some time trying to improve on this approximation but didn't come up with anything super
+nice.
+
+I tried replacing $\ln r$ with $\ln(r+f(r))$, which at large $r$ is approximately
+like $\ln r\rightarrow \ln r + f/r$. I can simply take the data and solve for $f$. The
+resulting function $f(r)$ is positive and concave up, appears only vaguely parabolic when graphed
+against $\ln r$, can't see any nice limiting behavior at small or large values of $\ln r$.
+
+At small $r$, I thought there might be some trig going on, but in fact the error in the
+approximation at small $r$ is rather large, much too large to be accounted for by introducing
+any reasonable trig function like $\cos\alpha_\text{max}$.
 
 \subsection{Doppler shifts}
 
@@ -1150,16 +1184,6 @@ Kassner, \url{arxiv.org/abs/1608.07511}; Grib,
 \url{arxiv.org/abs/0906.1442}.  They all say that nothing special
 happens at the event horizon, and you don't see the infinite future of
 the universe.
-
-\subsection{Behavior of deflection at grazing}
-
-Empirically, for $1<r<\infty$, I find that $\beta+\ln(\alpha_\text{max}-\alpha)$ is a slowly
-varying function of $\alpha$ and of $\ln r$. This may break down at very large $\beta$; I need
-to study this more carefully. If this is correct, then it
-tames the behavior of the function
-$\beta(\alpha)$ so that we can interpolate accurately. There is a close physical analogy
-with a pendulum at large amplitudes, for which the period varies as an elliptic integral,
-whose asymptotic behavioris $K(1-\epsilon)\approx(1/2)\ln(2\epsilon)$.
 
 \subsection{Process of generating an image}
 

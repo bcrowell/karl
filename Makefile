@@ -27,11 +27,11 @@ optics: obj/optics.py
 	mkdir -p animation
 	@chmod +x obj/optics.py
 	obj/optics.py 2 2
+	# Can run the animation by doing feh animation/*png and holding down spacebar.
 
 animation:
 	convert -delay 20 -loop 0 anim*.png animation.gif
-	#display animation.gif
-	# ... doesn't work, instead do gimp : filters : animation : playback
+	# Display animated gif using gimp : filters : animation : playback.
 
 depend: gen_depends.py
 	@python3 gen_depends.py >depend
