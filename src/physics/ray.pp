@@ -303,13 +303,18 @@ def do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm
   WHILE(TRUE)
     block = block+1
     dlambda_safety = 1.0
+    if ri>1.0:
+      dlambda_small_r_safety = 1.0
+    else:
+      dlambda_small_r_safety = ri
+    dlambda_actual = dlambda*dlambda_safety*dlambda_small_r_safety
     opt = {'lambda_max':lambda_max,'ndebug':ndebug,'sigma':1,'future_oriented':FALSE,\
-          'user_function':count_winding,'dlambda':dlambda*dlambda_safety,'ndebug':0,'time_is_irrelevant':TRUE}
+          'user_function':count_winding,'dlambda':dlambda_actual,'ndebug':0,'time_is_irrelevant':TRUE}
 #if DEBUG_DO_RAY_SCHWARZSCHILD2
     print("before simple")
     print("  r=",ri,", lambda=",lam," dlambda=",dlambda," norm=",\
            vector.norm(spacetime,chart,pars,x,v))
-    print("  ri=",ri," dlambda=",dlambda*dlambda_safety)
+    print("  ri=",ri," dlambda_actual=",dlambda_actual)
     print("  x=",io_util.vector_to_str(x),", v=",io_util.vector_to_str(v))
 #endif
     n_retry = 0
@@ -324,7 +329,7 @@ def do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm
         BREAK #--- normal exit from loop ---
       if verbosity>=2 or (DEBUG_DO_RAY_SCHWARZSCHILD2==1):
         PRINT("norm of geodesic is ",norm,", not close to zero, ri=",ri,", rf=",rf,", alpha=",alpha,\
-               ",dlambda=",dlambda*dlambda_safety)
+               ",dlambda=",dlambda_actual)
       n_retry = n_retry+1
       if n_retry>max_retries:
         if block>1:
@@ -336,7 +341,8 @@ def do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm
       dlambda_safety = dlambda_safety*0.1
       if verbosity>=2 or (DEBUG_DO_RAY_SCHWARZSCHILD2==1):
         PRINT("*** retry ",n_retry,": redoing with safety=",dlambda_safety)
-      opt['dlambda']=dlambda*dlambda_safety
+      dlambda_actual = dlambda*dlambda_safety*dlambda_small_r_safety
+      opt['dlambda']=dlambda_actual
     END_WHILE
 #if DEBUG_DO_RAY_SCHWARZSCHILD2
     if rf<5.0:
