@@ -16,6 +16,7 @@
 
 import runge_kutta,fancy,angular,vector,keplerian,transform,schwarzschild,euclidean,celestial,math_util,\
        star_properties,kruskal
+import scipy.integrate as integrate
 
 #--------------------------------------------------------------------------------------------------
 
@@ -88,7 +89,7 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
     # ... Initial velocity of ray, which is simulated going backward in time, as if emitted rather than absorbed.
     #     Will get rescaled later, see comments below, but clone it to make sure it can't get munged.
     d = alpha_max-alpha
-    beta,done,v_emission,region = do_ray_schwarzschild(r,tol,count_winding,alpha)
+    beta,done,v_emission,region = do_ray_schwarzschild(r,tol,count_winding,alpha,0)
     if done:
       BREAK # can get incomplete geodesic at alpha<alpha_max due to numerical precision
     if abs(beta-alpha)>max_deflection:
@@ -152,15 +153,67 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
 
 #endif
 
-def do_ray_schwarzschild(r,tol,count_winding,alpha):
-  if r>=1.0:
-    return do_ray_schwarzschild1(r,tol,count_winding,alpha)
+def alpha_to_beta_by_quadrature(r,alpha):
+  """
+  In the Schwarzschild spacetime, determine the deflection of a ray arriving to the standard observer
+  from null infinity, using numerical integration. Doesn't check whether alpha is legal.
+  Cf. alpha_to_beta().
+  """
+  le = alpha_to_le_schwarzschild(alpha,r)[0]
+  if le==0.0:
+    return 0.0 # is the correct result, if we haven't been supplied with an illegal alpha=pi
+  p = le**-2 # notation used by Gibbons, arxiv.org/abs/1110.6508
+  result = integrate.quad(lambda r: 1/sqrt(p*r**4-r**2+r), r, numpy.inf)
+  q = result[0]
+  if result[1]>1.0e-4:
+    THROW('high error estimate')
+  return q
+
+def alpha_to_beta(r,alpha):
+  """
+  In the Schwarzschild spacetime, determine the deflection of a ray arriving to the standard observer
+  from null infinity, using numerical integration.
+  Cf. alpha_to_beta_by_quadrature().
+  """
+  def count_winding(lam,x,v,spacetime,chart,pars):
+    if lam==0.0:
+      count_winding.winding = 0
+      count_winding.last_angle = 0.0
+    else:
+      angle = atan2(x[3],x[2]) # returns an angle from -pi to pi
+      if angle<0.0:
+        angle = angle+2.0*MATH_PI
+      if count_winding.last_angle>5.0 and angle<1.0:
+        count_winding.winding = count_winding.winding+1
+      if count_winding.last_angle<1.0 and angle>5.0:
+        count_winding.winding = count_winding.winding-1
+      count_winding.last_angle = angle
+    return count_winding.winding
+  tol = 1.0e-6
+  count_winding(0.0,[],[],0,0,{})
+  beta,done,final_v,region = do_ray_schwarzschild(r,tol,count_winding,alpha,0)
+  return beta
+
+def do_ray_schwarzschild(r,tol,count_winding,alpha,force_algorithm):
+  if r<0.3:
+    algorithm=3
   else:
+    if r<1.0:
+      algorithm=2
+    else:
+      algorithm=1
+  if force_algorithm!=0:
+    algorithm=force_algorithm
+  if algorithm==1:
+    return do_ray_schwarzschild1(r,tol,count_winding,alpha)
+  if algorithm==2:
     return do_ray_schwarzschild2(r,tol,count_winding,alpha)
+  if algorithm==3:
+    return do_ray_schwarzschild3(r,tol,count_winding,alpha)
 
 def do_ray_schwarzschild1(r,tol,count_winding,alpha):
   """
-  Returns [beta,if_incomplete,final_v].
+  Returns [beta,if_incomplete,final_v,region].
   This algorithm tends to fail for past-oriented geodesics that exit the event horizon. It oscillates
   back and forth across the horizon, I think because of either a bug or a lack of numerical stability.
   The alternative do_ray_schwarzschild2() is meant to work for those cases.
@@ -392,6 +445,30 @@ def do_ray_schwarzschild2_one_try(r,basic_dlambda,count_winding,alpha,n,max_norm
   # ...Minus signs because something about the way I'm treating the time-reversed ray tracing seems
   #    to result in exiting into III when it should be I. Presumably rays that exit into I are
   #    really exiting into III...? fixme -- investigate this
+
+def do_ray_schwarzschild3(r,tol,count_winding,alpha):
+  """
+  Calculate deflection of a ray by using the fact that null geodesic motion can be reduced to quadrature.
+  Returns [beta,if_incomplete,final_v,region].
+  The good news is that this is very efficient and reliable, even at small r.
+  The bad news is that this type of algorithm will not work for most other spacetimes.
+  """
+  alpha_max = alpha_max_schwarzschild(r)
+  if abs(alpha)>alpha_max:
+    return [NAN,TRUE,[],[]]
+  spacetime = SP_SCH
+  chart = CH_SCH
+  pars = {}
+  aa = 1-1/r
+  x_obs,v_obs,rho,j = schwarzschild_standard_observer(r,spacetime,chart,pars)
+  le,in_n_out = alpha_to_le_schwarzschild(alpha,r)
+  beta = alpha_to_beta_by_quadrature(r,alpha)
+  alpha2,v = le_to_alpha_schwarzschild(r,le,in_n_out,x_obs,v_obs,rho,spacetime,chart,pars)
+  # don't need alpha, just need v of photon
+  final_v_t = v[0]*aa # Av_t is conserved in Schwarzschild spacetime, and A=1 at infinity.
+  final_v_r = final_v_t # Schwarzschild metric has g_tt=g_rr at infinity.
+  final_v = [final_v_t,final_v_r,0.0,0.0,0.0]
+  return [beta,FALSE,final_v,[1,0,"exterior"]]
 
 def schwarzschild_standard_observer(r,spacetime,chart,pars):
   """

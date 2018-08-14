@@ -10,7 +10,6 @@
 #include "spacetimes.h"
 
 import test,vector,ray,star_properties,transform
-import scipy.integrate as integrate
 
 verbosity = 1
 
@@ -59,9 +58,8 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
 
 def test_deflection_naughty_cases():
   # If these are going to fail, they basically tend to fail by crashing or hanging up forever, i.e., these
-  # are essentially smoke tests. But if L/E is nonzero, we also compare with the exact result from
-  # reducing the problem to quadrature. (Could also do this for L/E=0, but would have to use a different
-  # equation.)
+  # are essentially smoke tests. But we also compare with the exact result from
+  # reducing the problem to quadrature. 
   # What tends to happen is that for points very close to the photon sphere,
   # where |a|>>|b| or |b|>>|a|, application of the Christoffel symbols gives a point beyond the
   # singularity, resulting in a crash. The thing that seems to fix all of these for r>~0.1 is that in
@@ -73,7 +71,7 @@ def test_deflection_naughty_cases():
   # to such a glitchy value. I also have logic now in make_aberration_table where if there is
   # a glitch in the aberration table, it tries to detect and patch it, and it prints out a warning.
   #---
-  eps = 1.0e-6 # default tolerance compared to quadrature (relative error)
+  eps = 1.0e-6 # default tolerance compared to quadrature (relative error); one test has bigger tolerance
   test_number = 1
   #---
   # Small initial r value, seems to require step size propto r^2 rather than r.
@@ -123,15 +121,12 @@ def test_deflection_naughty_one(verbosity,r,alpha,test_number,eps):
   le = ray.alpha_to_le_schwarzschild(alpha,r)[0]
   if verbosity>=2:
     print("testing naughty case ",test_number,", r=",r,", alpha=",alpha,", |L/E|=",le)
-  beta = alpha_to_beta(r,alpha)
-  if le!=0.0:
-    p = le**-2 # notation used by Gibbons, arxiv.org/abs/1110.6508
-    q = integrate.quad(lambda r: 1/sqrt(p*r**4-r**2+r), r, numpy.inf)[0]
-    assert_rel_equal_eps(beta,q,eps)
+  beta = ray.alpha_to_beta(r,alpha)
+  q = ray.alpha_to_beta_by_quadrature(r,alpha)
   if verbosity>=2:
     print("  beta=",beta)
-    if le!=0.0:
-      print("  result from quadrature=",q," rel. err.=",(beta-q)/q)
+    print("  result from quadrature=",q," rel. err.=",(beta-q)/q)
+  assert_rel_equal_eps(beta,q,eps)
   return test_number+1
 
 def test_deflection_continuity():
@@ -139,12 +134,12 @@ def test_deflection_continuity():
   # Make sure that deflection angles appear to be continuous across these boundaries.
   # In the following, the alphas are close to the maximums, to make it a severe test.
   # --
-  beta1 = alpha_to_beta(1.001,2.3)
-  beta2 = alpha_to_beta(0.999,2.3)
+  beta1 = ray.alpha_to_beta(1.001,2.3)
+  beta2 = ray.alpha_to_beta(0.999,2.3)
   assert_equal_eps(beta1,beta2,0.01)
   # --
-  beta1 = alpha_to_beta(1.50001,2.5)
-  beta2 = alpha_to_beta(1.49999,2.5)
+  beta1 = ray.alpha_to_beta(1.50001,2.5)
+  beta2 = ray.alpha_to_beta(1.49999,2.5)
   assert_equal_eps(beta1,beta2,0.001)
 
 def test_riazuelo_deflection():
@@ -152,26 +147,20 @@ def test_riazuelo_deflection():
 #if "LANG" eq "python"
   # Interpolating from his graph, he has lines crossing at alpha=beta=2.48+-0.1.
   alpha = 2.48
-  beta = alpha_to_beta(r,alpha)
+  beta = ray.alpha_to_beta(r,alpha)
   assert_equal_eps(alpha,2.48,0.1)
   assert_equal_eps(beta,alpha,0.1)
 
   # Check sign of aberration for outward angles, should have alpha>beta because SR dominates:
   alpha = 0.1
-  beta = alpha_to_beta(r,alpha)
+  beta = ray.alpha_to_beta(r,alpha)
   assert_boolean(alpha>beta,"should have alpha>beta at outward angles, because SR dominates")  
 
   # Check sign of aberration for grazing angles, should have alpha<beta because deflection dominates:
   alpha = 2.9
-  beta = alpha_to_beta(r,alpha)
+  beta = ray.alpha_to_beta(r,alpha)
   assert_boolean(alpha<beta,"should have alpha<beta at grazing angles, because deflection dominates")  
 #endif
-
-def alpha_to_beta(r,alpha):
-  tol = 1.0e-6
-  count_winding(0.0,[],[],0,0,{})
-  beta,done,final_v,region = ray.do_ray_schwarzschild(r,tol,count_winding,alpha)
-  return beta
 
 def count_winding(lam,x,v,spacetime,chart,pars):
   if lam==0.0:
