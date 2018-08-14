@@ -1215,15 +1215,29 @@ render.rb -- Reads the pixel arrays from stars.json and converts them into a PNG
 
 \section{Literature}
 
+
 Bacchini, ``Generalized, energy-conserving numerical simulations of particles
 in general relativity. I. Time-like and null geodesics,''
 \url{https://arxiv.org/abs/1801.02378} -- assumes a static spacetime
+
+Boonserm et al., ``Near-horizon geodesics for astrophysical and idealised
+black holes: Coordinate velocity and coordinate acceleration,''
+https://arxiv.org/abs/1710.06139.pdf -- compares various coordinate systems
+and behavior of coordinate acceleration near the horizon for an infalling particle
 
 Chan, ``GRay2: A General Purpose Geodesic Integrator for Kerr Spacetimes,''
 \url{https://arxiv.org/abs/1706.07062} --
 Cartesian Kerr-Schild coordinates, describes software GRay2, which runs on GPUs;
 older version GRay at \url{https://github.com/luxsrc/gray} ; Chan on github:
 \url{https://github.com/chanchikwan}
+
+D'Ambrosio and Rovelli, ``How Information Crosses Schwarzschild's Central Singularity,''
+\url{http://arxiv.org/abs/1803.05015} -- interesting qg paper, gives Taylor expansion
+for null geodesics near the singularity
+
+Gibbons and Vyska, ``The Application of Weierstrass elliptic functions to
+Schwarzschild Null Geodesics,'' \url{http://arxiv.org/abs/1110.6508} --
+Expresses $r(\phi)$ using Weierstrass elliptic function $\wp$.
 
 Lewis and Kwan, ``No Way Back: Maximizing survival time below the Schwarzschild event horizon,''
 \url{https://arxiv.org/abs/0705.1029} -- They say they used odepack, but nothing about what
@@ -1234,9 +1248,5 @@ Semerak, ``Approximating light rays in the Schwarzwschild field,''
 \url{https://arxiv.org/abs/1412.5650} -- An ad hoc prescription with finite errors,
 allows finding $r(\phi)$.
 
-Boonserm et al., ``Near-horizon geodesics for astrophysical and idealised
-black holes: Coordinate velocity and coordinate acceleration,''
-https://arxiv.org/abs/1710.06139.pdf -- compares various coordinate systems
-and behavior of coordinate acceleration near the horizon for an infalling particle
 
 \end{document}

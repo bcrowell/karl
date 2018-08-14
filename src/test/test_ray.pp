@@ -10,6 +10,7 @@
 #include "spacetimes.h"
 
 import test,vector,ray,star_properties,transform
+import scipy.integrate as integrate
 
 verbosity = 1
 
@@ -57,9 +58,13 @@ def test_alpha_to_le_schwarzschild_round_trip(r,alpha):
   assert_equal_eps(alpha2,alpha,1.0e-12)
 
 def test_deflection_naughty_cases():
-  # This is a smoke test. What tends to happen is that for points very close to the photon sphere,
+  # If these are going to fail, they basically tend to fail by crashing or hanging up forever, i.e., these
+  # are essentially smoke tests. But if L/E is nonzero, we also compare with the exact result from
+  # reducing the problem to quadrature. (Could also do this for L/E=0, but would have to use a different
+  # equation.)
+  # What tends to happen is that for points very close to the photon sphere,
   # where |a|>>|b| or |b|>>|a|, application of the Christoffel symbols gives a point beyond the
-  # singularity, resulting in a crash. The thing that seems to fix all of these is that in
+  # singularity, resulting in a crash. The thing that seems to fix all of these for r>~0.1 is that in
   # do_ray_schwarzschild2(), I check whether norm is nonzero, and if it is, I retry with smaller
   # lambda. Before I figured out that adaptive algorithm, I was also seeing cases where there
   # was no crash into the singularity, but inaccurate results came out (e.g., there would be
@@ -68,48 +73,43 @@ def test_deflection_naughty_cases():
   # to such a glitchy value. I also have logic now in make_aberration_table where if there is
   # a glitch in the aberration table, it tries to detect and patch it, and it prints out a warning.
   #---
+  eps = 1.0e-6 # default tolerance compared to quadrature (relative error)
   test_number = 1
   #---
   # Small initial r value, seems to require step size propto r^2 rather than r.
   r = 0.1
   alpha = 1.0
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,eps)
   #---
   # Chokes at the very end, when it gets to large r. Norm creeps up bigger and bigger, finally
   # just barely crosses the threshold of 1.0e-6 so that it triggers an error.
   r = 0.39681846091970896
   alpha = 2.085642127611168 # close to alpha_max=2.1526252824191947
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,eps)
   #---
   # A trajectory parallel to the horizon. If we use kruskal_to_time_zero() too enthusiastically, this
   # trajectory gets sucked toward (a,b)=0 and ends up with nonzero norm.
   r = 0.9
   alpha = 0.0
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,eps)
   #---
   # If dlambda isn't small enough, crashes with bad norm near horizon.
   r = 0.6080841337780387
   alpha = 2.200625558361262 # close to alpha_max=2.2646182578916436
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,eps)
   #---
   # Requires small step size for values of r up to about 1.01. Otherwise it
   # crashes for these inputs, and also gives inaccurate results for nearby values of alpha.
   r = 0.608084133778
   alpha = 0.8387
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,eps)
   #---
   # A demanding case where a past-oriented geodesic spends a long time in the photon sphere before
-  # emerging.
+  # emerging. Doesn't have as small an error as the others.
   r = 0.9
   d = 1.0e-10
   alpha = ray.alpha_max_schwarzschild(r)-d
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,0.005)
   #---
   # Passing the following test seems to require a very small step size in do_ray_schwarzschild2().
   # See logic involving dlambda_safety.
@@ -117,12 +117,21 @@ def test_deflection_naughty_cases():
   # norm of the velocity vector becomes unacceptably large (-0.02) due to numerical errors.
   r = 0.5863
   alpha = 0.7085
-  test_number = naughty_cases_debug_helper(verbosity,r,alpha,test_number)
-  beta = alpha_to_beta(r,alpha)
+  test_number = test_deflection_naughty_one(verbosity,r,alpha,test_number,eps)
 
-def naughty_cases_debug_helper(verbosity,r,alpha,test_number):
+def test_deflection_naughty_one(verbosity,r,alpha,test_number,eps):
+  le = ray.alpha_to_le_schwarzschild(alpha,r)[0]
   if verbosity>=2:
-    print("testing naughty case ",test_number,", r=",r,", alpha=",alpha)
+    print("testing naughty case ",test_number,", r=",r,", alpha=",alpha,", |L/E|=",le)
+  beta = alpha_to_beta(r,alpha)
+  if le!=0.0:
+    p = le**-2 # notation used by Gibbons, arxiv.org/abs/1110.6508
+    q = integrate.quad(lambda r: 1/sqrt(p*r**4-r**2+r), r, numpy.inf)[0]
+    assert_rel_equal_eps(beta,q,eps)
+  if verbosity>=2:
+    print("  beta=",beta)
+    if le!=0.0:
+      print("  result from quadrature=",q," rel. err.=",(beta-q)/q)
   return test_number+1
 
 def test_deflection_continuity():
