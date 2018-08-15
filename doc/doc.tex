@@ -1068,8 +1068,14 @@ It seems fortuitous that the coefficients on the second and third terms are
 exactly 1.
 This is hard to verify at large $\beta$, since calculations may be inaccurate, motion is unstable.
 At large $r$, $k\approx 3.70$. For $0.16\le r\le\infty$, it looks like $k$ varies by about
-6 radians. Could use ideas from D'Ambrosio and Rovelli or Gibbons to explore this further
-or try to justify some of these empirical facts.
+6 radians. 
+
+Bozza (gr-qc/0102068) has a treatment of the large $r$ limit that clarifies a lot of this.
+They get an approximation which I think in my notation is
+$\beta-\alpha\approx -(L/E-L/E0)+A$, where $A=-\ln[(5+3\sqrt3)/1944]-\pi$.
+This seems to amount to a proof that the coefficients on the log terms are both 1.
+I think this implies that the limiting value of $k$ should be $\pi+A=5.250$, which
+is wrong compared to my value of $3.70$. 
 
 This is good enough to tame the logarithmic divergence
 in the function $\beta(\alpha)$ and allow excellent interpolation and extrapolation.
@@ -1085,6 +1091,10 @@ At small $r$, I thought there might be some trig going on, but in fact the error
 approximation at small $r$ is rather large, much too large to be accounted for by introducing
 any reasonable trig function like $\cos\alpha_\text{max}$.
 
+This kind of thing is discussed in Bozza,
+``Strong field limit of black hole gravitational lensing,''
+\url{https://arxiv.org/abs/gr-qc/0102068}
+
 \subsection{Doppler shifts}
 
 The Doppler effects on color are surprisingly subtle, even for observers at highly relativistic $r$.
@@ -1099,6 +1109,15 @@ we're infalling, away from the sources), and blueshifts for horizon-grazing angl
 
 some guy's web page with nice images, black hole ray tracing:
 \url{http://www.stephenbrooks.org/misc/blackhole/}
+
+Perlick, ``Gravitational Lensing from a Spacetime Perspective,''
+\url{https://arxiv.org/abs/1010.3416} -- long review article
+
+Marck, ``Shortcut method of solution of geodesic equations for
+Schwarzschild black hole,'' \url{https://arxiv.org/abs/gr-qc/9505010}
+
+Bozza, ``Gravitational Lensing by Black Holes,''
+\url{https://arxiv.org/abs/0911.2187}
 
 Riazuelo
 \url{https://arxiv.org/abs/1511.06025} He never mentions anything about the code itself; presumably

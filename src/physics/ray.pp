@@ -26,7 +26,7 @@ import scipy.integrate as integrate
 def make_aberration_tables(r,tol,verbosity,max_deflection):
   """
   Determine a table of optical aberration angles for an observer in the Schwarzschild spacetime.
-  Each line of the table is in the format [r,alpha,beta,beta-alpha,f].
+  Each line of the table is in the format [r,alpha,beta,beta-alpha,dbeta/dalpha].
   Here r is observer's coordinate
   in units of Schwarzschild radius, alpha is angle as seen by observer if they're in a standard
   state of motion (free fall from rest at infinity), beta is angle on the celestial sphere,
@@ -141,13 +141,8 @@ def make_aberration_tables(r,tol,verbosity,max_deflection):
     beta  = 0.5*(table[ii][2]+table[jj][2])
     dalpha = table[jj][1]-table[ii][1]
     dbeta  = table[jj][2]-table[ii][2]
-    f = abs(sin(alpha)*dalpha/(sin(beta)*dbeta))
-    if verbosity>=2:
-      pass
-      #print("alpha=",alpha,", beta=",beta,", dalpha=",dalpha,", dbeta=",dbeta,", f=",f)
-    # =dOmega(obs)/dOmega(infinity)=amplification, by Liouville's thm (?)
+    x.append(abs(dbeta/dalpha))
     # is abs() right?; beta can be >pi
-    x.append(f)
     table2.append(x)
   return [table2,v_table]
 
