@@ -1034,10 +1034,17 @@ If that doesn't work, then it restarts the whole calculation over again from scr
 size.
 Step size is chosen to be $\propto r^2$ according to the initial $r$ of each block. This makes it very
 slow for small $r$, but seems necessary --- $\propto r$ wasn't enough.
-This seems to work well in terms of both efficiency and reliability.
 In \texttt{test\_ray.test\_deflection\_naughty\_cases}, I've collected a rogues' gallery of rays that
 had problems either at the horizon or at the photon sphere, and this algorithm makes all of those
-work.
+work. However, as I get below about r=0.15 I can't seem to get this approach to work. For the smallest values
+of $r$, I've had to resort to using the fact that $\phi(r)$ can be expressed as an indefinite integral, but
+this approach won't work for other spacetimes.
+
+Another possible avenue might be to fiddle with other coordinate systems in which the geodesic
+equation might be better behaved. For example, D'Ambrosio and Rovelli (1803.05015) work with the coordinate
+$\tau=r^{1/2}$, and get nice well-behaved Taylor series (eq. 32) for $t$ and $\phi$ in terms of
+$\tau$. (Confusingly,
+they notate Schwarzschild $t$ as $x$.)
 
 \subsection{Approximations to the deflection angle}
 
@@ -1061,7 +1068,8 @@ It seems fortuitous that the coefficients on the second and third terms are
 exactly 1.
 This is hard to verify at large $\beta$, since calculations may be inaccurate, motion is unstable.
 At large $r$, $k\approx 3.70$. For $0.16\le r\le\infty$, it looks like $k$ varies by about
-6 radians.
+6 radians. Could use ideas from D'Ambrosio and Rovelli or Gibbons to explore this further
+or try to justify some of these empirical facts.
 
 This is good enough to tame the logarithmic divergence
 in the function $\beta(\alpha)$ and allow excellent interpolation and extrapolation.

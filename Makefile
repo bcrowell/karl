@@ -13,7 +13,7 @@ VPATH = src
 KARL_DATA = /usr/share/karl
 STAR_CATALOG = $(KARL_DATA)/star_catalog.sqlite
 
-.PHONY: clean clean_js js js_all py c all doc
+.PHONY: clean clean_js js js_all py c all doc animation
 
 all:
 	make depend
@@ -30,8 +30,17 @@ optics: obj/optics.py
 	# Can run the animation by doing feh animation/*png and holding down spacebar.
 
 animation:
-	convert -delay 20 -loop 0 anim*.png animation.gif
-	# Display animated gif using gimp : filters : animation : playback.
+	rm -f black_hole.mp4
+	# In the following command, --
+	#  -pattern_type glob ... is so that it will accept the wildcard
+	#  -c:v libx264 ... sets the video codec
+	#  -vf ... is video format, with its argument being the following string
+	#  fps=30 ... 30 frames per second
+	#  format=yuv420p ... is a pixel format, an old standard for good compatibility with older players
+	ffmpeg -pattern_type glob -i "animation/seg*frame*.png" -c:v libx264 -vf "fps=30,format=yuv420p" \
+                black_hole.mp4
+	# Output is in black_hole.mp4, can be played using vlc.
+	# For a quick check, can also just do feh animation/*png.
 
 depend: gen_depends.py
 	@python3 gen_depends.py >depend

@@ -1,10 +1,18 @@
 karl
 ====
 
-## Purpose
-
 Karl, named after Karl Schwarzschild, is a library for numerical calculations of trajectories
-of test particles in black-hole spacetimes. The technique used is direct numerical integration
+of test particles in black-hole spacetimes. 
+
+## Video made using the library
+
+As a demonstration of what the code can do,
+[here is a video](https://youtu.be/tq0If3I2ewo) simulating what
+you would see if you fell into a Schwarzschild black hole.
+
+## How it works
+
+The technique used is direct numerical integration
 of the equations of motion. Compared to techniques involving conserved quantities, this has
 some advantages:
 
