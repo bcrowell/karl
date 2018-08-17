@@ -7,7 +7,7 @@ of test particles in black-hole spacetimes.
 ## Video made using the library
 
 As a demonstration of what the code can do,
-[here is a video](https://youtu.be/tq0If3I2ewo) simulating what
+[here is a video](https://youtu.be/z-H-PipYCKc) simulating what
 you would see if you fell into a Schwarzschild black hole.
 
 ## How it works
