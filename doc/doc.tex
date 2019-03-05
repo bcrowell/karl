@@ -387,6 +387,8 @@ at which the geodesic terminates.
 
 \section{Specialized coordinates for use near the singularity}
 
+See D'Ambrosio and Rovelli.
+
 Press suggests ``to make
 a pre-integration change of variables in the equations'' near a singularity.
 The form of the exact solutions for radial infall from rest at infinity suggests
@@ -440,6 +442,8 @@ to linearize the behavior for the $L\ne0$ case. This could still be worth doing,
 a ginormous win.
 
 \section{Asymptotic behavior approaching the singularity}
+
+See D'Ambrosio and Rovelli.
 
 In Schwarzschild coordinates, 
 it seems empirically that $r$ sort of approximately goes like $\lambda^\alpha$
@@ -895,8 +899,37 @@ Massaged to avoid overflows:
 The singularities are at $\sinh a\sinh b=1$, which unfortunately isn't as simple to express in the
 $(a,b)$ coordinates as in Penrose coordinates. However, evaluating the Christoffel will always
 involve computing $r$ anyway, so if we want to see how close to are to a singularity, we can always
-use that. Accurately handling incomplete geodesics turned out to be very tricky on my first try.
-I'm probably best off just using someone else's adaptive Runge-Kutta code.
+use that.
+
+\section{Practical experience}
+
+The following describes my results as of 2018 August 20.
+
+One of my goals was to accurately find the proper time for test particles to hit the singularity,
+with and without an external force, so as to be able to reproduce Lewis and Kwan's results
+and possibly extend them. I basically got this working, and have some tests in the test
+suite. I later fiddled with the adaptive step size, and altered the algorithms for detecting
+when we were going to hit the singularity in ways that could affect the precision of the
+proper time. As of August 2018, I
+need to go back and test this more thoroughly and extend the test suite before
+trusting the code enough to really use it for high-quality work on this topic.
+
+For optics in the Schwarzschild spacetime, I developed three different
+algorithms: (1) the same adaptive algorithm
+I'd previously developed, (2) a different adaptive algorithm for use with AKS,
+and (3) reducing $\phi(r)$ to quadrature. Method 3 is very fast and reliable at all r,
+but cannot be extended to other spacetimes. 
+There is also a method (4), which is that $r(\phi)$ can be expressed
+in closed form in terms of the Weierstrass elliptic function $\wp$ (Gibbons and Vyska).
+For the Weierstrass method, Gibbons expresses the setup
+in terms of a certain integral; this integral is actually the inverse of the Weierstrass
+function, which can be evaluated efficiently (see
+\url{http://arblib.org/acb_elliptic.html#weierstrass-elliptic-functions}).
+
+For null geodesics in the Schwarzschild spacetime, there are excellent approximations for
+small and large deflections (see notes elsewhere). I think it could be a fun project to
+put these together into some kind of approximation scheme. Although there are exact results
+in terms of $\wp$, they're not typically very practical, for the reasons given above.
 
 \section{Simulating images from near a black hole}
 
@@ -1106,6 +1139,9 @@ directly overhead (as we would expect intuitively based on semi-Newtonian reason
 we're infalling, away from the sources), and blueshifts for horizon-grazing angles.
 
 \section{Literature on ray tracing}
+
+Two open-source libraries by Riccardo Antonelli: 
+\url{https://github.com/rantonels/starless} \url{https://github.com/rantonels/schwarzschild}
 
 some guy's web page with nice images, black hole ray tracing:
 \url{http://www.stephenbrooks.org/misc/blackhole/}

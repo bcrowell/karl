@@ -1,7 +1,8 @@
 karl
 ====
 
-Karl, named after Karl Schwarzschild, is a library for numerical calculations of trajectories
+Karl, named after [Karl Schwarzschild](https://en.wikipedia.org/wiki/Karl_Schwarzschild),
+is a library for numerical calculations of trajectories
 of test particles in black-hole spacetimes. 
 
 ## Video made using the library
